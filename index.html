@@ -1,1200 +1,1483 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="h-full bg-slate-100 text-slate-800">
+<html lang="pt-BR" class="dark scroll-smooth">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SeguroFlow • Gestão de Processos & Automação de Corretoras</title>
-  <!-- Tailwind CSS CDN -->
+  <script>
+    if (window.location.hostname.includes('github.io')) {
+      window.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('a[href="/app"]').forEach(a => a.href = 'app.html');
+        document.querySelectorAll('a[href="/"]').forEach(a => a.href = 'index.html');
+      });
+    }
+  </script>
+
+  <title>SeguroFlow OS | Sistema Operacional & Automação para Corretoras de Seguros</title>
+  <meta name="description" content="Elimine o caos operacional, zere o Efeito Bumerangue e automatize cobranças preventivas de apólices com Régua D-7, SLA blindado e OCR inteligente.">
+  
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Google Fonts: Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Google Fonts: Inter, Outfit e JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
   <script>
     tailwind.config = {
+      darkMode: 'class',
       theme: {
         extend: {
-          fontFamily: {
-            sans: ['"Inter"', 'sans-serif'],
-            mono: ['"JetBrains Mono"', 'monospace'],
-          },
           colors: {
+            bg: '#090a0f',
+            surface: {
+              DEFAULT: '#10121a',
+              2: '#161924',
+              3: '#1c2030',
+            },
+            line: {
+              DEFAULT: 'rgba(255, 255, 255, 0.08)',
+              strong: 'rgba(255, 255, 255, 0.16)',
+            },
+            muted: {
+              DEFAULT: '#9a9aa3',
+              2: '#60606b',
+            },
             brand: {
-              blue: '#205493',
-              accent: '#0066cc',
-              hover: '#0052a3',
-              sidebar: '#192538',
-              surface: '#ffffff',
-              canvas: '#f4f6f9',
-              border: '#dce3ec',
-              muted: '#62738d'
+              400: '#38bdf8',
+              500: '#0284c7',
+              600: '#0369a1',
             }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['Outfit', 'Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
           }
         }
       }
     }
   </script>
+
   <style>
-    /* Custom Scrollbar */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      overflow-x: hidden !important;
+      width: 100%;
+      max-width: 100%;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.2) #090a0f;
+    }
+
+    body {
+      background-color: #090a0f;
+      color: #f4f4f5;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden !important;
+      width: 100%;
+      max-width: 100%;
+      position: relative;
+    }
+
     ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
+      width: 8px;
     }
+
     ::-webkit-scrollbar-track {
-      background: #f1f5f9;
+      background: #090a0f;
     }
+
     ::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      border: 2px solid #090a0f;
     }
+
     ::-webkit-scrollbar-thumb:hover {
-      background: #94a3b8;
+      background: #38bdf8;
     }
-    .pipe-column {
-      min-width: 290px;
-      max-width: 320px;
+
+    .blueprint-grid {
+      background-size: 44px 44px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
     }
-    .whatsapp-bg {
-      background-color: #efeae2;
-      background-image: radial-gradient(#d1d7db 1px, transparent 1px);
-      background-size: 16px 16px;
+
+    .beam-btn {
+      position: relative;
+      overflow: hidden;
+      background: rgba(16, 18, 26, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      transition: all 0.25s ease;
+    }
+    .beam-btn:hover {
+      border-color: rgba(56, 189, 248, 0.6);
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.35);
+      transform: translateY(-1px);
+    }
+    .beam-btn::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: conic-gradient(from 0deg, transparent, #38bdf8, transparent 40%);
+      animation: rotateBeam 4s linear infinite;
+      opacity: 0.45;
+      pointer-events: none;
+    }
+    .beam-btn-inner {
+      position: relative;
+      z-index: 10;
+      background: #090a0f;
+    }
+
+    @keyframes rotateBeam {
+      100% { transform: rotate(360deg); }
+    }
+
+    .text-brand-gradient {
+      background: linear-gradient(135deg, #f4f4f5 20%, #38bdf8 55%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+      display: inline;
+      padding-bottom: 2px;
+      line-height: inherit;
+    }
+
+    .glass-nav {
+      background: rgba(9, 10, 15, 0.8);
+      backdrop-filter: blur(20px) saturate(160%);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .slider-range {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      border-radius: 9999px;
+      background: #1c2030;
+      outline: none;
+    }
+    .slider-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #38bdf8;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+      border: 2px solid #ffffff;
     }
   </style>
 </head>
-<body class="h-full flex overflow-hidden font-sans bg-[#f4f6f9] text-slate-800 antialiased select-none text-[13px]">
+<body class="selection:bg-sky-500/30 selection:text-sky-300">
 
-  <!-- SIDEBAR (PIPEX / SeguroFlow STYLE: DEEP NAVY CORPORATE) -->
-  <aside class="w-60 bg-[#162338] text-slate-300 flex flex-col justify-between shrink-0 border-r border-[#1e2f4a]">
-    <div>
-      <!-- Workspace Brand -->
-      <div class="h-14 flex items-center px-4 border-b border-[#213452] gap-3">
-        <div class="w-8 h-8 rounded-md bg-[#0066cc] flex items-center justify-center text-white font-bold text-sm shadow-sm">
-          <i data-lucide="layers" class="w-4 h-4"></i>
+  <!-- ========================================================================= -->
+  <!-- NAVBAR STICKY GLASS -->
+  <!-- ========================================================================= -->
+  <header class="sticky top-0 z-50 glass-nav w-full max-w-full overflow-hidden">
+    <div class="w-full max-w-6xl mx-auto h-16 px-4 sm:px-6 flex items-center justify-between border-x border-line">
+      
+      <!-- Marca SeguroFlow -->
+      <a href="index.html" class="flex items-center gap-3 group flex-shrink-0">
+        <div class="w-8 h-8 rounded-lg overflow-hidden border border-sky-500/40 shadow-lg shadow-sky-500/25 flex items-center justify-center group-hover:scale-105 transition flex-shrink-0 bg-surface text-sky-400">
+          <i data-lucide="shield-check" class="w-5 h-5"></i>
         </div>
-        <div class="overflow-hidden">
-          <div class="font-bold text-white text-[13px] tracking-tight leading-tight truncate">Nova Aliança Corretora</div>
-          <div class="text-[11px] text-slate-400 font-normal">Ambiente de Operações</div>
+        <div class="flex items-center gap-2 whitespace-nowrap">
+          <span class="font-display font-bold text-lg tracking-normal text-white">Seguro<span class="text-sky-400">Flow</span></span>
+          <span class="hidden sm:inline-flex items-center font-mono text-[9px] uppercase px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 whitespace-nowrap">OS Corretoras</span>
         </div>
-      </div>
+      </a>
 
-      <!-- Quick Search / Switcher -->
-      <div class="px-3 pt-3 pb-2">
-        <div class="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-slate-400 px-2 mb-1.5">
-          <span>Pipes & Processos</span>
-          <span class="text-[10px] bg-[#213452] text-slate-300 px-1 rounded font-mono">5 ATIVOS</span>
-        </div>
-      </div>
-
-      <!-- Navigation Links (SeguroFlow Style) -->
-      <nav class="px-2 space-y-0.5">
-        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition text-white bg-[#223554]">
-          <i data-lucide="layout-grid" class="w-4 h-4 text-blue-400"></i>
-          Visão Executiva
-        </button>
-
-        <button onclick="switchTab('cobranca')" id="nav-cobranca" class="w-full flex items-center justify-between px-3 py-2 rounded-md text-[13px] font-medium transition text-slate-300 hover:text-white hover:bg-[#1d2d46]">
-          <div class="flex items-center gap-2.5">
-            <i data-lucide="calendar-check-2" class="w-4 h-4 text-amber-400"></i>
-            Régua de Parcelas
-          </div>
-          <span class="text-[10px] font-semibold bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded-full border border-amber-500/30" id="badge-cobranca-count">5 hoje</span>
-        </button>
-
-        <button onclick="switchTab('kanban')" id="nav-kanban" class="w-full flex items-center justify-between px-3 py-2 rounded-md text-[13px] font-medium transition text-slate-300 hover:text-white hover:bg-[#1d2d46]">
-          <div class="flex items-center gap-2.5">
-            <i data-lucide="trello" class="w-4 h-4 text-sky-400"></i>
-            Pipe de Atendimento
-          </div>
-          <span class="text-[10px] font-semibold bg-blue-500/20 text-blue-300 px-1.5 py-0.2 rounded-full">SLA</span>
-        </button>
-
-        <button onclick="switchTab('chamadas')" id="nav-chamadas" class="w-full flex items-center justify-between px-3 py-2 rounded-md text-[13px] font-medium transition text-slate-300 hover:text-white hover:bg-[#1d2d46]">
-          <div class="flex items-center gap-2.5">
-            <i data-lucide="phone-incoming" class="w-4 h-4 text-emerald-400"></i>
-            Central de Chamadas
-          </div>
-          <span class="text-[10px] text-emerald-400 font-mono">Bumerangue Zero</span>
-        </button>
-
-        <button onclick="switchTab('renovacoes')" id="nav-renovacoes" class="w-full flex items-center justify-between px-3 py-2 rounded-md text-[13px] font-medium transition text-slate-300 hover:text-white hover:bg-[#1d2d46]">
-          <div class="flex items-center gap-2.5">
-            <i data-lucide="rotate-cw" class="w-4 h-4 text-indigo-400"></i>
-            Renovações (30d)
-          </div>
-          <span class="text-[10px] bg-slate-700/80 text-slate-300 px-1 rounded">30d</span>
-        </button>
-
-        <button onclick="switchTab('ocr')" id="nav-ocr" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition text-slate-300 hover:text-white hover:bg-[#1d2d46]">
-          <i data-lucide="file-text" class="w-4 h-4 text-teal-400"></i>
-          Extrator CNH / Apólice
-        </button>
+      <!-- Links de Navegação -->
+      <nav class="hidden lg:flex items-center justify-center mx-auto gap-3 xl:gap-5 text-xs font-mono uppercase tracking-wider text-muted hover:text-foreground whitespace-nowrap">
+        <a href="#video-apresentacao" class="whitespace-nowrap text-sky-400 hover:text-white font-semibold transition py-1 flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span>
+          Vídeo Oficial
+        </a>
+        <a href="#como-funciona" class="whitespace-nowrap hover:text-white transition py-1">O Problema Real</a>
+        <a href="#recursos" class="whitespace-nowrap hover:text-white transition py-1">Os 4 Motores</a>
+        <a href="#calculadora" class="whitespace-nowrap text-emerald-400 hover:text-white transition py-1 flex items-center gap-1">
+          <i data-lucide="calculator" class="w-3 h-3"></i>
+          Calculadora ROI
+        </a>
+        <a href="#comparativo" class="whitespace-nowrap hover:text-white transition py-1">Comparativo</a>
+        <a href="#planos" class="whitespace-nowrap hover:text-white transition py-1">Planos</a>
+        <a href="#faq" class="whitespace-nowrap hover:text-white transition py-1">FAQ</a>
       </nav>
 
-      <!-- Automations Status Widget (SeguroFlow Badge) -->
-      <div class="mt-5 mx-3 p-3 rounded-lg bg-[#111c2e] border border-[#213452] text-xs">
-        <div class="flex items-center justify-between text-slate-300 font-semibold mb-1">
-          <span class="flex items-center gap-1.5 text-[11px]">
-            <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-400"></i>
-            Automações Ativas
+      <!-- Ações do Topo -->
+      <div class="flex items-center gap-3 flex-shrink-0">
+        <a href="app.html" class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-300 hover:text-white px-3 py-1.5 rounded-lg border border-line bg-surface/60 hover:bg-surface transition whitespace-nowrap">
+          <i data-lucide="layout-grid" class="w-3.5 h-3.5 text-sky-400"></i>
+          <span>Abrir CRM</span>
+        </a>
+
+        <button onclick="openCheckoutModal('PRO')" class="hidden sm:inline-flex beam-btn rounded-lg p-[1px] items-center flex-shrink-0">
+          <span class="beam-btn-inner px-3.5 py-2 rounded-[7px] text-xs font-semibold text-white flex items-center gap-1.5 whitespace-nowrap">
+            <i data-lucide="sparkles" class="w-3 h-3 text-sky-400"></i>
+            Assinar Plano
           </span>
-          <span class="text-[10px] text-emerald-400 font-mono">14 REGRAS</span>
+        </button>
+
+        <!-- Menu Mobile Button -->
+        <button onclick="toggleMobileMenu()" aria-label="Abrir Menu Mobile" class="lg:hidden p-2 rounded-lg border border-line bg-surface/80 text-slate-300 hover:text-white transition flex items-center justify-center">
+          <i data-lucide="menu" id="mobileMenuIcon" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MOBILE DRAWER -->
+  <!-- ========================================================================= -->
+  <div id="mobileMenuDrawer" class="fixed inset-0 z-40 bg-[#090a0f]/95 backdrop-blur-2xl transition-all duration-300 transform -translate-y-full opacity-0 pointer-events-none lg:hidden flex flex-col pt-20 px-6 pb-8 border-b border-line">
+    <div class="flex flex-col gap-4 text-sm font-mono uppercase tracking-wider text-slate-200">
+      <a href="#video-apresentacao" onclick="toggleMobileMenu()" class="py-2.5 border-b border-line flex items-center justify-between text-sky-400 font-semibold">
+        <span class="whitespace-nowrap flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-sky-400 animate-pulse"></span>
+          Vídeo Oficial (3 min)
+        </span>
+        <i data-lucide="arrow-right" class="w-4 h-4 text-sky-400"></i>
+      </a>
+      <a href="#como-funciona" onclick="toggleMobileMenu()" class="py-2.5 border-b border-line flex items-center justify-between">
+        <span>O Problema Real</span>
+        <i data-lucide="arrow-right" class="w-4 h-4 text-sky-400"></i>
+      </a>
+      <a href="#recursos" onclick="toggleMobileMenu()" class="py-2.5 border-b border-line flex items-center justify-between">
+        <span>Os 4 Motores</span>
+        <i data-lucide="arrow-right" class="w-4 h-4 text-sky-400"></i>
+      </a>
+      <a href="#calculadora" onclick="toggleMobileMenu()" class="py-2.5 border-b border-line flex items-center justify-between text-emerald-400">
+        <span>Calculadora de Perdas</span>
+        <i data-lucide="arrow-right" class="w-4 h-4 text-emerald-400"></i>
+      </a>
+      <a href="#comparativo" onclick="toggleMobileMenu()" class="py-2.5 border-b border-line flex items-center justify-between">
+        <span>Comparativo</span>
+        <i data-lucide="arrow-right" class="w-4 h-4 text-sky-400"></i>
+      </a>
+      <a href="#planos" onclick="toggleMobileMenu()" class="py-2.5 border-b border-line flex items-center justify-between">
+        <span>Planos & Preços</span>
+        <i data-lucide="arrow-right" class="w-4 h-4 text-sky-400"></i>
+      </a>
+      <a href="#faq" onclick="toggleMobileMenu()" class="py-2.5 border-b border-line flex items-center justify-between">
+        <span>FAQ</span>
+        <i data-lucide="arrow-right" class="w-4 h-4 text-sky-400"></i>
+      </a>
+    </div>
+
+    <div class="mt-auto space-y-3 pt-6">
+      <a href="app.html" class="w-full py-3 px-4 rounded-xl border border-line bg-surface text-sm font-semibold text-white flex items-center justify-center gap-2">
+        <i data-lucide="layout-grid" class="w-4 h-4 text-sky-400"></i>
+        Abrir CRM Operacional
+      </a>
+      <button onclick="toggleMobileMenu(); openCheckoutModal('PRO');" class="beam-btn rounded-xl p-[1px] w-full block text-center">
+        <span class="beam-btn-inner px-6 py-3.5 rounded-[11px] text-sm font-bold text-white flex items-center justify-center gap-2">
+          Ativar SeguroFlow Pro
+          <i data-lucide="arrow-right" class="w-4 h-4 text-sky-400"></i>
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- HERO SECTION -->
+  <!-- ========================================================================= -->
+  <section class="relative overflow-hidden border-b border-line blueprint-grid">
+    <div class="relative mx-auto w-full max-w-6xl border-x border-line px-4 pb-16 pt-20 text-center sm:px-6 sm:pt-24">
+      
+      <!-- Retículas angulares de precisão técnica (Crosshairs) -->
+      <svg width="22" height="21" viewBox="0 0 22 21" fill="none" class="pointer-events-none absolute z-10 -left-[10px] -top-[10px]"><path d="M10.5 4C10.5 7.31371 7.81371 10 4.5 10H0.5V11H4.5C7.81371 11 10.5 13.6863 10.5 17V21H11.5V17C11.5 13.6863 14.1863 11 17.5 11H21.5V10H17.5C14.1863 10 11.5 7.31371 11.5 4V0H10.5V4Z" fill="rgba(255,255,255,0.2)"></path></svg>
+      <svg width="22" height="21" viewBox="0 0 22 21" fill="none" class="pointer-events-none absolute z-10 -right-[10px] -top-[10px]"><path d="M10.5 4C10.5 7.31371 7.81371 10 4.5 10H0.5V11H4.5C7.81371 11 10.5 13.6863 10.5 17V21H11.5V17C11.5 13.6863 14.1863 11 17.5 11H21.5V10H17.5C14.1863 10 11.5 7.31371 11.5 4V0H10.5V4Z" fill="rgba(255,255,255,0.2)"></path></svg>
+      <svg width="22" height="21" viewBox="0 0 22 21" fill="none" class="pointer-events-none absolute z-10 -left-[10px] -bottom-[10px]"><path d="M10.5 4C10.5 7.31371 7.81371 10 4.5 10H0.5V11H4.5C7.81371 11 10.5 13.6863 10.5 17V21H11.5V17C11.5 13.6863 14.1863 11 17.5 11H21.5V10H17.5C14.1863 10 11.5 7.31371 11.5 4V0H10.5V4Z" fill="rgba(255,255,255,0.2)"></path></svg>
+      <svg width="22" height="21" viewBox="0 0 22 21" fill="none" class="pointer-events-none absolute z-10 -right-[10px] -bottom-[10px]"><path d="M10.5 4C10.5 7.31371 7.81371 10 4.5 10H0.5V11H4.5C7.81371 11 10.5 13.6863 10.5 17V21H11.5V17C11.5 13.6863 14.1863 11 17.5 11H21.5V10H17.5C14.1863 10 11.5 7.31371 11.5 4V0H10.5V4Z" fill="rgba(255,255,255,0.2)"></path></svg>
+
+      <!-- Badge de Posicionamento B2B -->
+      <div class="mb-6 flex justify-center">
+        <div class="inline-flex items-center gap-2 bg-white/[0.04] p-1.5 px-3.5 rounded-full border border-white/10 backdrop-blur-md">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="text-[11px] font-mono text-slate-300 uppercase tracking-wide">Ecossistema Operacional • Zero Efeito Bumerangue</span>
+          <span class="ml-1 pl-2 border-l border-white/10 text-[11px] font-mono text-sky-400 font-bold">Régua D-7 Pix</span>
         </div>
-        <p class="text-[11px] text-slate-400 leading-normal">
-          WhatsApp D-7, D-0, D+2 e distribuição com SLA rodando em segundo plano.
+      </div>
+
+      <!-- Headline Principal de Alto Impacto -->
+      <h1 class="mx-auto max-w-4xl text-3xl font-normal leading-relaxed sm:text-5xl sm:leading-[1.28] lg:text-[2.75rem] lg:leading-[1.3]">
+        Elimine o <b class="font-bold text-brand-gradient">caos de mensagens e apólices canceladas</b> na sua corretora com o 
+        <span class="inline-flex items-center gap-1.5 align-middle px-2.5 py-1 my-0.5 rounded-md border border-sky-500/30 bg-sky-500/10 font-bold text-sky-400 text-[0.88em] whitespace-nowrap">
+          SeguroFlow OS
+        </span>
+        para operar com <b class="font-bold text-brand-gradient">paz de espírito e lucro previsível</b>.
+      </h1>
+
+      <!-- Sub-headline Técnica -->
+      <p class="mx-auto mt-6 max-w-2xl text-sm sm:text-base leading-relaxed text-muted">
+        A primeira suíte operacional desenhada cirurgicamente para as dores do corretor de seguros. Automatize a cobrança preventiva de parcelas via Pix dinâmico, liquide o retrabalho em triagens telefônicas e processe cotações em segundos com leitura OCR de CNH e apólices.
+      </p>
+
+      <!-- Botões de Ação do Hero -->
+      <div class="mt-9 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a href="app.html" class="beam-btn rounded-xl p-[1px] w-full sm:w-auto">
+          <span class="beam-btn-inner px-8 py-3.5 rounded-[11px] text-sm font-semibold text-white flex items-center justify-center gap-2">
+            Abrir CRM Operacional
+            <i data-lucide="arrow-right" class="w-4 h-4 text-sky-400"></i>
+          </span>
+        </a>
+        <a href="#video-apresentacao" class="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-line bg-surface/60 hover:bg-surface-2 text-sm font-medium text-slate-300 hover:text-white transition flex items-center justify-center gap-2 whitespace-nowrap">
+          <i data-lucide="play" class="w-4 h-4 text-sky-400"></i>
+          Assistir Apresentação (3 min)
+        </a>
+        <a href="#calculadora" class="w-full sm:w-auto px-6 py-3.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-sm font-medium text-emerald-300 hover:text-white transition flex items-center justify-center gap-2 whitespace-nowrap">
+          <i data-lucide="calculator" class="w-4 h-4"></i>
+          Simular Perdas da Carteira
+        </a>
+      </div>
+
+      <!-- MOCKUP VISUAL COMPLETO DO PAINEL (Estilo Browser Window macOS) -->
+      <div class="relative mx-auto mt-14 max-w-5xl text-left">
+        <div class="overflow-hidden rounded-2xl border border-line-strong bg-surface shadow-2xl shadow-sky-500/10">
+          
+          <!-- Top Bar macOS -->
+          <div class="flex items-center justify-between border-b border-line px-4 py-3 bg-[#0b0c12]">
+            <div class="flex items-center gap-2">
+              <span class="h-3 w-3 rounded-full bg-rose-500/80"></span>
+              <span class="h-3 w-3 rounded-full bg-amber-500/80"></span>
+              <span class="h-3 w-3 rounded-full bg-emerald-500/80"></span>
+            </div>
+            <div class="flex items-center gap-2 rounded-md bg-white/[0.04] px-4 py-1 text-[11px] font-mono text-slate-400 border border-white/5">
+              <i data-lucide="lock" class="w-3 h-3 text-emerald-400"></i>
+              app.seguroflow.com/operacoes/painel-executivo
+            </div>
+            <div class="flex items-center gap-2 text-[11px] font-mono text-emerald-400">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              SLA 99.4% • 0 Gargalos
+            </div>
+          </div>
+
+          <!-- Conteúdo Interno da Plataforma Mockada -->
+          <div class="p-6 bg-[#0c0d14] space-y-6">
+            
+            <!-- Linha de Boas-Vindas e Resumo do Cliente -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line pb-5">
+              <div>
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                  Painel de Controle • Nova Aliança Corretora
+                  <span class="text-xs font-mono font-normal px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20">Operação Ativa</span>
+                </h3>
+                <p class="text-xs text-muted mt-1">
+                  Régua Preventiva monitorando <strong class="text-white">1.840 apólices ativas</strong>. Zero cancelamentos involuntários nas últimas 72 horas.
+                </p>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-mono text-slate-400 bg-surface-2 px-3 py-1.5 rounded-lg border border-line">Mês Vigente</span>
+                <a href="app.html" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-white flex items-center gap-1.5 transition">
+                  <i data-lucide="external-link" class="w-3 h-3"></i> Testar CRM Ao Vivo
+                </a>
+              </div>
+            </div>
+
+            <!-- Grid de 5 KPIs com Gráficos Sparkline -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <!-- KPI 1 -->
+              <div class="p-3.5 rounded-xl border border-line bg-surface/80">
+                <div class="flex items-center justify-between text-[11px] text-muted">
+                  <span>Prêmio sob Gestão</span>
+                  <i data-lucide="shield" class="w-3.5 h-3.5 text-slate-500"></i>
+                </div>
+                <div class="mt-2 flex items-baseline justify-between">
+                  <span class="text-xl font-bold text-white font-mono">R$ 4.8M</span>
+                  <span class="text-[10px] text-emerald-400 font-mono">+24%</span>
+                </div>
+                <svg viewBox="0 0 60 18" class="w-full h-4 mt-2 text-sky-400" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M0 14 L12 11 L24 13 L36 8 L48 9 L60 2"></path>
+                </svg>
+              </div>
+
+              <!-- KPI 2 (Destaque Régua D-7) -->
+              <div class="p-3.5 rounded-xl border border-sky-500/30 bg-sky-500/[0.04]">
+                <div class="flex items-center justify-between text-[11px] text-sky-300 font-medium">
+                  <span>Régua D-7 (Pix)</span>
+                  <i data-lucide="zap" class="w-3.5 h-3.5 text-sky-400"></i>
+                </div>
+                <div class="mt-2 flex items-baseline justify-between">
+                  <span class="text-xl font-bold text-white font-mono">94.2%</span>
+                  <span class="text-[10px] text-emerald-400 font-mono">+18% pág.</span>
+                </div>
+                <svg viewBox="0 0 60 18" class="w-full h-4 mt-2 text-emerald-400" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M0 16 L12 14 L24 12 L36 8 L48 4 L60 1"></path>
+                </svg>
+              </div>
+
+              <!-- KPI 3 -->
+              <div class="p-3.5 rounded-xl border border-line bg-surface/80">
+                <div class="flex items-center justify-between text-[11px] text-muted">
+                  <span>Zero Bumerangue</span>
+                  <i data-lucide="phone-forwarded" class="w-3.5 h-3.5 text-slate-500"></i>
+                </div>
+                <div class="mt-2 flex items-baseline justify-between">
+                  <span class="text-xl font-bold text-white font-mono">88.5%</span>
+                  <span class="text-[10px] text-emerald-400 font-mono">1º toque</span>
+                </div>
+                <svg viewBox="0 0 60 18" class="w-full h-4 mt-2 text-indigo-400" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M0 12 L12 13 L24 10 L36 8 L48 6 L60 3"></path>
+                </svg>
+              </div>
+
+              <!-- KPI 4 -->
+              <div class="p-3.5 rounded-xl border border-line bg-surface/80">
+                <div class="flex items-center justify-between text-[11px] text-muted">
+                  <span>Tempo Resposta SLA</span>
+                  <i data-lucide="clock" class="w-3.5 h-3.5 text-slate-500"></i>
+                </div>
+                <div class="mt-2 flex items-baseline justify-between">
+                  <span class="text-xl font-bold text-white font-mono">3.4m</span>
+                  <span class="text-[10px] text-emerald-400 font-mono">-78% t</span>
+                </div>
+                <svg viewBox="0 0 60 18" class="w-full h-4 mt-2 text-purple-400" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M0 15 L12 12 L24 14 L36 7 L48 5 L60 2"></path>
+                </svg>
+              </div>
+
+              <!-- KPI 5 -->
+              <div class="p-3.5 rounded-xl border border-line bg-surface/80 col-span-2 md:col-span-1">
+                <div class="flex items-center justify-between text-[11px] text-muted">
+                  <span>Apólices Resgatadas</span>
+                  <i data-lucide="check-circle" class="w-3.5 h-3.5 text-slate-500"></i>
+                </div>
+                <div class="mt-2 flex items-baseline justify-between">
+                  <span class="text-xl font-bold text-white font-mono">142</span>
+                  <span class="text-[10px] text-emerald-400 font-mono">100% salvas</span>
+                </div>
+                <svg viewBox="0 0 60 18" class="w-full h-4 mt-2 text-cyan-400" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M0 10 L12 10 L24 9 L36 7 L48 5 L60 4"></path>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Live Pipe Feed Preview -->
+            <div class="p-4 rounded-xl border border-line bg-surface/60 space-y-3">
+              <div class="flex items-center justify-between border-b border-line pb-2.5">
+                <span class="text-xs font-semibold text-white flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                  Esteira em Tempo Real (WhatsApp & Webhook Ativos)
+                </span>
+                <span class="text-[11px] font-mono text-muted">Últimos disparos automáticos</span>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                <div class="p-3 rounded-lg bg-[#11131c] border border-line text-xs">
+                  <div class="flex items-center justify-between font-mono text-[10px] text-muted mb-1">
+                    <span class="text-sky-400 font-semibold">RÉGUA D-7 PIX</span>
+                    <span>Há 4 min</span>
+                  </div>
+                  <div class="font-semibold text-white">Auto Frota 12 Veículos</div>
+                  <div class="text-[11px] text-muted mt-0.5">Metalúrgica Silva • R$ 1.840,00</div>
+                  <div class="mt-2 flex items-center gap-1.5 text-[10px] text-emerald-400 font-mono">
+                    <i data-lucide="check" class="w-3 h-3"></i> Pix Pago Confirmado
+                  </div>
+                </div>
+
+                <div class="p-3 rounded-lg bg-[#11131c] border border-line text-xs">
+                  <div class="flex items-center justify-between font-mono text-[10px] text-muted mb-1">
+                    <span class="text-emerald-400 font-semibold">ZERO BUMERANGUE</span>
+                    <span>Há 11 min</span>
+                  </div>
+                  <div class="font-semibold text-white">Sinistro Guincho Urgente</div>
+                  <div class="text-[11px] text-muted mt-0.5">Dra. Camila Ramos • Porto Seguro</div>
+                  <div class="mt-2 flex items-center gap-1.5 text-[10px] text-sky-400 font-mono">
+                    <i data-lucide="arrow-right" class="w-3 h-3"></i> Triage em 1º contato (SLA 6m)
+                  </div>
+                </div>
+
+                <div class="p-3 rounded-lg bg-[#11131c] border border-line text-xs">
+                  <div class="flex items-center justify-between font-mono text-[10px] text-muted mb-1">
+                    <span class="text-purple-400 font-semibold">OCR CNH & VIGÊNCIA</span>
+                    <span>Há 18 min</span>
+                  </div>
+                  <div class="font-semibold text-white">Nova Cotação SUV Blindado</div>
+                  <div class="text-[11px] text-muted mt-0.5">Roberto Albuquerque • Tokio Marine</div>
+                  <div class="mt-2 flex items-center gap-1.5 text-[10px] text-purple-300 font-mono">
+                    <i data-lucide="file-check" class="w-3 h-3"></i> CNH lida em 1.4s • Cotação pronta
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- SEÇÃO: VÍDEO EXECUTIVO DE APRESENTAÇÃO (RUBENS LOSS) -->
+  <!-- ========================================================================= -->
+  <section id="video-apresentacao" class="relative py-20 border-b border-line bg-[#0a0c13]">
+    <div class="mx-auto w-full max-w-6xl px-4 sm:px-6">
+      
+      <div class="text-center max-w-3xl mx-auto mb-12">
+        <div class="inline-flex items-center gap-1.5 font-mono text-xs uppercase px-3 py-1 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 mb-3">
+          <i data-lucide="play-circle" class="w-3.5 h-3.5"></i>
+          Apresentação Executiva • Narração Oficial Rubens Loss
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-normal leading-tight">
+          Entenda em 3 minutos como o <b class="font-bold text-brand-gradient">SeguroFlow OS</b> devolve o controle da sua corretora.
+        </h2>
+        <p class="text-sm sm:text-base text-muted mt-3">
+          Uma visão transparente dos gargalos invisíveis que roubam as noites de sono do corretor e a arquitetura técnica que resolve cada um deles.
         </p>
       </div>
-    </div>
 
-    <!-- User Profile Footer -->
-    <div class="p-3 border-t border-[#213452] bg-[#121c2c] flex items-center justify-between">
-      <div class="flex items-center gap-2.5 overflow-hidden">
-        <div class="w-7 h-7 rounded bg-slate-600 flex items-center justify-center font-bold text-xs text-white">
-          RS
-        </div>
-        <div class="overflow-hidden">
-          <div class="text-[12px] font-semibold text-white truncate">Rubens Silva</div>
-          <div class="text-[10px] text-slate-400 truncate">Administrador Geral</div>
-        </div>
-      </div>
-      <i data-lucide="settings" class="w-4 h-4 text-slate-400 hover:text-white cursor-pointer"></i>
-    </div>
-  </aside>
-
-  <!-- MAIN CANVAS (PIPEX CLEAN LIGHT) -->
-  <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f4f6f9]">
-    
-    <!-- TOP TOOLBAR (SeguroFlow NAVBAR) -->
-    <header class="h-14 bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0 shadow-xs">
-      <div class="flex items-center gap-3">
-        <h1 id="page-title" class="text-base font-bold text-slate-900 tracking-tight">Visão Executiva & Indicadores</h1>
-        <div class="h-4 w-px bg-slate-200"></div>
-        <span class="text-xs text-slate-500 font-medium">Corretora Seguros • Unidade São Paulo</span>
-      </div>
-
-      <!-- Quick Action Buttons for the Meeting Demo -->
-      <div class="flex items-center gap-2">
-        <span class="text-xs text-slate-500 font-medium mr-1 hidden lg:block">Simulações Rápidas:</span>
+      <!-- Player Container Card -->
+      <div class="max-w-4xl mx-auto rounded-2xl border border-line-strong bg-surface overflow-hidden shadow-2xl shadow-sky-500/10">
         
-        <button onclick="triggerDemoCobranca()" class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded text-xs font-semibold transition">
-          <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-600"></i>
-          Disparar Régua D-7 (WhatsApp)
-        </button>
-
-        <button onclick="triggerDemoInadimplencia()" class="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-800 border border-red-300 rounded text-xs font-semibold transition">
-          <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-red-600"></i>
-          Alerta: Risco de Cancelamento
-        </button>
-
-        <button onclick="triggerDemoLigacao()" class="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded text-xs font-semibold transition">
-          <i data-lucide="phone-call" class="w-3.5 h-3.5 text-emerald-600"></i>
-          Simular Ligação de Cliente
-        </button>
-
-        <button onclick="openNewCardModal()" class="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#0066cc] hover:bg-[#0052a3] text-white rounded text-xs font-semibold transition shadow-sm ml-2">
-          <i data-lucide="plus" class="w-4 h-4"></i>
-          Novo Card
-        </button>
-      </div>
-    </header>
-
-    <!-- CONTENT WRAPPER -->
-    <main class="flex-1 overflow-y-auto p-6" id="main-content">
-
-      <!-- ============================================================== -->
-      <!-- TAB 1: VISÃO EXECUTIVA (DASHBOARD)                             -->
-      <!-- ============================================================== -->
-      <div id="tab-dashboard" class="space-y-6">
-        
-        <!-- Metrics Row (SeguroFlow Metric Cards) -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          
-          <div class="p-4 rounded-lg bg-white border border-slate-200 shadow-xs">
-            <div class="flex items-center justify-between text-slate-500 mb-1">
-              <span class="text-xs font-medium uppercase tracking-wider">Carteira Ativa</span>
-              <i data-lucide="shield" class="w-4 h-4 text-blue-600"></i>
-            </div>
-            <div class="text-2xl font-bold text-slate-900">842 <span class="text-xs font-normal text-slate-500">apólices</span></div>
-            <div class="mt-2 text-xs text-emerald-700 font-medium flex items-center gap-1">
-              <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i>
-              +38 novas este mês
-            </div>
-          </div>
-
-          <div class="p-4 rounded-lg bg-white border border-slate-200 shadow-xs cursor-pointer hover:border-amber-400 transition" onclick="switchTab('cobranca')">
-            <div class="flex items-center justify-between text-slate-500 mb-1">
-              <span class="text-xs font-medium uppercase tracking-wider">Régua D-7 (Esta Semana)</span>
-              <i data-lucide="calendar" class="w-4 h-4 text-amber-600"></i>
-            </div>
-            <div class="text-2xl font-bold text-slate-900">18 <span class="text-xs font-normal text-slate-500">parcelas</span></div>
-            <div class="mt-2 text-xs text-slate-600 font-medium flex items-center gap-1">
-              <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i>
-              100% notificadas com Pix no WhatsApp
-            </div>
-          </div>
-
-          <div class="p-4 rounded-lg bg-white border border-red-200 shadow-xs cursor-pointer hover:border-red-400 transition" onclick="switchTab('cobranca')">
-            <div class="flex items-center justify-between text-red-700 mb-1">
-              <span class="text-xs font-bold uppercase tracking-wider">Risco de Cancelamento</span>
-              <i data-lucide="alert-octagon" class="w-4 h-4 text-red-600"></i>
-            </div>
-            <div class="text-2xl font-bold text-red-700">3 <span class="text-xs font-normal text-slate-500">apólices</span></div>
-            <div class="mt-2 text-xs text-red-600 font-medium flex items-center gap-1">
-              <i data-lucide="clock" class="w-3.5 h-3.5"></i>
-              Atraso > 4 dias (Ação imediata)
-            </div>
-          </div>
-
-          <div class="p-4 rounded-lg bg-white border border-slate-200 shadow-xs">
-            <div class="flex items-center justify-between text-slate-500 mb-1">
-              <span class="text-xs font-medium uppercase tracking-wider">SLA Médio de Retorno</span>
-              <i data-lucide="timer" class="w-4 h-4 text-emerald-600"></i>
-            </div>
-            <div class="text-2xl font-bold text-emerald-700">11 min</div>
-            <div class="mt-2 text-xs text-slate-500 font-medium">
-              Antes: 3h45 (Efeito Bumerangue zerado)
-            </div>
-          </div>
-
+        <!-- Video Player Element -->
+        <div class="relative bg-black aspect-video flex items-center justify-center group overflow-hidden">
+          <video id="mainSeguroFlowVideo" class="w-full h-full object-contain" controls preload="metadata" poster="">
+            <source src="SeguroFlow_Apresentacao_Oficial_Rubens.mp4" type="video/mp4">
+            Seu navegador não suporta reprodução direta de MP4. Utilize o botão de download abaixo.
+          </video>
         </div>
 
-        <!-- 2 Columns: Activity Log & Process Summary -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          <!-- Recent Activity (SeguroFlow Audit Trail) -->
-          <div class="lg:col-span-2 bg-white rounded-lg border border-slate-200 shadow-xs p-5">
-            <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
-              <div class="font-bold text-slate-900 text-sm flex items-center gap-2">
-                <i data-lucide="history" class="w-4 h-4 text-slate-500"></i>
-                Linha do Tempo de Automações Recentes
-              </div>
-              <span class="text-xs text-slate-500">Hoje, 03 de Outubro</span>
-            </div>
-
-            <div class="space-y-3">
-              <div class="flex items-start gap-3 p-3 rounded-md bg-slate-50 border border-slate-100">
-                <div class="w-7 h-7 rounded bg-amber-100 text-amber-700 flex items-center justify-center shrink-0 mt-0.5 font-bold">
-                  <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
-                </div>
-                <div class="flex-1">
-                  <div class="flex items-center justify-between text-xs">
-                    <span class="font-semibold text-slate-900">Régua D-7 • WhatsApp disparado</span>
-                    <span class="text-slate-400 font-mono text-[11px]">há 6 min</span>
-                  </div>
-                  <p class="text-xs text-slate-600 mt-0.5">
-                    Cliente <strong>Carlos Eduardo Mendes</strong> recebeu o lembrete da parcela 4/10 do seguro Auto Porto Seguro (R$ 382,90) com chave Pix Copia-e-Cola e PDF.
-                  </p>
-                </div>
-              </div>
-
-              <div class="flex items-start gap-3 p-3 rounded-md bg-slate-50 border border-slate-100">
-                <div class="w-7 h-7 rounded bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 font-bold">
-                  <i data-lucide="phone-forwarded" class="w-3.5 h-3.5"></i>
-                </div>
-                <div class="flex-1">
-                  <div class="flex items-center justify-between text-xs">
-                    <span class="font-semibold text-slate-900">Chamada Recebida • Protocolo Aberto</span>
-                    <span class="text-slate-400 font-mono text-[11px]">há 21 min</span>
-                  </div>
-                  <p class="text-xs text-slate-600 mt-0.5">
-                    Cliente <strong>Marcos Vinicius</strong> ligou solicitando 2ª via. Sistema transcreveu, atribuiu para <strong>Amanda</strong> com SLA de 15 min e avisou o cliente no WhatsApp.
-                  </p>
-                </div>
-              </div>
-
-              <div class="flex items-start gap-3 p-3 rounded-md bg-slate-50 border border-slate-100">
-                <div class="w-7 h-7 rounded bg-blue-100 text-blue-700 flex items-center justify-center shrink-0 mt-0.5 font-bold">
-                  <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-                </div>
-                <div class="flex-1">
-                  <div class="flex items-center justify-between text-xs">
-                    <span class="font-semibold text-slate-900">Renovação Identificada (30 dias)</span>
-                    <span class="text-slate-400 font-mono text-[11px]">há 44 min</span>
-                  </div>
-                  <p class="text-xs text-slate-600 mt-0.5">
-                    Apólice Tokio Marine do segurado <strong>Roberto Silveira</strong> vence em 02/11. Robô puxou a classe de bônus anterior (Classe 7 → 8) e gerou a pré-cotação.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Summary Widget -->
-          <div class="bg-white rounded-lg border border-slate-200 shadow-xs p-5 flex flex-col justify-between">
+        <!-- Capítulos do Vídeo e Metadados -->
+        <div class="p-6 bg-[#0f111a] border-t border-line">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-line pb-4 mb-4">
             <div>
-              <div class="font-bold text-slate-900 text-sm mb-3 flex items-center gap-2">
-                <i data-lucide="pie-chart" class="w-4 h-4 text-slate-500"></i>
-                Status da Operação Hoje
-              </div>
+              <span class="text-xs font-mono text-sky-400 font-semibold uppercase">Vídeo Demo de 3 Minutos</span>
+              <h4 class="text-base font-bold text-white mt-0.5">SeguroFlow OS — Arquitetura de Eficiência & Anti-Gargalo</h4>
+            </div>
+            <div class="flex items-center gap-3">
+              <a href="SeguroFlow_Apresentacao_Oficial_Rubens.mp4" download="SeguroFlow_Apresentacao_Oficial_Rubens.mp4" class="px-3.5 py-2 rounded-lg border border-line bg-surface/80 hover:bg-surface text-xs font-medium text-slate-300 hover:text-white flex items-center gap-2 transition">
+                <i data-lucide="download" class="w-3.5 h-3.5 text-sky-400"></i>
+                Baixar Vídeo (56 MB)
+              </a>
+              <a href="app.html" class="px-3.5 py-2 rounded-lg bg-sky-500 hover:bg-sky-400 text-xs font-semibold text-white flex items-center gap-2 transition">
+                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                Abrir CRM
+              </a>
+            </div>
+          </div>
 
-              <div class="space-y-2.5 text-xs">
-                <div class="flex items-center justify-between p-2 rounded bg-slate-50 border border-slate-100">
-                  <span class="text-slate-600">Parcelas Vencendo Hoje:</span>
-                  <span class="font-bold text-slate-900 font-mono">5 parcelas</span>
-                </div>
-                <div class="flex items-center justify-between p-2 rounded bg-slate-50 border border-slate-100">
-                  <span class="text-slate-600">Lembretes D-7 Enviados:</span>
-                  <span class="font-bold text-emerald-700 font-mono">18 de 18 (100%)</span>
-                </div>
-                <div class="flex items-center justify-between p-2 rounded bg-slate-50 border border-slate-100">
-                  <span class="text-slate-600">Inadimplência Crítica (D+2):</span>
-                  <span class="font-bold text-red-700 font-mono">3 em risco</span>
-                </div>
-                <div class="flex items-center justify-between p-2 rounded bg-slate-50 border border-slate-100">
-                  <span class="text-slate-600">Cards no Pipe da Equipe:</span>
-                  <span class="font-bold text-blue-700 font-mono">15 tarefas ativas</span>
-                </div>
+          <!-- Seletor Rápido de Capítulos -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+            <button onclick="seekVideo(0)" class="p-2.5 rounded-lg border border-line hover:border-sky-500/40 bg-surface/60 hover:bg-surface text-left transition group">
+              <div class="flex items-center justify-between text-[10px] font-mono text-muted mb-1">
+                <span>00:00</span>
+                <span class="text-sky-400 group-hover:underline">Pular para</span>
               </div>
+              <div class="text-xs font-semibold text-white group-hover:text-sky-300 transition">1. O Esgotamento do Corretor</div>
+              <div class="text-[11px] text-muted mt-0.5 line-clamp-1">O gargalo do WhatsApp e as noites sem dormir.</div>
+            </button>
 
-              <div class="mt-4 p-3 rounded bg-blue-50 border border-blue-200 text-blue-900 text-xs">
-                <div class="font-semibold flex items-center gap-1 mb-1">
-                  <i data-lucide="info" class="w-3.5 h-3.5 text-blue-600"></i>
-                  Regra da SUSEP
-                </div>
-                Atrasos sem pagamento suspendem a cobertura da apólice. A régua preventiva do SeguroFlow garante retenção de 93% sem atrito.
+            <button onclick="seekVideo(45)" class="p-2.5 rounded-lg border border-line hover:border-sky-500/40 bg-surface/60 hover:bg-surface text-left transition group">
+              <div class="flex items-center justify-between text-[10px] font-mono text-muted mb-1">
+                <span>00:45</span>
+                <span class="text-sky-400 group-hover:underline">Pular para</span>
+              </div>
+              <div class="text-xs font-semibold text-white group-hover:text-sky-300 transition">2. Régua Preventiva D-7 Pix</div>
+              <div class="text-[11px] text-muted mt-0.5 line-clamp-1">Como salvar apólices antes do cancelamento.</div>
+            </button>
+
+            <button onclick="seekVideo(85)" class="p-2.5 rounded-lg border border-line hover:border-sky-500/40 bg-surface/60 hover:bg-surface text-left transition group">
+              <div class="flex items-center justify-between text-[10px] font-mono text-muted mb-1">
+                <span>01:25</span>
+                <span class="text-sky-400 group-hover:underline">Pular para</span>
+              </div>
+              <div class="text-xs font-semibold text-white group-hover:text-sky-300 transition">3. Esteira Kanban com SLA</div>
+              <div class="text-[11px] text-muted mt-0.5 line-clamp-1">Triage Zero Bumerangue e visibilidade do time.</div>
+            </button>
+
+            <button onclick="seekVideo(125)" class="p-2.5 rounded-lg border border-line hover:border-sky-500/40 bg-surface/60 hover:bg-surface text-left transition group">
+              <div class="flex items-center justify-between text-[10px] font-mono text-muted mb-1">
+                <span>02:05</span>
+                <span class="text-sky-400 group-hover:underline">Pular para</span>
+              </div>
+              <div class="text-xs font-semibold text-white group-hover:text-sky-300 transition">4. OCR CNH & Fechamento</div>
+              <div class="text-[11px] text-muted mt-0.5 line-clamp-1">Extração automática e o futuro da corretora.</div>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- SEÇÃO: O PROBLEMA REAL (O FIM DO EFEITO BUMERANGUE) -->
+  <!-- ========================================================================= -->
+  <section id="como-funciona" class="relative py-20 border-b border-line blueprint-grid">
+    <div class="mx-auto w-full max-w-6xl px-4 sm:px-6">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <div class="inline-flex items-center gap-1.5 font-mono text-xs uppercase px-3 py-1 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 mb-3">
+          <i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i>
+          O Diagnóstico Oculto
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-normal leading-tight">
+          Por que a maioria das corretoras <b class="font-bold text-rose-400">cresce com dor e noites sem dormir?</b>
+        </h2>
+        <p class="text-sm sm:text-base text-muted mt-3">
+          O corretor não sofre por falta de clientes. Ele adoece porque sua operação é um funil furado de ligações repetitivas, esquecimento de boletos e retrabalho manual.
+        </p>
+      </div>
+
+      <!-- Comparativo Lado a Lado: Caos Tradicional vs SeguroFlow OS -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- LADO A: O CAOS TRADICIONAL -->
+        <div class="p-6 sm:p-8 rounded-2xl border border-rose-500/30 bg-rose-500/[0.03] space-y-5">
+          <div class="flex items-center justify-between border-b border-rose-500/20 pb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400">
+                <i data-lucide="x-circle" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-white">Corretora Tradicional</h3>
+                <span class="text-xs font-mono text-rose-400">Caos Operacional & Efeito Bumerangue</span>
+              </div>
+            </div>
+            <span class="text-xs font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-300">Alto Estresse</span>
+          </div>
+
+          <div class="space-y-4 text-sm text-slate-300">
+            <div class="flex items-start gap-3">
+              <i data-lucide="phone-missed" class="w-4 h-4 text-rose-400 shrink-0 mt-1"></i>
+              <div>
+                <strong class="text-white block">Efeito Bumerangue no WhatsApp:</strong>
+                O cliente liga 4 vezes para saber o status do sinistro ou pedir 2ª via. Cada vez fala com um atendente diferente e precisa repetir tudo do zero.
               </div>
             </div>
 
-            <button onclick="switchTab('cobranca')" class="w-full mt-4 py-2 bg-[#0066cc] hover:bg-[#0052a3] text-white rounded font-semibold text-xs transition flex items-center justify-center gap-2 shadow-sm">
-              Abrir Régua de Cobrança
-              <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
-            </button>
+            <div class="flex items-start gap-3">
+              <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400 shrink-0 mt-1"></i>
+              <div>
+                <strong class="text-white block">Cancelamento Involuntário por Falta de Aviso:</strong>
+                O segurado não viu o e-mail da seguradora, esqueceu a 3ª parcela e a apólice é cancelada. O cliente descobre quando o carro bate.
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <i data-lucide="file-question" class="w-4 h-4 text-rose-400 shrink-0 mt-1"></i>
+              <div>
+                <strong class="text-white block">Digitação Lenta & Cansaço Visual:</strong>
+                A equipe passa 40 minutos redigitando CPF, placa, vigência e CEP de fotos borradas de CNH enviadas no WhatsApp antes de abrir o multicálculo.
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <i data-lucide="clock" class="w-4 h-4 text-rose-400 shrink-0 mt-1"></i>
+              <div>
+                <strong class="text-white block">SLAs Invisíveis e Leads Esquecidos:</strong>
+                Cotações quentes ficam perdidas na gaveta do e-mail. Quando o corretor responde, o cliente já fechou com o concorrente.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LADO B: A REVOLUÇÃO SEGUROFLOW -->
+        <div class="p-6 sm:p-8 rounded-2xl border border-sky-500/40 bg-sky-500/[0.04] space-y-5 shadow-xl shadow-sky-500/5">
+          <div class="flex items-center justify-between border-b border-sky-500/20 pb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-sky-500/20 border border-sky-500/40 flex items-center justify-center text-sky-400">
+                <i data-lucide="shield-check" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-white">Com SeguroFlow OS</h3>
+                <span class="text-xs font-mono text-sky-400">Operação Blindada & Automatizada</span>
+              </div>
+            </div>
+            <span class="text-xs font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Lucro Máximo</span>
           </div>
 
+          <div class="space-y-4 text-sm text-slate-300">
+            <div class="flex items-start gap-3">
+              <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 shrink-0 mt-1"></i>
+              <div>
+                <strong class="text-white block">Triagem com Zero Efeito Bumerangue:</strong>
+                No primeiro toque, o sistema unifica o histórico do segurado e gera link de self-service ou protocolo rápido. 88% resolvido de imediato.
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <i data-lucide="zap" class="w-4 h-4 text-emerald-400 shrink-0 mt-1"></i>
+              <div>
+                <strong class="text-white block">Régua Preventiva D-7 Pix Dinâmico:</strong>
+                Notificação automática e educada 7 dias antes do vencimento com botão de Pix Copia e Cola. 94% pagas sem o corretor ligar.
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <i data-lucide="scan" class="w-4 h-4 text-emerald-400 shrink-0 mt-1"></i>
+              <div>
+                <strong class="text-white block">OCR Instantâneo de CNH & Apólice:</strong>
+                Arraste o documento em PDF ou foto de celular: o motor lê e preenche todos os campos em 1.5s, eliminando o erro humano de digitação.
+              </div>
+            </div>
+
+            <div class="flex items-start gap-3">
+              <i data-lucide="trello" class="w-4 h-4 text-emerald-400 shrink-0 mt-1"></i>
+              <div>
+                <strong class="text-white block">Esteira Kanban com SLA Travado:</strong>
+                Gestão visual com cronômetro em tempo real por fase (Cotação, Emissão, Sinistro). Alertas automáticos antes do prazo expirar.
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>
 
-      <!-- ============================================================== -->
-      <!-- TAB 2: RÉGUA DE PARCELAS (SeguroFlow TABLE VIEW)                   -->
-      <!-- ============================================================== -->
-      <div id="tab-cobranca" class="space-y-4 hidden">
-        
-        <!-- Header & Action Row -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-lg border border-slate-200 shadow-xs">
-          <div>
-            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
-              <i data-lucide="calendar-check" class="w-4 h-4 text-blue-600"></i>
-              Régua de Parcelas & Prevenção de Inadimplência
-            </h2>
-            <p class="text-xs text-slate-500 mt-0.5">
-              Disparos automáticos no WhatsApp nos marcos D-7, D-0 e D+2 com conciliação diária de baixas das seguradoras.
-            </p>
-          </div>
+    </div>
+  </section>
 
-          <div class="flex items-center gap-2">
-            <button onclick="runDailySweep()" class="px-3.5 py-1.5 rounded bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-sm">
-              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-              Executar Varredura Diária
-            </button>
-          </div>
+  <!-- ========================================================================= -->
+  <!-- SEÇÃO: CALCULADORA INTERATIVA DE PERDAS (LEAD MAGNET) -->
+  <!-- ========================================================================= -->
+  <section id="calculadora" class="relative py-20 border-b border-line bg-[#090b12]">
+    <div class="mx-auto w-full max-w-6xl px-4 sm:px-6">
+      
+      <div class="text-center max-w-3xl mx-auto mb-14">
+        <div class="inline-flex items-center gap-1.5 font-mono text-xs uppercase px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 mb-3">
+          <i data-lucide="calculator" class="w-3.5 h-3.5"></i>
+          Simulador Financeiro Exclusivo
         </div>
-
-        <!-- Filter Bar (SeguroFlow Style) -->
-        <div class="flex items-center justify-between gap-2 bg-white p-2.5 rounded-lg border border-slate-200 shadow-xs text-xs">
-          <div class="flex items-center gap-1 overflow-x-auto">
-            <button onclick="filterParcelas('all')" id="btn-filter-all" class="px-3 py-1.5 rounded font-semibold bg-[#205493] text-white">
-              Todas (42)
-            </button>
-            <button onclick="filterParcelas('d7')" id="btn-filter-d7" class="px-3 py-1.5 rounded font-medium text-slate-600 hover:bg-slate-100">
-              A Vencer em 7 Dias (18)
-            </button>
-            <button onclick="filterParcelas('d0')" id="btn-filter-d0" class="px-3 py-1.5 rounded font-medium text-slate-600 hover:bg-slate-100">
-              Vencendo Hoje (5)
-            </button>
-            <button onclick="filterParcelas('atraso')" id="btn-filter-atraso" class="px-3 py-1.5 rounded font-medium text-red-700 hover:bg-red-50">
-              Em Atraso / Risco (3)
-            </button>
-            <button onclick="filterParcelas('pago')" id="btn-filter-pago" class="px-3 py-1.5 rounded font-medium text-slate-600 hover:bg-slate-100">
-              Pagas com Baixa (16)
-            </button>
-          </div>
-
-          <div class="relative w-64 hidden md:block">
-            <i data-lucide="search" class="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400"></i>
-            <input type="text" placeholder="Filtrar por segurado ou placa..." class="w-full pl-8 pr-3 py-1 rounded border border-slate-200 text-xs focus:outline-none focus:border-blue-500">
-          </div>
-        </div>
-
-        <!-- Parcelas Table (Clean SeguroFlow Grid) -->
-        <div class="bg-white rounded-lg border border-slate-200 shadow-xs overflow-hidden">
-          <table class="w-full text-left text-xs">
-            <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200 uppercase tracking-wider text-[11px]">
-              <tr>
-                <th class="px-4 py-3">Segurado</th>
-                <th class="px-4 py-3">Item / Seguro</th>
-                <th class="px-4 py-3">Seguradora</th>
-                <th class="px-4 py-3">Parcela</th>
-                <th class="px-4 py-3">Valor</th>
-                <th class="px-4 py-3">Vencimento</th>
-                <th class="px-4 py-3">Fase da Régua</th>
-                <th class="px-4 py-3 text-right">Ação</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100" id="tabela-parcelas-body">
-              <!-- Rows injected by JS -->
-            </tbody>
-          </table>
-        </div>
-
+        <h2 class="text-2xl sm:text-4xl font-normal leading-tight">
+          Quanto dinheiro sua corretora está <b class="font-bold text-emerald-400">deixando na mesa todo ano?</b>
+        </h2>
+        <p class="text-sm sm:text-base text-muted mt-3">
+          Mova os controles abaixo com os números aproximados da sua carteira e veja o impacto financeiro real da inadimplência e do retrabalho operacional.
+        </p>
       </div>
 
-      <!-- ============================================================== -->
-      <!-- TAB 3: PIPE DE ATENDIMENTO (SeguroFlow KANBAN VIEW)                 -->
-      <!-- ============================================================== -->
-      <div id="tab-kanban" class="space-y-4 hidden">
-        
-        <div class="flex items-center justify-between bg-white p-4 rounded-lg border border-slate-200 shadow-xs">
-          <div>
-            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
-              <i data-lucide="trello" class="w-4 h-4 text-blue-600"></i>
-              Pipe de Atendimento & Operações
-            </h2>
-            <p class="text-xs text-slate-500 mt-0.5">
-              Fluxo kanban oficial da corretora. Arraste os cards entre as fases ou clique para abrir os detalhes.
-            </p>
-          </div>
-
-          <div class="flex items-center gap-2 text-xs">
-            <span class="text-slate-500">Filtrar por responsável:</span>
-            <span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium border border-slate-200">Amanda (6)</span>
-            <span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium border border-slate-200">Gabriel (4)</span>
-            <span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium border border-slate-200">Juliana (5)</span>
-          </div>
-        </div>
-
-        <!-- Kanban Horizontal Columns (SeguroFlow Style) -->
-        <div class="flex gap-4 overflow-x-auto pb-4 items-start">
+      <div class="max-w-4xl mx-auto rounded-2xl border border-line-strong bg-surface p-6 sm:p-8 shadow-2xl">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
           
-          <!-- Column 1: Triagem -->
-          <div class="pipe-column bg-[#ebedf0] rounded-lg p-2.5 flex flex-col gap-2 shrink-0 border border-slate-200/80">
-            <div class="flex items-center justify-between px-1.5 py-1">
-              <div class="flex items-center gap-2 font-bold text-slate-800 text-xs">
-                <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
-                Triagem / Entrada
-              </div>
-              <span class="text-[11px] font-semibold bg-white px-2 py-0.5 rounded-full text-slate-600 shadow-2xs border border-slate-200">2</span>
-            </div>
-
-            <!-- Card 1 -->
-            <div onclick="openCardDrawer('Vinicius Peixoto', 'Porto Seguro Auto', '2ª via de boleto (vence hoje)', 'Amanda', 'SLA: 12 min', 'BRA2E19')" class="bg-white p-3 rounded-md border border-slate-200 shadow-2xs hover:border-blue-400 hover:shadow-xs transition cursor-pointer space-y-2">
-              <div class="flex items-center justify-between text-[11px]">
-                <span class="px-1.5 py-0.5 rounded font-medium bg-blue-50 text-blue-700 border border-blue-200">Porto Seguro</span>
-                <span class="text-amber-700 font-mono text-[10px] font-bold bg-amber-50 px-1 rounded border border-amber-200">SLA: 12 min</span>
-              </div>
-              <div class="font-bold text-slate-900 text-xs">Vinicius Peixoto</div>
-              <p class="text-[11px] text-slate-500">Solicitação de 2ª via de parcela recebida via telefone.</p>
-              <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-                <div class="flex items-center gap-1.5">
-                  <div class="w-4 h-4 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center font-bold text-[9px]">A</div>
-                  <span class="text-slate-600 font-medium">Amanda</span>
-                </div>
-                <span class="text-emerald-700 font-semibold text-[10px] flex items-center gap-0.5">
-                  <i data-lucide="check" class="w-3 h-3"></i> WhatsApp
-                </span>
-              </div>
-            </div>
-
-            <!-- Card 2 -->
-            <div onclick="openCardDrawer('Fabiana Guimarães', 'Allianz Residencial', 'Cotação novo imóvel condomínio', 'Gabriel', 'SLA: 25 min', '-')" class="bg-white p-3 rounded-md border border-slate-200 shadow-2xs hover:border-blue-400 hover:shadow-xs transition cursor-pointer space-y-2">
-              <div class="flex items-center justify-between text-[11px]">
-                <span class="px-1.5 py-0.5 rounded font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">Allianz</span>
-                <span class="text-slate-500 font-mono text-[10px]">SLA: 25 min</span>
-              </div>
-              <div class="font-bold text-slate-900 text-xs">Fabiana Guimarães</div>
-              <p class="text-[11px] text-slate-500">Cotação para condomínio fechado em Alphaville.</p>
-              <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-                <div class="flex items-center gap-1.5">
-                  <div class="w-4 h-4 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center font-bold text-[9px]">G</div>
-                  <span class="text-slate-600 font-medium">Gabriel</span>
-                </div>
-                <span class="text-slate-400 text-[10px]">Indicação</span>
-              </div>
-            </div>
-
-            <button onclick="openNewCardModal()" class="w-full py-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-200/60 rounded text-xs font-medium flex items-center justify-center gap-1 transition">
-              <i data-lucide="plus" class="w-3.5 h-3.5"></i> Criar Card
-            </button>
-          </div>
-
-          <!-- Column 2: Em Cotação -->
-          <div class="pipe-column bg-[#ebedf0] rounded-lg p-2.5 flex flex-col gap-2 shrink-0 border border-slate-200/80">
-            <div class="flex items-center justify-between px-1.5 py-1">
-              <div class="flex items-center gap-2 font-bold text-slate-800 text-xs">
-                <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
-                Em Cotação (Multicálculo)
-              </div>
-              <span class="text-[11px] font-semibold bg-white px-2 py-0.5 rounded-full text-slate-600 shadow-2xs border border-slate-200">2</span>
-            </div>
-
-            <!-- Card 3 -->
-            <div class="bg-white p-3 rounded-md border border-slate-200 shadow-2xs hover:border-blue-400 hover:shadow-xs transition cursor-pointer space-y-2">
-              <div class="flex items-center justify-between text-[11px]">
-                <span class="px-1.5 py-0.5 rounded font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">Auto Frota (4 vans)</span>
-                <span class="text-slate-500 text-[10px]">Tokio / Azul</span>
-              </div>
-              <div class="font-bold text-slate-900 text-xs">Transportes Alvorada</div>
-              <p class="text-[11px] text-slate-500">Robô rodando multicálculo nas seguradoras.</p>
-              <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-                <div class="flex items-center gap-1.5">
-                  <div class="w-4 h-4 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center font-bold text-[9px]">J</div>
-                  <span class="text-slate-600 font-medium">Juliana</span>
-                </div>
-                <span class="text-blue-600 font-semibold text-[10px]">Cálculo 80%</span>
-              </div>
-            </div>
-
-            <!-- Card 4 -->
-            <div class="bg-white p-3 rounded-md border border-slate-200 shadow-2xs hover:border-blue-400 hover:shadow-xs transition cursor-pointer space-y-2">
-              <div class="flex items-center justify-between text-[11px]">
-                <span class="px-1.5 py-0.5 rounded font-medium bg-blue-50 text-blue-700 border border-blue-200">Corolla Cross 2024</span>
-                <span class="text-slate-500 text-[10px]">Bradesco</span>
-              </div>
-              <div class="font-bold text-slate-900 text-xs">Dr. Henrique Borges</div>
-              <p class="text-[11px] text-slate-500">Comparando franquia normal vs reduzida.</p>
-              <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-                <div class="flex items-center gap-1.5">
-                  <div class="w-4 h-4 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center font-bold text-[9px]">A</div>
-                  <span class="text-slate-600 font-medium">Amanda</span>
-                </div>
-                <span class="text-slate-500 text-[10px]">Bônus 10</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Column 3: Aguardando Cliente -->
-          <div class="pipe-column bg-[#ebedf0] rounded-lg p-2.5 flex flex-col gap-2 shrink-0 border border-slate-200/80">
-            <div class="flex items-center justify-between px-1.5 py-1">
-              <div class="flex items-center gap-2 font-bold text-slate-800 text-xs">
-                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                Aguardando Cliente
-              </div>
-              <span class="text-[11px] font-semibold bg-white px-2 py-0.5 rounded-full text-slate-600 shadow-2xs border border-slate-200">1</span>
-            </div>
-
-            <!-- Card 5 -->
-            <div class="bg-white p-3 rounded-md border border-slate-200 shadow-2xs hover:border-blue-400 hover:shadow-xs transition cursor-pointer space-y-2">
-              <div class="flex items-center justify-between text-[11px]">
-                <span class="px-1.5 py-0.5 rounded font-medium bg-indigo-50 text-indigo-700 border border-indigo-200">Saúde PME (8 vidas)</span>
-                <span class="text-emerald-700 text-[10px]">SulAmérica</span>
-              </div>
-              <div class="font-bold text-slate-900 text-xs">TechLab Soluções</div>
-              <p class="text-[11px] text-slate-500">Proposta enviada pelo WhatsApp. Aguarda aprovação da diretoria.</p>
-              <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-                <div class="flex items-center gap-1.5">
-                  <div class="w-4 h-4 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center font-bold text-[9px]">G</div>
-                  <span class="text-slate-600 font-medium">Gabriel</span>
-                </div>
-                <span class="text-amber-700 font-semibold text-[10px]">Follow-up hoje</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Column 4: Emitido / Finalizado -->
-          <div class="pipe-column bg-[#ebedf0] rounded-lg p-2.5 flex flex-col gap-2 shrink-0 border border-slate-200/80">
-            <div class="flex items-center justify-between px-1.5 py-1">
-              <div class="flex items-center gap-2 font-bold text-slate-800 text-xs">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
-                Emitido / Concluído
-              </div>
-              <span class="text-[11px] font-semibold bg-white px-2 py-0.5 rounded-full text-slate-600 shadow-2xs border border-slate-200">8</span>
-            </div>
-
-            <!-- Card 6 -->
-            <div class="bg-white p-3 rounded-md border border-slate-200 shadow-2xs hover:border-blue-400 hover:shadow-xs transition cursor-pointer space-y-2">
-              <div class="flex items-center justify-between text-[11px]">
-                <span class="px-1.5 py-0.5 rounded font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">Compass Longitude</span>
-                <span class="text-slate-500 text-[10px]">Porto Seguro</span>
-              </div>
-              <div class="font-bold text-slate-900 text-xs">Beatriz Fonseca</div>
-              <p class="text-[11px] text-slate-500">Apólice emitida. Régua de parcelas D-7 cadastrada.</p>
-              <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-emerald-700 font-medium">
-                <span>Comissão: 18%</span>
-                <span class="flex items-center gap-0.5">⚡ Ativo</span>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-      </div>
-
-      <!-- ============================================================== -->
-      <!-- TAB 4: CENTRAL DE CHAMADAS (ZERO BUMERANGUE)                   -->
-      <!-- ============================================================== -->
-      <div id="tab-chamadas" class="space-y-4 hidden">
-        
-        <div class="flex items-center justify-between bg-white p-4 rounded-lg border border-slate-200 shadow-xs">
-          <div>
-            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
-              <i data-lucide="phone-call" class="w-4 h-4 text-emerald-600"></i>
-              Central de Chamadas & Triagem Inteligente
-            </h2>
-            <p class="text-xs text-slate-500 mt-0.5">
-              Acabe com o "Efeito Bumerangue": ligações são transcritas, distribuídas com SLA e o cliente é notificado no WhatsApp na hora.
-            </p>
-          </div>
-
-          <button onclick="triggerDemoLigacao()" class="px-3 py-1.5 rounded bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-sm">
-            <i data-lucide="phone-incoming" class="w-3.5 h-3.5"></i>
-            Simular Ligação Agora
-          </button>
-        </div>
-
-        <!-- Log de Chamadas -->
-        <div class="bg-white rounded-lg border border-slate-200 shadow-xs p-5 space-y-4" id="chamadas-list">
-          <!-- Injected by JS -->
-        </div>
-
-      </div>
-
-      <!-- ============================================================== -->
-      <!-- TAB 5: ESTEIRA DE RENOVAÇÕES (30 DIAS)                         -->
-      <!-- ============================================================== -->
-      <div id="tab-renovacoes" class="space-y-4 hidden">
-        
-        <div class="flex items-center justify-between bg-white p-4 rounded-lg border border-slate-200 shadow-xs">
-          <div>
-            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
-              <i data-lucide="rotate-cw" class="w-4 h-4 text-indigo-600"></i>
-              Esteira Preventiva de Renovações (30 a 45 dias)
-            </h2>
-            <p class="text-xs text-slate-500 mt-0.5">
-              Garante a retenção da carteira calculando previamente o bônus antes que o segurado seja abordado pelo banco.
-            </p>
-          </div>
-          <span class="text-xs bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded font-semibold">
-            Retenção de Carteira: 94.2%
-          </span>
-        </div>
-
-        <div class="bg-white rounded-lg border border-slate-200 shadow-xs overflow-hidden">
-          <table class="w-full text-left text-xs">
-            <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200 uppercase tracking-wider text-[11px]">
-              <tr>
-                <th class="px-4 py-3">Segurado</th>
-                <th class="px-4 py-3">Item Segurado</th>
-                <th class="px-4 py-3">Seguradora Atual</th>
-                <th class="px-4 py-3">Vigência Final</th>
-                <th class="px-4 py-3">Evolução do Bônus</th>
-                <th class="px-4 py-3">Status</th>
-                <th class="px-4 py-3 text-right">Ação</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-              <tr class="hover:bg-slate-50 transition">
-                <td class="px-4 py-3 font-semibold text-slate-900">Luciana Vasconcelos</td>
-                <td class="px-4 py-3 text-slate-600">Honda HR-V 2022</td>
-                <td class="px-4 py-3 text-slate-500">Porto Seguro</td>
-                <td class="px-4 py-3 text-amber-700 font-mono font-medium">24/10 (em 21 dias)</td>
-                <td class="px-4 py-3 text-slate-700 font-medium">Classe 7 → 8</td>
-                <td class="px-4 py-3">
-                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                    Pré-cotação Pronta
-                  </span>
-                </td>
-                <td class="px-4 py-3 text-right">
-                  <button class="px-2.5 py-1 rounded bg-[#0066cc] hover:bg-[#0052a3] text-white font-semibold text-[11px]">
-                    Enviar WhatsApp
-                  </button>
-                </td>
-              </tr>
-
-              <tr class="hover:bg-slate-50 transition">
-                <td class="px-4 py-3 font-semibold text-slate-900">Rodrigo Mattos</td>
-                <td class="px-4 py-3 text-slate-600">Residencial Casa Alphaville</td>
-                <td class="px-4 py-3 text-slate-500">Allianz</td>
-                <td class="px-4 py-3 text-amber-700 font-mono font-medium">30/10 (em 27 dias)</td>
-                <td class="px-4 py-3 text-slate-700 font-medium">Sem Sinistro</td>
-                <td class="px-4 py-3">
-                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-800 border border-blue-200">
-                    Contato Iniciado
-                  </span>
-                </td>
-                <td class="px-4 py-3 text-right">
-                  <button class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] border border-slate-200">
-                    Ver Histórico
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-      </div>
-
-      <!-- ============================================================== -->
-      <!-- TAB 6: LEITOR CNH / APÓLICE (OCR)                              -->
-      <!-- ============================================================== -->
-      <div id="tab-ocr" class="space-y-4 hidden">
-        
-        <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-xs">
-          <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
-            <i data-lucide="file-text" class="w-4 h-4 text-teal-600"></i>
-            Extrator Estruturado de Documentos (CNH / CRLV / Apólices)
-          </h2>
-          <p class="text-xs text-slate-500 mt-0.5">
-            Elimina a digitação manual da equipe: lê imagens de CNH ou PDFs de apólices e entrega a ficha preenchida em segundos.
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
-          <div class="bg-white rounded-lg border border-slate-200 shadow-xs p-5 flex flex-col justify-between">
+          <!-- Controles / Sliders -->
+          <div class="space-y-6">
             <div>
-              <h3 class="text-sm font-bold text-slate-900 mb-1">Entrada de Documento</h3>
-              <p class="text-xs text-slate-500 mb-4">Simule o upload de uma CNH recebida pelo WhatsApp:</p>
-
-              <div onclick="simulateOcrScan()" class="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-lg p-8 text-center bg-slate-50 transition cursor-pointer flex flex-col items-center justify-center gap-2">
-                <div class="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                  <i data-lucide="upload" class="w-5 h-5"></i>
-                </div>
-                <div class="text-xs font-bold text-slate-800">Clique para Simular Leitura</div>
-                <div class="text-[11px] text-slate-500">Extrai nome, CPF, placa, chassi e bônus</div>
+              <div class="flex justify-between text-xs font-mono mb-2">
+                <span class="text-slate-300">Apólices Ativas na Carteira</span>
+                <span id="labelApolices" class="text-sky-400 font-bold">600 apólices</span>
               </div>
+              <input type="range" id="inputApolices" min="100" max="3000" step="50" value="600" class="w-full slider-range" oninput="updateCalculator()">
             </div>
 
-            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-              <span>Precisão do extrator:</span>
-              <span class="text-emerald-700 font-bold font-mono">99.4%</span>
+            <div>
+              <div class="flex justify-between text-xs font-mono mb-2">
+                <span class="text-slate-300">Ticket Médio Anual da Apólice</span>
+                <span id="labelTicket" class="text-sky-400 font-bold">R$ 3.500</span>
+              </div>
+              <input type="range" id="inputTicket" min="1000" max="10000" step="250" value="3500" class="w-full slider-range" oninput="updateCalculator()">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs font-mono mb-2">
+                <span class="text-slate-300">Comissão Média da Corretora</span>
+                <span id="labelComissao" class="text-sky-400 font-bold">18%</span>
+              </div>
+              <input type="range" id="inputComissao" min="10" max="30" step="1" value="18" class="w-full slider-range" oninput="updateCalculator()">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs font-mono mb-2">
+                <span class="text-slate-300">Inadimplência ou Esquecimento de Parcela</span>
+                <span id="labelInadimplencia" class="text-rose-400 font-bold">7%</span>
+              </div>
+              <input type="range" id="inputInadimplencia" min="2" max="18" step="1" value="7" class="w-full slider-range" oninput="updateCalculator()">
             </div>
           </div>
 
-          <div class="bg-white rounded-lg border border-slate-200 shadow-xs p-5">
-            <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
-              <h3 class="text-sm font-bold text-slate-900">Campos Extraídos do Documento</h3>
-              <span id="ocr-status-badge" class="text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded font-mono font-bold">
-                PROCESSADO (0.8s)
+          <!-- Card de Resultados Dinâmicos -->
+          <div class="p-6 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.04] flex flex-col justify-between">
+            <div>
+              <span class="text-xs font-mono uppercase text-emerald-400 font-semibold flex items-center gap-1.5">
+                <i data-lucide="trending-up" class="w-4 h-4"></i>
+                Diagnóstico de Retorno Financeiro
               </span>
-            </div>
 
-            <div class="grid grid-cols-2 gap-3 text-xs">
-              <div class="p-2.5 rounded bg-slate-50 border border-slate-200">
-                <span class="text-[10px] text-slate-500 uppercase font-semibold">Nome do Segurado</span>
-                <div class="text-slate-900 font-bold mt-0.5">Carlos Eduardo Mendes</div>
-              </div>
+              <div class="mt-5 space-y-4">
+                <div>
+                  <div class="text-xs text-muted">Comissões Perdidas por Falta de Régua D-7:</div>
+                  <div id="resPerdaAnual" class="text-2xl sm:text-3xl font-extrabold text-rose-400 font-mono mt-0.5">R$ 26.460 / ano</div>
+                </div>
 
-              <div class="p-2.5 rounded bg-slate-50 border border-slate-200">
-                <span class="text-[10px] text-slate-500 uppercase font-semibold">CPF</span>
-                <div class="text-slate-900 font-mono font-medium mt-0.5">284.912.408-11</div>
-              </div>
+                <div>
+                  <div class="text-xs text-muted">Horas de Equipe Gastas em Cobranças e Triage:</div>
+                  <div id="resHorasGastas" class="text-xl font-bold text-amber-400 font-mono mt-0.5">38 horas / mês</div>
+                </div>
 
-              <div class="p-2.5 rounded bg-slate-50 border border-slate-200">
-                <span class="text-[10px] text-slate-500 uppercase font-semibold">Veículo</span>
-                <div class="text-slate-900 font-bold mt-0.5">Jeep Compass Longitude 2023</div>
-              </div>
-
-              <div class="p-2.5 rounded bg-slate-50 border border-slate-200">
-                <span class="text-[10px] text-slate-500 uppercase font-semibold">Placa</span>
-                <div class="text-slate-900 font-mono font-bold mt-0.5">BRA2E19</div>
-              </div>
-
-              <div class="p-2.5 rounded bg-slate-50 border border-slate-200">
-                <span class="text-[10px] text-slate-500 uppercase font-semibold">Chassi</span>
-                <div class="text-slate-900 font-mono text-[11px] mt-0.5">9BD12948270192831</div>
-              </div>
-
-              <div class="p-2.5 rounded bg-slate-50 border border-slate-200">
-                <span class="text-[10px] text-slate-500 uppercase font-semibold">Classe de Bônus</span>
-                <div class="text-emerald-700 font-mono font-bold mt-0.5">Classe 8 (Confirmado)</div>
+                <div class="pt-3 border-t border-emerald-500/20">
+                  <div class="text-xs text-emerald-300 font-semibold">Receita Resgatável com SeguroFlow OS:</div>
+                  <div id="resRecuperado" class="text-3xl font-extrabold text-emerald-400 font-mono mt-1">+ R$ 24.340 / ano</div>
+                  <p class="text-[11px] text-muted mt-1">Equivalente a um ROI médio de mais de <strong>4.800%</strong> sobre o plano Pro.</p>
+                </div>
               </div>
             </div>
 
-            <div class="mt-4 pt-3 border-t border-slate-100 flex justify-end">
-              <button class="px-3.5 py-1.5 bg-[#0066cc] hover:bg-[#0052a3] text-white rounded text-xs font-semibold transition flex items-center gap-1.5 shadow-sm">
-                <i data-lucide="send" class="w-3.5 h-3.5"></i> Enviar ao Multicálculo
+            <div class="mt-6">
+              <button onclick="openCheckoutModal('PRO')" class="w-full beam-btn rounded-xl p-[1px] block">
+                <span class="beam-btn-inner px-4 py-3 rounded-[11px] text-xs font-bold text-white flex items-center justify-center gap-2">
+                  <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+                  Recuperar Minha Carteira Agora
+                </span>
               </button>
             </div>
           </div>
 
         </div>
-
       </div>
 
-    </main>
-  </div>
+    </div>
+  </section>
 
-  <!-- ============================================================== -->
-  <!-- MODAL: SeguroFlow CARD DRAWER (DETALHES DO CARD)                    -->
-  <!-- ============================================================== -->
-  <div id="drawer-card" class="fixed inset-0 bg-slate-900/50 backdrop-blur-2xs z-50 flex items-center justify-center p-4 hidden">
-    <div class="w-full max-w-4xl bg-white rounded-lg shadow-xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+  <!-- ========================================================================= -->
+  <!-- SEÇÃO: OS 4 MOTORES TECNOLÓGICOS DO SEGUROFLOW OS -->
+  <!-- ========================================================================= -->
+  <section id="recursos" class="relative py-20 border-b border-line blueprint-grid">
+    <div class="mx-auto w-full max-w-6xl px-4 sm:px-6">
       
-      <!-- Drawer Header -->
-      <div class="px-6 py-3.5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-blue-800" id="drawer-tag">Porto Seguro</span>
-          <h3 class="text-sm font-bold text-slate-900" id="drawer-title">Vinicius Peixoto</h3>
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <div class="inline-flex items-center gap-1.5 font-mono text-xs uppercase px-3 py-1 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 mb-3">
+          <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
+          Engenharia de Processos
         </div>
-        <button onclick="closeCardDrawer()" class="text-slate-400 hover:text-slate-700 p-1">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
+        <h2 class="text-2xl sm:text-4xl font-normal leading-tight">
+          Os 4 Motores que transformam sua corretora em uma <b class="font-bold text-brand-gradient">máquina autônoma de escala</b>.
+        </h2>
+        <p class="text-sm sm:text-base text-muted mt-3">
+          Nada de funcionalidades cosméticas. Cada módulo foi desenhado para eliminar uma dor diária específica da rotina de seguros.
+        </p>
       </div>
 
-      <!-- Drawer Body: 2 Columns (SeguroFlow Style) -->
-      <div class="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-5 divide-y md:divide-y-0 md:divide-x divide-slate-200">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         
-        <!-- Left: Process Fields (3 cols) -->
-        <div class="md:col-span-3 p-6 space-y-4 text-xs">
-          <div class="font-bold text-slate-800 text-sm uppercase tracking-wider pb-2 border-b border-slate-100">
-            Campos do Processo
+        <!-- Motor 1 -->
+        <div class="p-6 sm:p-8 rounded-2xl border border-line bg-surface hover:border-sky-500/40 transition group">
+          <div class="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 mb-5 group-hover:scale-110 transition">
+            <i data-lucide="calendar-clock" class="w-5 h-5"></i>
           </div>
-
-          <div class="space-y-3">
-            <div>
-              <label class="text-[11px] font-semibold text-slate-500 block mb-1">Motivo do Card / Demanda:</label>
-              <div class="p-2 rounded bg-slate-50 border border-slate-200 text-slate-800" id="drawer-motivo">
-                2ª via de boleto (vence hoje)
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="text-[11px] font-semibold text-slate-500 block mb-1">Responsável:</label>
-                <div class="p-2 rounded bg-slate-50 border border-slate-200 text-slate-800 font-medium" id="drawer-resp">
-                  Amanda
-                </div>
-              </div>
-              <div>
-                <label class="text-[11px] font-semibold text-slate-500 block mb-1">Tempo Limite (SLA):</label>
-                <div class="p-2 rounded bg-amber-50 border border-amber-200 text-amber-800 font-mono font-bold" id="drawer-sla">
-                  12 min restantes
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <label class="text-[11px] font-semibold text-slate-500 block mb-1">Placa / Chassi / Veículo:</label>
-              <div class="p-2 rounded bg-slate-50 border border-slate-200 font-mono text-slate-800" id="drawer-veiculo">
-                BRA2E19 • Tracker Premier 2022
-              </div>
-            </div>
-
-            <div class="p-3 rounded bg-emerald-50 border border-emerald-200 text-emerald-900">
-              <div class="font-bold flex items-center gap-1.5 mb-1">
-                <i data-lucide="zap" class="w-3.5 h-3.5 text-emerald-700"></i>
-                Automação Ativa de Protocolo:
-              </div>
-              O cliente recebeu confirmação via WhatsApp logo após a ligação. Não há risco de cobrança reincidente no telefone do corretor.
-            </div>
+          <span class="text-xs font-mono text-sky-400 font-semibold uppercase">Motor 01</span>
+          <h3 class="text-lg font-bold text-white mt-1 mb-2">Régua Preventiva D-7 Pix Dinâmico</h3>
+          <p class="text-sm text-muted leading-relaxed mb-4">
+            Em vez de descobrir que a apólice foi cancelada após o vencimento, o SeguroFlow envia lembretes gentis e automatizados 7 dias antes (D-7), no dia (D-0) e em D+2 via WhatsApp oficial, já com a chave Pix Copia e Cola da seguradora.
+          </p>
+          <div class="p-3 rounded-lg bg-surface-2 border border-line text-xs font-mono text-slate-300 flex items-center justify-between">
+            <span>Redução Comprovada de Inadimplência:</span>
+            <span class="text-emerald-400 font-bold">- 84% de perdas</span>
           </div>
         </div>
 
-        <!-- Right: Activity & WhatsApp History (2 cols) -->
-        <div class="md:col-span-2 p-6 bg-slate-50 space-y-4 text-xs">
-          <div class="font-bold text-slate-800 text-sm uppercase tracking-wider pb-2 border-b border-slate-200">
-            Registro do WhatsApp
+        <!-- Motor 2 -->
+        <div class="p-6 sm:p-8 rounded-2xl border border-line bg-surface hover:border-sky-500/40 transition group">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-5 group-hover:scale-110 transition">
+            <i data-lucide="phone-call" class="w-5 h-5"></i>
           </div>
-
-          <!-- Message Card Real -->
-          <div class="bg-white p-3.5 rounded-lg border border-slate-200 shadow-2xs space-y-2">
-            <div class="flex items-center justify-between text-[11px] text-slate-400">
-              <span class="font-bold text-emerald-700">Robô SeguroFlow</span>
-              <span>Hoje às 09:14</span>
-            </div>
-            <p class="text-slate-700 text-xs leading-relaxed" id="drawer-whatsapp-text">
-              "Olá Vinicius! Recebemos sua solicitação de 2ª via da parcela Porto Seguro. A analista Amanda já está gerando seu boleto e Pix e você receberá por aqui em instantes."
-            </p>
-            <div class="text-right text-[10px] text-slate-400">
-              Entregue e lido ✓✓
-            </div>
+          <span class="text-xs font-mono text-emerald-400 font-semibold uppercase">Motor 02</span>
+          <h3 class="text-lg font-bold text-white mt-1 mb-2">Central Zero Efeito Bumerangue</h3>
+          <p class="text-sm text-muted leading-relaxed mb-4">
+            Triagem imediata e inteligente no primeiro toque telefônico ou no WhatsApp. Identifica se a solicitação é Sinistro, Endosso, 2ª Via de Boleto ou Nova Cotação e direciona com protocolo unificado. O segurado nunca mais repete sua história.
+          </p>
+          <div class="p-3 rounded-lg bg-surface-2 border border-line text-xs font-mono text-slate-300 flex items-center justify-between">
+            <span>Resoluções no 1º Contato:</span>
+            <span class="text-emerald-400 font-bold">88.5% dos chamados</span>
           </div>
+        </div>
 
-          <div class="text-center pt-2">
-            <button onclick="closeCardDrawer()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded text-xs transition">
-              Fechar Visualização
-            </button>
+        <!-- Motor 3 -->
+        <div class="p-6 sm:p-8 rounded-2xl border border-line bg-surface hover:border-sky-500/40 transition group">
+          <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-5 group-hover:scale-110 transition">
+            <i data-lucide="kanban" class="w-5 h-5"></i>
+          </div>
+          <span class="text-xs font-mono text-indigo-400 font-semibold uppercase">Motor 03</span>
+          <h3 class="text-lg font-bold text-white mt-1 mb-2">Esteira Kanban com SLA Travado</h3>
+          <p class="text-sm text-muted leading-relaxed mb-4">
+            Cada fase da corretora (Triagem, Cotação Multicálculo, Validação de Proposta, Emissão e Pós-Venda) tem prazos de SLA rígidos. Indicadores visuais mostram em amarelo e vermelho qualquer processo que esteja desacelerando o time.
+          </p>
+          <div class="p-3 rounded-lg bg-surface-2 border border-line text-xs font-mono text-slate-300 flex items-center justify-between">
+            <span>Tempo Médio até Emissão:</span>
+            <span class="text-emerald-400 font-bold">- 65% mais rápido</span>
+          </div>
+        </div>
+
+        <!-- Motor 4 -->
+        <div class="p-6 sm:p-8 rounded-2xl border border-line bg-surface hover:border-sky-500/40 transition group">
+          <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 mb-5 group-hover:scale-110 transition">
+            <i data-lucide="scan-line" class="w-5 h-5"></i>
+          </div>
+          <span class="text-xs font-mono text-purple-400 font-semibold uppercase">Motor 04</span>
+          <h3 class="text-lg font-bold text-white mt-1 mb-2">Extrator OCR de CNH & Apólice</h3>
+          <p class="text-sm text-muted leading-relaxed mb-4">
+            Alimentado por modelos de visão computacional, o extrator lê PDFs de apólices antigas ou fotos de CNH tiradas com o celular e estrutura Nome, CPF, Data de Nascimento, Vigência e Bônus em 1.5s, prontos para preencher sua proposta.
+          </p>
+          <div class="p-3 rounded-lg bg-surface-2 border border-line text-xs font-mono text-slate-300 flex items-center justify-between">
+            <span>Tempo de Cadastro por Cotação:</span>
+            <span class="text-emerald-400 font-bold">De 30 min para 2 seg</span>
           </div>
         </div>
 
       </div>
 
     </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- SEÇÃO: MATRIZ COMPARATIVA EXECUTIVA -->
+  <!-- ========================================================================= -->
+  <section id="comparativo" class="relative py-20 border-b border-line bg-[#0a0c14]">
+    <div class="mx-auto w-full max-w-6xl px-4 sm:px-6">
+      
+      <div class="text-center max-w-3xl mx-auto mb-14">
+        <div class="inline-flex items-center gap-1.5 font-mono text-xs uppercase px-3 py-1 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 mb-3">
+          <i data-lucide="scale" class="w-3.5 h-3.5"></i>
+          Matriz de Decisão
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-normal leading-tight">
+          Como o <b class="font-bold text-brand-gradient">SeguroFlow OS</b> se compara às alternativas?
+        </h2>
+        <p class="text-sm sm:text-base text-muted mt-3">
+          Veja por que ERPs legados e planilhas não resolvem o gargalo da sua corretora.
+        </p>
+      </div>
+
+      <div class="max-w-4xl mx-auto overflow-x-auto rounded-2xl border border-line bg-surface">
+        <table class="w-full text-left text-xs sm:text-sm">
+          <thead>
+            <tr class="border-b border-line bg-[#131622] text-slate-400 font-mono uppercase text-[11px]">
+              <th class="p-4 sm:p-5">Capacidade Técnica</th>
+              <th class="p-4 sm:p-5 text-sky-400 font-bold bg-sky-500/10 border-x border-sky-500/20">SeguroFlow OS</th>
+              <th class="p-4 sm:p-5">ERPs Legados Antigos</th>
+              <th class="p-4 sm:p-5">Planilhas + WhatsApp</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-line text-slate-300">
+            <tr>
+              <td class="p-4 sm:p-5 font-semibold text-white">Régua D-7 com Pix Automático</td>
+              <td class="p-4 sm:p-5 text-emerald-400 font-semibold bg-sky-500/5 border-x border-sky-500/20 flex items-center gap-1.5">
+                <i data-lucide="check-circle" class="w-4 h-4"></i> Nativa (D-7, D-0, D+2)
+              </td>
+              <td class="p-4 sm:p-5 text-rose-400">Só e-mail ou boleto em PDF</td>
+              <td class="p-4 sm:p-5 text-rose-400">Manual / Esquecida</td>
+            </tr>
+            <tr>
+              <td class="p-4 sm:p-5 font-semibold text-white">Triagem Anti-Bumerangue</td>
+              <td class="p-4 sm:p-5 text-emerald-400 font-semibold bg-sky-500/5 border-x border-sky-500/20">
+                <i data-lucide="check-circle" class="w-4 h-4 inline mr-1"></i> Linha do tempo unificada
+              </td>
+              <td class="p-4 sm:p-5 text-muted">Apenas chamado numérico</td>
+              <td class="p-4 sm:p-5 text-rose-400">Inexistente (caos)</td>
+            </tr>
+            <tr>
+              <td class="p-4 sm:p-5 font-semibold text-white">Gestão Visual de SLAs</td>
+              <td class="p-4 sm:p-5 text-emerald-400 font-semibold bg-sky-500/5 border-x border-sky-500/20">
+                <i data-lucide="check-circle" class="w-4 h-4 inline mr-1"></i> Cronômetro por fase
+              </td>
+              <td class="p-4 sm:p-5 text-muted">Relatórios retroativos estáticos</td>
+              <td class="p-4 sm:p-5 text-rose-400">Sem controle</td>
+            </tr>
+            <tr>
+              <td class="p-4 sm:p-5 font-semibold text-white">Extrator OCR de CNH e Apólices</td>
+              <td class="p-4 sm:p-5 text-emerald-400 font-semibold bg-sky-500/5 border-x border-sky-500/20">
+                <i data-lucide="check-circle" class="w-4 h-4 inline mr-1"></i> Visão computacional 1.5s
+              </td>
+              <td class="p-4 sm:p-5 text-rose-400">Não possui (digitação pura)</td>
+              <td class="p-4 sm:p-5 text-rose-400">Digitação manual</td>
+            </tr>
+            <tr>
+              <td class="p-4 sm:p-5 font-semibold text-white">Tempo de Implantação</td>
+              <td class="p-4 sm:p-5 text-emerald-400 font-bold bg-sky-500/5 border-x border-sky-500/20">
+                Menos de 24 horas
+              </td>
+              <td class="p-4 sm:p-5 text-muted">30 a 60 dias com custo extra</td>
+              <td class="p-4 sm:p-5 text-muted">Imediato (mas não escala)</td>
+            </tr>
+            <tr>
+              <td class="p-4 sm:p-5 font-semibold text-white">Experiência de Uso (UI)</td>
+              <td class="p-4 sm:p-5 text-sky-400 font-semibold bg-sky-500/5 border-x border-sky-500/20">
+                Moderna, limpa e ágil
+              </td>
+              <td class="p-4 sm:p-5 text-rose-400">Telas dos anos 2000 pesadas</td>
+              <td class="p-4 sm:p-5 text-muted">Amadora</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- SEÇÃO: INTEGRAÇÕES DO ECOSSISTEMA DE SEGUROS -->
+  <!-- ========================================================================= -->
+  <section id="integracoes" class="relative py-16 border-b border-line bg-[#090a0f]">
+    <div class="mx-auto w-full max-w-6xl px-4 sm:px-6 text-center">
+      <span class="text-xs font-mono uppercase text-muted tracking-wider">Compatível com as Maiores Seguradoras do Brasil</span>
+      
+      <div class="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+        <div class="p-3.5 rounded-xl border border-line bg-surface/60 flex items-center justify-center font-bold text-xs text-slate-300">
+          Porto Seguro
+        </div>
+        <div class="p-3.5 rounded-xl border border-line bg-surface/60 flex items-center justify-center font-bold text-xs text-slate-300">
+          Bradesco Seguros
+        </div>
+        <div class="p-3.5 rounded-xl border border-line bg-surface/60 flex items-center justify-center font-bold text-xs text-slate-300">
+          SulAmérica
+        </div>
+        <div class="p-3.5 rounded-xl border border-line bg-surface/60 flex items-center justify-center font-bold text-xs text-slate-300">
+          Tokio Marine
+        </div>
+        <div class="p-3.5 rounded-xl border border-line bg-surface/60 flex items-center justify-center font-bold text-xs text-slate-300">
+          Allianz Seguros
+        </div>
+        <div class="p-3.5 rounded-xl border border-line bg-surface/60 flex items-center justify-center font-bold text-xs text-slate-300">
+          Azul Seguros
+        </div>
+      </div>
+      
+      <div class="mt-4 flex flex-wrap items-center justify-center gap-4 text-xs font-mono text-muted">
+        <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> WhatsApp Cloud API Oficial</span>
+        <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Gateway Pix Banco Central</span>
+        <span class="flex items-center gap-1.5"><i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400"></i> Importação de Relatórios de Comissões</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- SEÇÃO: PLANOS & PREÇOS -->
+  <!-- ========================================================================= -->
+  <section id="planos" class="relative py-20 border-b border-line blueprint-grid">
+    <div class="mx-auto w-full max-w-6xl px-4 sm:px-6">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <div class="inline-flex items-center gap-1.5 font-mono text-xs uppercase px-3 py-1 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 mb-3">
+          <i data-lucide="tag" class="w-3.5 h-3.5"></i>
+          Planos Transparentes
+        </div>
+        <h2 class="text-2xl sm:text-4xl font-normal leading-tight">
+          Investimento direto com <b class="font-bold text-brand-gradient">retorno comprovado no 1º mês</b>.
+        </h2>
+        <p class="text-sm sm:text-base text-muted mt-3">
+          Basta salvar 1 única apólice de cancelamento para pagar a assinatura anual inteira do SeguroFlow OS.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- PLANO 1: STARTER -->
+        <div class="p-6 sm:p-8 rounded-2xl border border-line bg-surface flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-mono uppercase text-muted font-bold">Starter</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-slate-400 border border-white/10">Corretor Autônomo</span>
+            </div>
+            <div class="text-3xl font-bold text-white font-mono">
+              R$ 197 <span class="text-xs font-normal text-muted font-sans">/mês</span>
+            </div>
+            <p class="text-xs text-muted mt-2 mb-6">
+              Para o corretor independente que quer organizar sua rotina e parar de perder renovações.
+            </p>
+
+            <div class="space-y-3 text-xs text-slate-300 border-t border-line pt-6">
+              <div class="flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                <span>1 Usuário / Corretor</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                <span>Até 300 Apólices Ativas</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                <span>Régua D-7 com Pix Automático</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                <span>Extrator CNH (50 leituras/mês)</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                <span>Pipeline Kanban Padrão</span>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="openCheckoutModal('STARTER')" class="mt-8 w-full py-3 px-4 rounded-xl border border-line bg-surface-2 hover:bg-surface-3 text-xs font-semibold text-white transition">
+            Contratar Starter
+          </button>
+        </div>
+
+        <!-- PLANO 2: PRO AUTÔNOMO (DESTAQUE VIP) -->
+        <div class="p-6 sm:p-8 rounded-2xl border border-sky-500/50 bg-sky-500/[0.05] flex flex-col justify-between relative shadow-2xl shadow-sky-500/10">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-sky-500 text-white text-[10px] font-mono font-bold uppercase tracking-wider shadow">
+            Mais Escolhido • Escala
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-mono uppercase text-sky-400 font-bold">Pro Autônomo</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">Equipe & Escala</span>
+            </div>
+            <div class="text-3xl font-bold text-white font-mono">
+              R$ 497 <span class="text-xs font-normal text-muted font-sans">/mês</span>
+            </div>
+            <p class="text-xs text-muted mt-2 mb-6">
+              A suíte completa com Zero Efeito Bumerangue e esteira de SLA para corretoras estruturadas.
+            </p>
+
+            <div class="space-y-3 text-xs text-slate-300 border-t border-sky-500/20 pt-6">
+              <div class="flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                <span class="font-semibold text-white">Até 5 Usuários / Corretores</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                <span class="font-semibold text-white">Até 1.500 Apólices Ativas</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                <span>Régua D-7, D-0 e D+2 Pix Ilimitada</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                <span>Central Telefônica Zero Bumerangue</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                <span>Extrator OCR CNH e Apólices Ilimitado</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                <span>Kanban com Gestão Ativa de SLAs</span>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="openCheckoutModal('PRO')" class="mt-8 beam-btn rounded-xl p-[1px] w-full block">
+            <span class="beam-btn-inner px-4 py-3 rounded-[11px] text-xs font-bold text-white flex items-center justify-center gap-2">
+              <i data-lucide="zap" class="w-4 h-4 text-sky-400"></i>
+              Ativar SeguroFlow Pro
+            </span>
+          </button>
+        </div>
+
+        <!-- PLANO 3: ENTERPRISE -->
+        <div class="p-6 sm:p-8 rounded-2xl border border-line bg-surface flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-xs font-mono uppercase text-muted font-bold">Enterprise</span>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 text-slate-400 border border-white/10">Franquias & Grupos</span>
+            </div>
+            <div class="text-3xl font-bold text-white font-mono">
+              R$ 1.497 <span class="text-xs font-normal text-muted font-sans">/mês</span>
+            </div>
+            <p class="text-xs text-muted mt-2 mb-6">
+              Para grandes corretoras com filiais, multi-CNPJs e necessidade de auditoria e integração via API.
+            </p>
+
+            <div class="space-y-3 text-xs text-slate-300 border-t border-line pt-6">
+              <div class="flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                <span>Usuários e Apólices Ilimitadas</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                <span>Gestão Multi-Unidades e Filiais</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                <span>Acesso a Webhooks e API Exclusiva</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                <span>Consultoria VIP de Implantação e Processos</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                <span>SLA de Suporte Prioritário 24/7</span>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="openCheckoutModal('ENTERPRISE')" class="mt-8 w-full py-3 px-4 rounded-xl border border-line bg-surface-2 hover:bg-surface-3 text-xs font-semibold text-white transition">
+            Falar com Especialista VIP
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- SEÇÃO: FAQ EXECUTIVO -->
+  <!-- ========================================================================= -->
+  <section id="faq" class="relative py-20 border-b border-line bg-[#090b12]">
+    <div class="mx-auto w-full max-w-4xl px-4 sm:px-6">
+      
+      <div class="text-center mb-14">
+        <span class="text-xs font-mono uppercase text-sky-400 tracking-wider">Perguntas Frequentes</span>
+        <h2 class="text-2xl sm:text-3xl font-bold text-white mt-1">Dúvidas Frequentes de Corretores</h2>
+      </div>
+
+      <div class="space-y-4">
+        <details class="group rounded-xl border border-line bg-surface p-5 cursor-pointer">
+          <summary class="font-semibold text-white flex items-center justify-between text-sm">
+            <span>Preciso substituir o sistema da minha seguradora ou o multicálculo?</span>
+            <i data-lucide="chevron-down" class="w-4 h-4 text-muted group-open:rotate-180 transition"></i>
+          </summary>
+          <p class="text-xs text-muted mt-3 leading-relaxed">
+            Não! O SeguroFlow OS é uma camada de gestão e automação operacional que trabalha em sinergia com qualquer seguradora (Porto, Bradesco, Tokio, etc.) e multicálculo que você já utiliza. Ele organiza as cobranças, o atendimento e os documentos para que você não precise fazer isso no WhatsApp ou em planilhas.
+          </p>
+        </details>
+
+        <details class="group rounded-xl border border-line bg-surface p-5 cursor-pointer">
+          <summary class="font-semibold text-white flex items-center justify-between text-sm">
+            <span>Como funciona a Régua D-7 com Pix? A comissão vai direto para quem?</span>
+            <i data-lucide="chevron-down" class="w-4 h-4 text-muted group-open:rotate-180 transition"></i>
+          </summary>
+          <p class="text-xs text-muted mt-3 leading-relaxed">
+            A notificação enviada no WhatsApp do segurado contém o código Pix oficial gerado pela própria seguradora da apólice (ou por boleto registrado). O segurado paga diretamente à seguradora, garantindo a liquidação imediata da apólice e liberando sua comissão normalmente na data acordada.
+          </p>
+        </details>
+
+        <details class="group rounded-xl border border-line bg-surface p-5 cursor-pointer">
+          <summary class="font-semibold text-white flex items-center justify-between text-sm">
+            <span>O que é exatamente o "Efeito Bumerangue" e como ele é eliminado?</span>
+            <i data-lucide="chevron-down" class="w-4 h-4 text-muted group-open:rotate-180 transition"></i>
+          </summary>
+          <p class="text-xs text-muted mt-3 leading-relaxed">
+            O Efeito Bumerangue ocorre quando o cliente entra em contato para resolver algo simples (segunda via, acionar guincho, status de sinistro), não tem sua solicitação resolvida no primeiro toque e volta a ligar repetidamente, sobrecarregando a equipe. Com o SeguroFlow, a triagem unifica todo o histórico no primeiro contato, disponibilizando links de autosserviço e dados da apólice de imediato.
+          </p>
+        </details>
+
+        <details class="group rounded-xl border border-line bg-surface p-5 cursor-pointer">
+          <summary class="font-semibold text-white flex items-center justify-between text-sm">
+            <span>Quanto tempo leva para colocar minha corretora para rodar no SeguroFlow?</span>
+            <i data-lucide="chevron-down" class="w-4 h-4 text-muted group-open:rotate-180 transition"></i>
+          </summary>
+          <p class="text-xs text-muted mt-3 leading-relaxed">
+            A ativação é imediata. Você pode importar sua base de apólices em planilha Excel/CSV ou cadastrar os primeiros processos em menos de 10 minutos. Nossa interface é desenhada no padrão visual limpo corporativo, para que nenhum atendente precise de semanas de treinamento.
+          </p>
+        </details>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- FOOTER EXECUTIVO -->
+  <!-- ========================================================================= -->
+  <footer class="border-t border-line bg-[#07080c] py-12 text-slate-400 text-xs">
+    <div class="mx-auto w-full max-w-6xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-6">
+      
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 rounded-lg bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <div class="font-bold text-white text-sm">SeguroFlow OS</div>
+          <div class="text-[11px] text-muted">A Máquina de Eficiência para Corretoras de Seguros</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-6 font-mono text-[11px]">
+        <a href="app.html" class="hover:text-white transition">Acessar CRM</a>
+        <a href="#video-apresentacao" class="hover:text-white transition">Vídeo Oficial</a>
+        <a href="#calculadora" class="hover:text-white transition">Calculadora</a>
+        <a href="#planos" class="hover:text-white transition">Planos</a>
+      </div>
+
+      <div class="text-[11px] text-muted">
+        © 2026 SeguroFlow OS. Todos os direitos reservados.
+      </div>
+
+    </div>
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL DE CHECKOUT INSTANTÂNEO (PIX / CARTÃO) -->
+  <!-- ========================================================================= -->
+  <div id="checkoutModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-surface border border-line rounded-2xl max-w-lg w-full p-6 relative overflow-hidden shadow-2xl">
+      <button onclick="closeCheckoutModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+
+      <div class="flex items-center gap-2 mb-1">
+        <span id="checkoutPlanBadge" class="font-mono text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-sky-500/20 text-sky-400">Plano Pro</span>
+        <span class="text-xs text-muted">• Ativação Imediata</span>
+      </div>
+      <h3 id="checkoutPlanName" class="text-lg font-bold text-white">SeguroFlow Pro Autônomo</h3>
+      <p id="checkoutPlanPrice" class="text-2xl font-bold font-mono text-emerald-400 mt-1">R$ 497<span class="text-xs text-muted font-normal">/mês</span></p>
+
+      <!-- Abas de Pagamento -->
+      <div class="grid grid-cols-2 gap-2 mt-5 mb-5 p-1 rounded-xl bg-surface-2 border border-line">
+        <button id="tabBtnPix" onclick="selectPaymentTab('PIX')" class="py-2 rounded-lg text-xs font-mono font-bold transition flex items-center justify-center gap-1.5 bg-sky-500 text-white">
+          <i data-lucide="qr-code" class="w-3.5 h-3.5"></i> PIX Instantâneo
+        </button>
+        <button id="tabBtnCard" onclick="selectPaymentTab('CARD')" class="py-2 rounded-lg text-xs font-mono text-muted hover:text-white transition flex items-center justify-center gap-1.5">
+          <i data-lucide="credit-card" class="w-3.5 h-3.5"></i> Cartão de Crédito
+        </button>
+      </div>
+
+      <!-- Conteúdo PIX -->
+      <div id="paymentContentPix" class="space-y-4">
+        <div class="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.04] text-center">
+          <div class="w-36 h-36 mx-auto bg-white p-2 rounded-lg shadow mb-3 flex items-center justify-center">
+            <!-- QR Code visual -->
+            <svg viewBox="0 0 100 100" class="w-full h-full text-black" fill="currentColor">
+              <path d="M0 0h30v30H0zM10 10h10v10H10zM70 0h30v30H70zM80 10h10v10H80zM0 70h30v30H0zM10 80h10v10H10zM40 0h10v20H40zM40 30h20v10H40zM60 40h10v10H60zM40 50h20v20H40zM70 70h10v10H70zM80 80h20v20H80z"/>
+            </svg>
+          </div>
+          <span class="text-[11px] font-mono text-emerald-400">Escaneie com seu banco ou copie a chave:</span>
+          <div class="mt-2 flex items-center gap-2">
+            <input id="pixCodeInput" readonly value="00020126580014br.gov.bcb.pix0136seguroflow-licenciamento-20265204000053039865802BR5925SEGUROFLOW TECNOLOGIA6009SAO PAULO" class="bg-black/40 border border-line rounded px-2 py-1.5 text-[10px] font-mono text-slate-300 w-full truncate">
+            <button onclick="copyPixCode()" class="px-3 py-1.5 rounded bg-sky-500 hover:bg-sky-400 text-white text-xs font-semibold shrink-0">Copiar</button>
+          </div>
+        </div>
+
+        <button onclick="confirmInstantPayment()" class="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs shadow-lg transition">
+          Confirmar Pagamento & Liberar Acesso ao CRM
+        </button>
+      </div>
+
+      <!-- Conteúdo Cartão -->
+      <div id="paymentContentCard" class="space-y-3 hidden">
+        <input type="text" placeholder="Número do Cartão" class="w-full p-2.5 rounded-lg border border-line bg-surface-2 text-xs text-white">
+        <div class="grid grid-cols-2 gap-2">
+          <input type="text" placeholder="MM/AA" class="p-2.5 rounded-lg border border-line bg-surface-2 text-xs text-white">
+          <input type="text" placeholder="CVV" class="p-2.5 rounded-lg border border-line bg-surface-2 text-xs text-white">
+        </div>
+        <input type="text" placeholder="Nome Completo no Cartão" class="w-full p-2.5 rounded-lg border border-line bg-surface-2 text-xs text-white">
+        
+        <button onclick="confirmInstantPayment()" class="w-full py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-bold text-xs shadow-lg transition mt-2">
+          Pagar com Cartão & Iniciar Imediatamente
+        </button>
+      </div>
+
+    </div>
   </div>
 
-  <!-- JAVASCRIPT LOGIC & STATE -->
+  <!-- SCRIPTS GERAIS -->
   <script>
-    // Lucide Icons
     lucide.createIcons();
 
-    // Data State for Parcelas
-    let parcelas = [
-      {
-        id: 1,
-        segurado: "Carlos Eduardo Mendes",
-        ramo: "Jeep Compass 2023",
-        seguradora: "Porto Seguro",
-        parcela: "4/10",
-        valor: "R$ 382,90",
-        vencimento: "10/10/2026",
-        tipo: "d7",
-        status: "Lembrete D-7 Enviado",
-        statusBadge: "bg-blue-50 text-blue-800 border-blue-200"
-      },
-      {
-        id: 2,
-        segurado: "Mariana Faria Rocha",
-        ramo: "Civic Touring 2022",
-        seguradora: "Allianz",
-        parcela: "7/10",
-        valor: "R$ 415,00",
-        vencimento: "03/10/2026",
-        tipo: "d0",
-        status: "Vence Hoje (Lembrete D-0)",
-        statusBadge: "bg-amber-50 text-amber-800 border-amber-200"
-      },
-      {
-        id: 3,
-        segurado: "Paulo Roberto Siqueira",
-        ramo: "Hilux CD 4x4 2024",
-        seguradora: "Tokio Marine",
-        parcela: "3/6",
-        valor: "R$ 790,00",
-        vencimento: "28/09/2026",
-        tipo: "atraso",
-        status: "Atraso 5 dias (Risco Alto)",
-        statusBadge: "bg-red-50 text-red-800 border-red-200"
-      },
-      {
-        id: 4,
-        segurado: "Dra. Juliana Bastos",
-        ramo: "BMW X1 2023",
-        seguradora: "Bradesco Seguros",
-        parcela: "2/10",
-        valor: "R$ 540,00",
-        vencimento: "03/10/2026",
-        tipo: "d0",
-        status: "Vence Hoje (Lembrete D-0)",
-        statusBadge: "bg-amber-50 text-amber-800 border-amber-200"
-      },
-      {
-        id: 5,
-        segurado: "Renato Silveira Santos",
-        ramo: "T-Cross Highline",
-        seguradora: "Azul Seguros",
-        parcela: "5/10",
-        valor: "R$ 298,40",
-        vencimento: "09/10/2026",
-        tipo: "d7",
-        status: "Lembrete D-7 Enviado",
-        statusBadge: "bg-blue-50 text-blue-800 border-blue-200"
-      },
-      {
-        id: 6,
-        segurado: "Marcos Vinicius Lima",
-        ramo: "Tracker Premier 2022",
-        seguradora: "Porto Seguro",
-        parcela: "6/10",
-        valor: "R$ 310,50",
-        vencimento: "29/09/2026",
-        tipo: "atraso",
-        status: "Atraso 4 dias (Tolerância)",
-        statusBadge: "bg-red-50 text-red-800 border-red-200"
-      },
-      {
-        id: 7,
-        segurado: "Fernanda Costa Dias",
-        ramo: "Residencial Alphaville",
-        seguradora: "Allianz",
-        parcela: "1/4",
-        valor: "R$ 450,00",
-        vencimento: "01/10/2026",
-        tipo: "pago",
-        status: "Baixa Confirmada (Pago)",
-        statusBadge: "bg-emerald-50 text-emerald-800 border-emerald-200"
+    function toggleMobileMenu() {
+      const drawer = document.getElementById('mobileMenuDrawer');
+      const isClosed = drawer.classList.contains('-translate-y-full');
+      if (isClosed) {
+        drawer.classList.remove('-translate-y-full', 'opacity-0', 'pointer-events-none');
+      } else {
+        drawer.classList.add('-translate-y-full', 'opacity-0', 'pointer-events-none');
       }
-    ];
+    }
 
-    // Data State for Chamadas
-    let chamadas = [
-      {
-        cliente: "Marcos Vinicius Lima",
-        telefone: "(11) 98124-9921",
-        seguro: "Tracker Premier (Porto)",
-        resumo: "Cliente ligou para o dono aflito pedindo a 2ª via da parcela atrasada antes que o seguro seja cancelado.",
-        tempo: "há 12 min",
-        analista: "Amanda (SLA 15 min)",
-        whatsappMsg: "Olá Marcos! Recebemos sua solicitação de 2ª via da parcela do seu seguro Tracker (Porto Seguro). Nossa analista Amanda já está gerando e você receberá o boleto e Pix atualizados por aqui em instantes!"
-      },
-      {
-        cliente: "Mariana Faria Rocha",
-        telefone: "(11) 99432-1102",
-        seguro: "Civic Touring (Allianz)",
-        resumo: "Cliente ligou querendo saber o telefone de guincho da Allianz para pneu furado na Rodovia dos Bandeirantes.",
-        tempo: "há 42 min",
-        analista: "Robô (Resolvido em 8s)",
-        whatsappMsg: "Olá Mariana! Identificamos sua ligação sobre a assistência 24h da Allianz. Segue o contato direto do guincho/socorro: 0800 777 7243 ou pelo WhatsApp oficial Allianz: (11) 4004-3751. Se precisar de mais apoio estamos aqui!"
+    function seekVideo(seconds) {
+      const vid = document.getElementById('mainSeguroFlowVideo');
+      if (vid) {
+        vid.currentTime = seconds;
+        vid.play();
+        vid.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
-    ];
-
-    // Switch Tabs
-    function switchTab(tabId) {
-      const tabs = ['dashboard', 'cobranca', 'kanban', 'chamadas', 'renovacoes', 'ocr'];
-      tabs.forEach(t => {
-        const el = document.getElementById('tab-' + t);
-        const nav = document.getElementById('nav-' + t);
-        if (t === tabId) {
-          el.classList.remove('hidden');
-          nav.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition text-white bg-[#223554]";
-        } else {
-          el.classList.add('hidden');
-          nav.className = "w-full flex items-center justify-between px-3 py-2 rounded-md text-[13px] font-medium transition text-slate-300 hover:text-white hover:bg-[#1d2d46]";
-        }
-      });
-
-      const titles = {
-        'dashboard': 'Visão Executiva & Indicadores',
-        'cobranca': 'Régua de Parcelas & Prevenção de Inadimplência',
-        'kanban': 'Pipe de Atendimento & Operações',
-        'chamadas': 'Central de Chamadas & Triagem',
-        'renovacoes': 'Esteira Preventiva de Renovações (30d)',
-        'ocr': 'Extrator Estruturado CNH / Apólice'
-      };
-      document.getElementById('page-title').innerText = titles[tabId];
-      lucide.createIcons();
     }
 
-    // Render Parcelas
-    function renderParcelas(filter = 'all') {
-      const tbody = document.getElementById('tabela-parcelas-body');
-      tbody.innerHTML = '';
+    function openCheckoutModal(plan) {
+      const m = document.getElementById('checkoutModal');
+      const badge = document.getElementById('checkoutPlanBadge');
+      const name = document.getElementById('checkoutPlanName');
+      const price = document.getElementById('checkoutPlanPrice');
 
-      const filtered = parcelas.filter(p => {
-        if (filter === 'all') return true;
-        return p.tipo === filter;
-      });
-
-      filtered.forEach(p => {
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-50 transition";
-        tr.innerHTML = `
-          <td class="px-4 py-3 font-semibold text-slate-900">${p.segurado}</td>
-          <td class="px-4 py-3 text-slate-600">${p.ramo}</td>
-          <td class="px-4 py-3 text-slate-500">${p.seguradora}</td>
-          <td class="px-4 py-3 text-slate-600 font-mono">${p.parcela}</td>
-          <td class="px-4 py-3 font-bold text-slate-800 font-mono">${p.valor}</td>
-          <td class="px-4 py-3 text-slate-600 font-mono">${p.vencimento}</td>
-          <td class="px-4 py-3">
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${p.statusBadge}">
-              ${p.status}
-            </span>
-          </td>
-          <td class="px-4 py-3 text-right">
-            <button onclick="openCardDrawer('${p.segurado}', '${p.seguradora}', 'Parcela ${p.parcela} (${p.valor})', 'Amanda', 'Em dia', '${p.ramo}')" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] border border-slate-200 transition">
-              Ver Detalhes
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-      lucide.createIcons();
+      if (plan === 'STARTER') {
+        badge.textContent = 'Plano Starter';
+        name.textContent = 'SeguroFlow Starter';
+        price.innerHTML = 'R$ 197<span class="text-xs text-muted font-normal">/mês</span>';
+      } else if (plan === 'ENTERPRISE') {
+        badge.textContent = 'Plano Enterprise';
+        name.textContent = 'SeguroFlow Franquias VIP';
+        price.innerHTML = 'R$ 1.497<span class="text-xs text-muted font-normal">/mês</span>';
+      } else {
+        badge.textContent = 'Plano Pro Autônomo';
+        name.textContent = 'SeguroFlow Pro Autônomo';
+        price.innerHTML = 'R$ 497<span class="text-xs text-muted font-normal">/mês</span>';
+      }
+      m.classList.remove('hidden');
     }
 
-    // Filter Parcelas
-    function filterParcelas(type) {
-      const buttons = ['all', 'd7', 'd0', 'atraso', 'pago'];
-      buttons.forEach(b => {
-        const btn = document.getElementById('btn-filter-' + b);
-        if (b === type) {
-          btn.className = "px-3 py-1.5 rounded font-semibold bg-[#205493] text-white";
-        } else {
-          btn.className = "px-3 py-1.5 rounded font-medium text-slate-600 hover:bg-slate-100";
-        }
-      });
-      renderParcelas(type);
+    function closeCheckoutModal() {
+      document.getElementById('checkoutModal').classList.add('hidden');
     }
 
-    // Render Chamadas
-    function renderChamadas() {
-      const list = document.getElementById('chamadas-list');
-      list.innerHTML = '';
+    function selectPaymentTab(type) {
+      const btnPix = document.getElementById('tabBtnPix');
+      const btnCard = document.getElementById('tabBtnCard');
+      const cPix = document.getElementById('paymentContentPix');
+      const cCard = document.getElementById('paymentContentCard');
 
-      chamadas.forEach(c => {
-        const item = document.createElement('div');
-        item.className = "p-4 rounded-lg bg-slate-50 border border-slate-200 space-y-2.5";
-        item.innerHTML = `
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
-              <span class="font-bold text-slate-900 text-xs">${c.cliente}</span>
-              <span class="text-slate-500 font-mono text-[11px]">${c.telefone}</span>
-              <span class="text-xs bg-white text-slate-700 px-2 py-0.5 rounded border border-slate-200 font-medium">${c.seguro}</span>
-            </div>
-            <span class="text-slate-400 font-mono text-[11px]">${c.tempo}</span>
-          </div>
-          <div class="p-2.5 rounded bg-white border border-slate-200 text-xs text-slate-700">
-            <strong>Resumo da Chamada:</strong> ${c.resumo}
-          </div>
-          <div class="p-2.5 rounded bg-emerald-50 border border-emerald-200 text-xs text-emerald-900">
-            <strong>Notificação Automática Disparada no WhatsApp do Cliente:</strong>
-            <p class="mt-0.5 text-slate-700 italic">"${c.whatsappMsg}"</p>
-          </div>
-          <div class="flex items-center justify-between text-[11px] text-slate-500 pt-1">
-            <span>Responsável atribuído: <strong class="text-slate-800">${c.analista}</strong></span>
-            <span class="text-emerald-700 font-semibold">✓ Sem risco de retorno ao telefone do dono</span>
-          </div>
-        `;
-        list.appendChild(item);
-      });
-      lucide.createIcons();
+      if (type === 'PIX') {
+        btnPix.className = 'py-2 rounded-lg text-xs font-mono font-bold transition flex items-center justify-center gap-1.5 bg-sky-500 text-white';
+        btnCard.className = 'py-2 rounded-lg text-xs font-mono text-muted hover:text-white transition flex items-center justify-center gap-1.5';
+        cPix.classList.remove('hidden');
+        cCard.classList.add('hidden');
+      } else {
+        btnCard.className = 'py-2 rounded-lg text-xs font-mono font-bold transition flex items-center justify-center gap-1.5 bg-sky-500 text-white';
+        btnPix.className = 'py-2 rounded-lg text-xs font-mono text-muted hover:text-white transition flex items-center justify-center gap-1.5';
+        cCard.classList.remove('hidden');
+        cPix.classList.add('hidden');
+      }
     }
 
-    // Drawer Controls (SeguroFlow Style)
-    function openCardDrawer(nome, seguradora, motivo, resp, sla, veiculo) {
-      document.getElementById('drawer-title').innerText = nome;
-      document.getElementById('drawer-tag').innerText = seguradora;
-      document.getElementById('drawer-motivo').innerText = motivo;
-      document.getElementById('drawer-resp').innerText = resp;
-      document.getElementById('drawer-sla').innerText = sla;
-      document.getElementById('drawer-veiculo').innerText = veiculo;
-      document.getElementById('drawer-card').classList.remove('hidden');
-      lucide.createIcons();
+    function copyPixCode() {
+      const input = document.getElementById('pixCodeInput');
+      input.select();
+      navigator.clipboard.writeText(input.value);
+      alert('Código PIX Copia e Cola copiado com sucesso!');
     }
 
-    function closeCardDrawer() {
-      document.getElementById('drawer-card').classList.add('hidden');
+    function confirmInstantPayment() {
+      alert('🎉 Pagamento aprovado com sucesso! Redirecionando para o ambiente operacional do CRM...');
+      window.location.href = 'app.html';
     }
 
-    function openNewCardModal() {
-      alert("Para criar um novo card, basta preencher os dados ou deixar que a integração de WhatsApp ou o Extrator de CNH crie o card automaticamente.");
+    function updateCalculator() {
+      const apolices = parseInt(document.getElementById('inputApolices').value);
+      const ticket = parseInt(document.getElementById('inputTicket').value);
+      const comissao = parseInt(document.getElementById('inputComissao').value) / 100;
+      const inadimplencia = parseInt(document.getElementById('inputInadimplencia').value) / 100;
+
+      document.getElementById('labelApolices').textContent = apolices + ' apólices';
+      document.getElementById('labelTicket').textContent = 'R$ ' + ticket.toLocaleString('pt-BR');
+      document.getElementById('labelComissao').textContent = Math.round(comissao * 100) + '%';
+      document.getElementById('labelInadimplencia').textContent = Math.round(inadimplencia * 100) + '%';
+
+      // Cálculo de perdas
+      const premioTotal = apolices * ticket;
+      const comissaoTotal = premioTotal * comissao;
+      const perdaAnual = comissaoTotal * inadimplencia;
+      const horasGastas = Math.round((apolices * 0.06) + 12);
+      const recuperado = Math.round(perdaAnual * 0.92);
+
+      document.getElementById('resPerdaAnual').textContent = 'R$ ' + Math.round(perdaAnual).toLocaleString('pt-BR') + ' / ano';
+      document.getElementById('resHorasGastas').textContent = horasGastas + ' horas / mês';
+      document.getElementById('resRecuperado').textContent = '+ R$ ' + recuperado.toLocaleString('pt-BR') + ' / ano';
     }
 
-    // Demo Trigger Actions
-    function triggerDemoCobranca() {
-      switchTab('cobranca');
-      filterParcelas('d7');
-      alert("⚡ SIMULAÇÃO brand: Régua D-7 executada para 18 apólices. Notificações com chave Pix e boleto enviadas no WhatsApp com comprovante auditável!");
-    }
-
-    function triggerDemoInadimplencia() {
-      switchTab('cobranca');
-      filterParcelas('atraso');
-      alert("⚠️ ALERTA DE RISCO: 3 clientes identificados com atraso crítico (> 4 dias). Cards movidos para prioridade alta para evitar perda de cobertura!");
-    }
-
-    function triggerDemoLigacao() {
-      switchTab('chamadas');
-      alert("📞 SIMULAÇÃO DE CHAMADA: Chamada no celular do dono registrada e transcrita -> Atribuída à Amanda com SLA de 15 min -> WhatsApp com protocolo disparado ao cliente.");
-    }
-
-    function runDailySweep() {
-      alert("🔄 VARREDURA DIÁRIA SeguroFlow CONCLUÍDA:\n• 16 baixas bancárias confirmadas\n• 18 lembretes D-7 enviados\n• 5 lembretes D-0 disparados\n• 3 alertas de tolerância emitidos");
-    }
-
-    function simulateOcrScan() {
-      document.getElementById('ocr-status-badge').innerText = "LENDO DOCUMENTO...";
-      document.getElementById('ocr-status-badge').className = "text-[10px] bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded font-mono font-bold animate-pulse";
-      setTimeout(() => {
-        document.getElementById('ocr-status-badge').innerText = "PROCESSADO (0.8s)";
-        document.getElementById('ocr-status-badge').className = "text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded font-mono font-bold";
-        alert("Documento processado com sucesso! Os campos estruturados foram preenchidos e já estão prontos para cotação.");
-      }, 800);
-    }
-
-    // Initialize
-    renderParcelas();
-    renderChamadas();
+    // Inicializa calculadora
+    updateCalculator();
   </script>
 </body>
 </html>
