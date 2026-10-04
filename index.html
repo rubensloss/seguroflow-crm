@@ -190,7 +190,7 @@
           <span class="hidden sm:inline">Acessar CRM</span>
           <span class="sm:hidden">CRM</span>
         </a>
-        <button onclick="openCheckoutModal('PRO')" class="flex items-center space-x-1.5 px-4 sm:px-5 py-2 text-xs font-bold rounded-xl bg-brand-600 hover:bg-brand-500 text-white transition-all shadow-md shadow-brand-900/30 hover:scale-105 active:scale-95">
+        <button onclick="openCheckoutModal('CRESCIMENTO')" class="flex items-center space-x-1.5 px-4 sm:px-5 py-2 text-xs font-bold rounded-xl bg-brand-600 hover:bg-brand-500 text-white transition-all shadow-md shadow-brand-900/30 hover:scale-105 active:scale-95">
           <i class="ph-bold ph-lightning text-sm"></i>
           <span>Contratar</span>
         </button>
@@ -703,7 +703,7 @@
                 </tr>
                 <tr>
                   <td class="p-4 sm:p-5 font-bold text-surface-900">Tempo de Implantação</td>
-                  <td class="p-4 sm:p-5 text-emerald-700 font-bold bg-brand-50/50 border-x border-brand-200">Menos de 24 horas</td>
+                  <td class="p-4 sm:p-5 text-emerald-700 font-bold bg-brand-50/50 border-x border-brand-200">Setup assistido em até 48h</td>
                   <td class="p-4 sm:p-5">30 a 60 dias com taxa extra</td>
                   <td class="p-4 sm:p-5">Sem padrão</td>
                 </tr>
@@ -716,6 +716,16 @@
         <section id="faq" class="space-y-4">
           <h3 class="font-display font-bold text-xl text-surface-900">Perguntas Frequentes</h3>
           
+          <details class="bg-white rounded-xl border border-surface-200 p-4 cursor-pointer">
+            <summary class="font-bold text-xs text-surface-900 flex justify-between items-center">
+              <span>Como funcionam a Taxa de Implementação e a Mensalidade?</span>
+              <i class="ph-bold ph-caret-down text-brand-600"></i>
+            </summary>
+            <p class="text-xs text-surface-700 mt-2 leading-relaxed">
+              Cobramos uma taxa única de implementação que varia de <strong>R$ 2.500 a R$ 5.000</strong> de acordo com a volumetria da carteira de apólices e canais operacionais. Esse valor cobre todo o trabalho assistido de onboarding: saneamento da base de apólices legadas, higienização de contatos, parametrização dos fluxos de régua D-7 com Pix e treinamento ao vivo do seu time. A mensalidade é <strong>a partir de R$ 699/mês</strong>, garantindo acesso contínuo à plataforma, suporte e atualizações sem fidelidade ou carência contratual.
+            </p>
+          </details>
+
           <details class="bg-white rounded-xl border border-surface-200 p-4 cursor-pointer">
             <summary class="font-bold text-xs text-surface-900 flex justify-between items-center">
               <span>Preciso trocar o sistema da minha seguradora ou multicálculo atual?</span>
@@ -742,7 +752,7 @@
               <i class="ph-bold ph-caret-down text-brand-600"></i>
             </summary>
             <p class="text-xs text-surface-700 mt-2 leading-relaxed">
-              Menos de 24 horas. Você pode importar sua base de apólices em planilha Excel/CSV ou cadastrar os primeiros processos em poucos minutos. A interface é limpa e intuitiva, inspirada no padrão Pipefy, permitindo que a equipe comece a operar imediatamente.
+              Em menos de 48 horas nossa equipe conclui a importação e o saneamento da sua base de dados no onboarding assistido. A interface é limpa e intuitiva, inspirada no padrão Pipefy, permitindo que a equipe comece a operar imediatamente.
             </p>
           </details>
         </section>
@@ -762,33 +772,45 @@
               <span>Garantia de Retorno</span>
             </span>
             <span class="text-xs text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-              Ativação Imediata
+              Onboarding Assistido
             </span>
           </div>
 
           <!-- Preço e Condições Transparentes -->
-          <div>
-            <span class="text-xs text-surface-700 font-bold uppercase tracking-wider block">Plano Pro Autônomo</span>
-            <div class="flex items-baseline space-x-2 mt-1">
-              <span class="text-xs text-surface-700 font-semibold">12x de</span>
-              <span class="font-display text-4xl font-extrabold text-surface-900 tracking-tight">R$ 49,70</span>
-              <span class="text-xs text-surface-700">/mês</span>
+          <div class="space-y-3.5">
+            <div>
+              <span class="text-xs text-surface-700 font-bold uppercase tracking-wider block">Mensalidade da Plataforma</span>
+              <div class="flex items-baseline space-x-1.5 mt-1">
+                <span class="text-xs text-surface-600 font-semibold">a partir de</span>
+                <span class="font-display text-4xl font-extrabold text-surface-900 tracking-tight">R$ 699</span>
+                <span class="text-xs text-surface-700">/mês</span>
+              </div>
+              <div class="text-[11px] text-surface-600 mt-1">
+                Sem carência • Sem fidelidade oculta • Cancele quando quiser
+              </div>
             </div>
-            <div class="text-xs text-surface-800 mt-1 flex items-center justify-between">
-              <span>ou assinatura mensal contínua:</span>
-              <strong class="text-brand-700 font-bold">R$ 497/mês</strong>
-            </div>
-            <div class="text-[11px] text-surface-600 text-right mt-0.5">
-              Sem carência • Cancele quando quiser
+
+            <!-- Box Destaque Taxa de Implementação -->
+            <div class="bg-gradient-to-br from-brand-50 to-blue-50/70 rounded-2xl p-4 border border-brand-200 space-y-1.5">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-bold text-brand-900 flex items-center space-x-1.5">
+                  <i class="ph-fill ph-rocket-launch text-brand-600 text-sm"></i>
+                  <span>Taxa de Implementação:</span>
+                </span>
+                <span class="font-mono font-extrabold text-brand-800 text-xs">R$ 2.500 a R$ 5.000</span>
+              </div>
+              <p class="text-[11px] text-surface-700 leading-relaxed">
+                Setup único e assistido: saneamento da carteira de apólices legadas, ativação dos gatilhos de WhatsApp com chaves Pix e treinamento ao vivo do seu time.
+              </p>
             </div>
           </div>
 
           <!-- Resumo dos Serviços Inclusos -->
           <div class="bg-surface-50 rounded-xl p-4 border border-surface-200 space-y-2 text-xs">
-            <span class="font-bold text-surface-900 block mb-1">Incluso na sua implantação:</span>
+            <span class="font-bold text-surface-900 block mb-1">Incluso na implantação da sua corretora:</span>
             <div class="flex items-center space-x-2 text-surface-800">
               <i class="ph-bold ph-check text-brand-600"></i>
-              <span>Régua D-7, D-0 e D+2 Pix Ilimitada</span>
+              <span>Régua D-7, D-0 e D+2 Pix Automatizada</span>
             </div>
             <div class="flex items-center space-x-2 text-surface-800">
               <i class="ph-bold ph-check text-brand-600"></i>
@@ -796,22 +818,22 @@
             </div>
             <div class="flex items-center space-x-2 text-surface-800">
               <i class="ph-bold ph-check text-brand-600"></i>
-              <span>Esteira Kanban com SLAs Visíveis</span>
+              <span>Esteira Kanban Operacional com Gestão de SLA</span>
             </div>
             <div class="flex items-center space-x-2 text-surface-800">
               <i class="ph-bold ph-check text-brand-600"></i>
-              <span>Extrator OCR de CNH e Apólices Ilimitado</span>
+              <span>Leitor OCR de CNH e Apólices Ilimitado</span>
             </div>
             <div class="flex items-center space-x-2 text-surface-800">
               <i class="ph-bold ph-check text-brand-600"></i>
-              <span>Até 5 Usuários / Corretores da Equipe</span>
+              <span>Onboarding Assistido com Migração de Dados</span>
             </div>
           </div>
 
           <!-- Botões de Ação com Efeito de Escala -->
           <div class="space-y-3">
-            <button onclick="openCheckoutModal('PRO')" class="w-full py-4 px-6 rounded-2xl bg-brand-700 hover:bg-brand-600 text-white font-bold text-sm transition-all shadow-lg shadow-brand-900/20 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center space-x-2 group">
-              <span>Ativar SeguroFlow Pro Agora</span>
+            <button onclick="openCheckoutModal('CRESCIMENTO')" class="w-full py-4 px-6 rounded-2xl bg-brand-700 hover:bg-brand-600 text-white font-bold text-sm transition-all shadow-lg shadow-brand-900/20 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center space-x-2 group">
+              <span>Agendar Implantação da Corretora</span>
               <i class="ph-bold ph-arrow-right group-hover:translate-x-1 transition-transform"></i>
             </button>
 
@@ -847,7 +869,7 @@
               <span class="font-bold text-surface-900 block">Rubens Loss</span>
               <span class="text-surface-700">Especialista Operacional SeguroFlow</span>
             </div>
-            <a href="https://wa.me/" target="_blank" class="ml-auto w-9 h-9 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center hover:bg-emerald-200 transition-colors text-lg shadow-sm hover:scale-110" title="Chamar no WhatsApp">
+            <a href="https://api.whatsapp.com/send?text=Ol%C3%A1%20Rubens!%20Gostaria%20de%20conversar%20sobre%20a%20implanta%C3%A7%C3%A3o%20do%20SeguroFlow%20OS%20na%20minha%20corretora." target="_blank" class="ml-auto w-9 h-9 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center hover:bg-emerald-200 transition-colors text-lg shadow-sm hover:scale-110" title="Chamar no WhatsApp">
               <i class="ph-fill ph-whatsapp-logo"></i>
             </a>
           </div>
@@ -863,60 +885,91 @@
     <div>
       <span class="text-[10px] text-zinc-400 block uppercase font-bold tracking-wider">A partir de</span>
       <div class="flex items-baseline space-x-1">
-        <span class="text-xs text-cyan-300 font-bold">12x</span>
-        <strong class="font-display text-base font-extrabold text-white">R$ 49,70</strong>
+        <strong class="font-display text-base font-extrabold text-white">R$ 699</strong>
         <span class="text-[10px] text-zinc-400">/mês</span>
+        <span class="text-[9px] text-cyan-300 ml-1 font-semibold">• Setup R$ 2.5k a 5k</span>
       </div>
     </div>
     <div class="flex items-center space-x-2">
       <a href="app.html" class="p-2.5 rounded-xl bg-white/10 text-white text-xs font-bold active:scale-95" title="Abrir CRM">
         <i class="ph-bold ph-layout text-base"></i>
       </a>
-      <button onclick="openCheckoutModal('PRO')" class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs shadow-lg flex items-center space-x-1.5 active:scale-95">
+      <button onclick="openCheckoutModal('CRESCIMENTO')" class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs shadow-lg flex items-center space-x-1.5 active:scale-95">
         <i class="ph-bold ph-check-circle text-sm"></i>
-        <span>Ativar SeguroFlow</span>
+        <span>Agendar Setup</span>
       </button>
     </div>
   </div>
 
   <!-- ========================================================================= -->
-  <!-- MODAL DE CHECKOUT INSTANTÂNEO (PIX & CARTÃO) -->
+  <!-- MODAL DE CHECKOUT & IMPLANTAÇÃO (PIX & WHATSAPP) -->
   <!-- ========================================================================= -->
   <div id="checkoutModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 relative border border-surface-200 shadow-2xl space-y-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 relative border border-surface-200 shadow-2xl space-y-4 max-h-[95vh] overflow-y-auto">
       <button onclick="closeCheckoutModal()" class="absolute top-5 right-5 text-surface-700 hover:text-surface-900 text-xl">
         <i class="ph-bold ph-x"></i>
       </button>
 
       <div>
-        <span id="checkoutPlanBadge" class="text-[10px] font-mono font-bold uppercase px-2.5 py-1 rounded bg-brand-100 text-brand-800">Plano Pro Autônomo</span>
-        <h3 id="checkoutPlanName" class="text-2xl font-extrabold text-surface-900 mt-2 font-display">SeguroFlow Pro Autônomo</h3>
-        <p id="checkoutPlanPrice" class="text-3xl font-extrabold text-brand-700 font-mono mt-1">R$ 497<span class="text-xs text-surface-700 font-normal">/mês</span></p>
+        <span id="checkoutPlanBadge" class="text-[10px] font-mono font-bold uppercase px-2.5 py-1 rounded bg-brand-100 text-brand-800">Plano Crescimento</span>
+        <h3 id="checkoutPlanName" class="text-2xl font-extrabold text-surface-900 mt-2 font-display">SeguroFlow Crescimento</h3>
+        <p class="text-xs text-surface-600 mt-0.5" id="checkoutPlanDesc">Ideal para corretoras em expansão (até 2.500 apólices ativas)</p>
       </div>
 
-      <!-- Abas Pix / Cartão -->
+      <!-- Seletor dos 3 Níveis de Carteira -->
+      <div class="grid grid-cols-3 gap-2 p-1 bg-surface-100 rounded-2xl border border-surface-200 text-xs">
+        <button type="button" onclick="selectModalPlan('ESSENCIAL')" id="btnPlanEssencial" class="py-2.5 px-2 rounded-xl text-center font-bold transition flex flex-col items-center text-surface-700 hover:text-surface-900">
+          <span class="text-[11px]">Essencial</span>
+          <span class="text-[9px] text-surface-500 font-normal">Até 800 apólices</span>
+        </button>
+        <button type="button" onclick="selectModalPlan('CRESCIMENTO')" id="btnPlanCrescimento" class="py-2.5 px-2 rounded-xl text-center font-bold transition flex flex-col items-center bg-brand-700 text-white shadow">
+          <span class="text-[11px]">Crescimento</span>
+          <span class="text-[9px] text-brand-100 font-normal">Mais Escolhido</span>
+        </button>
+        <button type="button" onclick="selectModalPlan('ENTERPRISE')" id="btnPlanEnterprise" class="py-2.5 px-2 rounded-xl text-center font-bold transition flex flex-col items-center text-surface-700 hover:text-surface-900">
+          <span class="text-[11px]">Enterprise</span>
+          <span class="text-[9px] text-surface-500 font-normal">Ilimitado / Redes</span>
+        </button>
+      </div>
+
+      <!-- Quadro de Resumo de Valores Oficiais -->
+      <div class="bg-surface-50 rounded-2xl p-4 border border-surface-200 space-y-2">
+        <div class="flex items-center justify-between text-xs pb-2 border-b border-surface-200">
+          <span class="text-surface-700">Taxa de Implantação (Setup Assistido):</span>
+          <strong id="checkoutModalSetupPrice" class="text-brand-800 font-mono font-extrabold text-sm">R$ 3.500</strong>
+        </div>
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-surface-700">Mensalidade da Plataforma:</span>
+          <strong id="checkoutModalMonthlyPrice" class="text-emerald-700 font-mono font-extrabold text-sm">R$ 997/mês</strong>
+        </div>
+        <p id="checkoutModalSetupSummary" class="text-[11px] text-surface-600 pt-1 leading-relaxed">
+          Setup assistido: importação e saneamento da base legada, até 3 canais de WhatsApp, esteira Kanban multi-equipe, leitor OCR ilimitado e treinamento ao vivo.
+        </p>
+      </div>
+
+      <!-- Abas Pix / WhatsApp -->
       <div class="grid grid-cols-2 gap-2 p-1 bg-surface-100 rounded-xl border border-surface-200 text-xs font-bold font-mono">
         <button id="tabBtnPix" onclick="selectPaymentTab('PIX')" class="py-2.5 rounded-lg transition flex items-center justify-center space-x-1.5 bg-brand-600 text-white shadow">
           <i class="ph-bold ph-qr-code text-sm"></i>
-          <span>PIX Instantâneo</span>
+          <span>Garantir Setup c/ PIX</span>
         </button>
-        <button id="tabBtnCard" onclick="selectPaymentTab('CARD')" class="py-2.5 rounded-lg transition flex items-center justify-center space-x-1.5 text-surface-700 hover:text-surface-900">
-          <i class="ph-bold ph-credit-card text-sm"></i>
-          <span>Cartão de Crédito</span>
+        <button id="tabBtnCard" onclick="selectPaymentTab('WHATSAPP')" class="py-2.5 rounded-lg transition flex items-center justify-center space-x-1.5 text-surface-700 hover:text-surface-900">
+          <i class="ph-bold ph-whatsapp-logo text-emerald-600 text-sm"></i>
+          <span>Agendar no WhatsApp</span>
         </button>
       </div>
 
       <!-- Conteúdo Pix -->
       <div id="paymentContentPix" class="space-y-4">
         <div class="p-4 rounded-2xl bg-surface-50 border border-surface-200 text-center space-y-2">
-          <div class="w-36 h-36 mx-auto bg-white p-2 rounded-xl shadow border border-surface-200 flex items-center justify-center">
+          <div class="w-32 h-32 mx-auto bg-white p-2 rounded-xl shadow border border-surface-200 flex items-center justify-center">
             <svg viewBox="0 0 100 100" class="w-full h-full text-black" fill="currentColor">
               <path d="M0 0h30v30H0zM10 10h10v10H10zM70 0h30v30H70zM80 10h10v10H80zM0 70h30v30H0zM10 80h10v10H10zM40 0h10v20H40zM40 30h20v10H40zM60 40h10v10H60zM40 50h20v20H40zM70 70h10v10H70zM80 80h20v20H80z"/>
             </svg>
           </div>
-          <span class="text-xs text-emerald-800 font-bold block">Escaneie com seu banco ou copie a chave Pix:</span>
+          <span class="text-xs text-emerald-800 font-bold block">Chave Pix para ativação do setup assistido da corretora:</span>
           <div class="flex items-center space-x-2">
-            <input id="pixCodeInput" readonly value="00020126580014br.gov.bcb.pix0136seguroflow-licenciamento-pro-20265204000053039865802BR5925SEGUROFLOW TECNOLOGIA6009SAO PAULO" class="bg-white border border-surface-300 rounded-lg px-2.5 py-1.5 text-[10px] font-mono text-surface-800 w-full truncate">
+            <input id="pixCodeInput" readonly value="00020126580014br.gov.bcb.pix0136seguroflow-setup-crescimento-35005204000053039865802BR5925SEGUROFLOW TECNOLOGIA6009SAO PAULO" class="bg-white border border-surface-300 rounded-lg px-2.5 py-1.5 text-[10px] font-mono text-surface-800 w-full truncate">
             <button onclick="copyPixCode()" class="px-3.5 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold shrink-0">Copiar</button>
           </div>
         </div>
@@ -926,17 +979,21 @@
         </button>
       </div>
 
-      <!-- Conteúdo Cartão -->
-      <div id="paymentContentCard" class="space-y-3 hidden">
-        <input type="text" placeholder="Número do Cartão de Crédito" class="w-full p-2.5 rounded-xl border border-surface-300 text-xs">
-        <div class="grid grid-cols-2 gap-2">
-          <input type="text" placeholder="MM/AA" class="p-2.5 rounded-xl border border-surface-300 text-xs">
-          <input type="text" placeholder="CVV" class="p-2.5 rounded-xl border border-surface-300 text-xs">
+      <!-- Conteúdo WhatsApp Consultor -->
+      <div id="paymentContentWhatsApp" class="space-y-3 hidden">
+        <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-xs text-emerald-950 space-y-2">
+          <div class="flex items-center space-x-2 font-bold text-emerald-900">
+            <i class="ph-fill ph-check-circle text-base text-emerald-600"></i>
+            <span>Onboarding Consultivo Personalizado</span>
+          </div>
+          <p class="text-emerald-800 text-[11px] leading-relaxed">
+            Prefere alinhar detalhes sobre o tamanho da sua carteira de apólices, integrações ou tirar dúvidas antes de fechar? Fale diretamente com o consultor responsável da SeguroFlow.
+          </p>
         </div>
-        <input type="text" placeholder="Nome Completo no Cartão" class="w-full p-2.5 rounded-xl border border-surface-300 text-xs">
-        <button onclick="confirmInstantPayment()" class="w-full py-3.5 rounded-2xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs shadow-lg transition mt-2">
-          Pagar com Cartão & Iniciar Imediatamente
-        </button>
+        <a id="btnWhatsAppCheckout" href="https://api.whatsapp.com/send?text=Ol%C3%A1%20Rubens!%20Quero%20agendar%20a%20implanta%C3%A7%C3%A3o%20do%20SeguroFlow%20Crescimento%20(Setup%20R$%203.500%20%2B%20R$%20997/m%C3%AAs)%20para%20minha%20corretora." target="_blank" class="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg transition flex items-center justify-center space-x-2">
+          <i class="ph-bold ph-whatsapp-logo text-base"></i>
+          <span>Conversar e Agendar no WhatsApp</span>
+        </a>
       </div>
     </div>
   </div>
@@ -1002,23 +1059,82 @@
       document.getElementById('outRecuperado').textContent = `+ R$ ${recuperado.toLocaleString('pt-BR')} / ano`;
     }
 
+    // Definição dos Planos Oficiais SeguroFlow
+    const PLANS_CONFIG = {
+      ESSENCIAL: {
+        badge: 'Plano Essencial (Até 800 apólices)',
+        name: 'SeguroFlow Essencial',
+        desc: 'Para corretores e corretoras com até 800 apólices ativas',
+        setup: 'R$ 2.500',
+        monthly: 'R$ 699/mês',
+        summary: 'Setup assistido: saneamento e importação de até 800 apólices, 1 canal de WhatsApp com régua Pix automatizada e treinamento operacional.',
+        pix: '00020126580014br.gov.bcb.pix0136seguroflow-setup-essencial-25005204000053039865802BR5925SEGUROFLOW TECNOLOGIA6009SAO PAULO',
+        waMsg: 'Olá Rubens! Quero agendar a implantação do SeguroFlow Essencial (Setup R$ 2.500 + R$ 699/mês) para minha corretora.'
+      },
+      CRESCIMENTO: {
+        badge: 'Plano Crescimento (Até 2.500 apólices)',
+        name: 'SeguroFlow Crescimento',
+        desc: 'Ideal para corretoras em expansão (até 2.500 apólices ativas)',
+        setup: 'R$ 3.500',
+        monthly: 'R$ 997/mês',
+        summary: 'Setup assistido: importação e saneamento da base legada, até 3 canais de WhatsApp, esteira Kanban multi-equipe, leitor OCR ilimitado e treinamento ao vivo.',
+        pix: '00020126580014br.gov.bcb.pix0136seguroflow-setup-crescimento-35005204000053039865802BR5925SEGUROFLOW TECNOLOGIA6009SAO PAULO',
+        waMsg: 'Olá Rubens! Quero agendar a implantação do SeguroFlow Crescimento (Setup R$ 3.500 + R$ 997/mês) para minha corretora.'
+      },
+      ENTERPRISE: {
+        badge: 'Plano Scale / Enterprise (+2.500 apólices)',
+        name: 'SeguroFlow Scale Enterprise',
+        desc: 'Para grandes corretoras, redes e franquias com carteiras complexas',
+        setup: 'R$ 5.000',
+        monthly: 'R$ 1.490/mês',
+        summary: 'Setup assistido VIP: migração assistida de múltiplas bases, multi-CNPJs, regras customizadas de SLA, esteira de sinistros prioritária e consultoria executiva.',
+        pix: '00020126580014br.gov.bcb.pix0136seguroflow-setup-enterprise-50005204000053039865802BR5925SEGUROFLOW TECNOLOGIA6009SAO PAULO',
+        waMsg: 'Olá Rubens! Quero agendar a implantação do SeguroFlow Enterprise (Setup R$ 5.000 + R$ 1.490/mês) para minha corretora.'
+      }
+    };
+
+    let activePlanKey = 'CRESCIMENTO';
+
+    function selectModalPlan(planKey) {
+      activePlanKey = planKey;
+      const data = PLANS_CONFIG[planKey] || PLANS_CONFIG.CRESCIMENTO;
+
+      // Atualiza textos
+      document.getElementById('checkoutPlanBadge').textContent = data.badge;
+      document.getElementById('checkoutPlanName').textContent = data.name;
+      document.getElementById('checkoutPlanDesc').textContent = data.desc;
+      document.getElementById('checkoutModalSetupPrice').textContent = data.setup;
+      document.getElementById('checkoutModalMonthlyPrice').textContent = data.monthly;
+      document.getElementById('checkoutModalSetupSummary').textContent = data.summary;
+      document.getElementById('pixCodeInput').value = data.pix;
+      
+      const waLink = `https://api.whatsapp.com/send?text=${encodeURIComponent(data.waMsg)}`;
+      document.getElementById('btnWhatsAppCheckout').href = waLink;
+
+      // Atualiza estilos dos botões de seleção
+      const btnEssencial = document.getElementById('btnPlanEssencial');
+      const btnCrescimento = document.getElementById('btnPlanCrescimento');
+      const btnEnterprise = document.getElementById('btnPlanEnterprise');
+
+      [btnEssencial, btnCrescimento, btnEnterprise].forEach(b => {
+        b.className = 'py-2.5 px-2 rounded-xl text-center font-bold transition flex flex-col items-center text-surface-700 hover:text-surface-900';
+      });
+
+      if (planKey === 'ESSENCIAL') {
+        btnEssencial.className = 'py-2.5 px-2 rounded-xl text-center font-bold transition flex flex-col items-center bg-brand-700 text-white shadow';
+      } else if (planKey === 'ENTERPRISE') {
+        btnEnterprise.className = 'py-2.5 px-2 rounded-xl text-center font-bold transition flex flex-col items-center bg-brand-700 text-white shadow';
+      } else {
+        btnCrescimento.className = 'py-2.5 px-2 rounded-xl text-center font-bold transition flex flex-col items-center bg-brand-700 text-white shadow';
+      }
+    }
+
     // Modais de Checkout
     function openCheckoutModal(plan) {
-      const m = document.getElementById('checkoutModal');
-      const badge = document.getElementById('checkoutPlanBadge');
-      const name = document.getElementById('checkoutPlanName');
-      const price = document.getElementById('checkoutPlanPrice');
-
-      if (plan === 'STARTER') {
-        badge.textContent = 'Plano Starter';
-        name.textContent = 'SeguroFlow Starter';
-        price.innerHTML = 'R$ 197<span class="text-xs text-surface-700 font-normal">/mês</span>';
-      } else {
-        badge.textContent = 'Plano Pro Autônomo';
-        name.textContent = 'SeguroFlow Pro Autônomo';
-        price.innerHTML = 'R$ 497<span class="text-xs text-surface-700 font-normal">/mês</span>';
-      }
-      m.classList.remove('hidden');
+      const planKey = (plan && PLANS_CONFIG[plan]) ? plan : 'CRESCIMENTO';
+      selectModalPlan(planKey);
+      selectPaymentTab('PIX');
+      document.getElementById('checkoutModal').classList.remove('hidden');
     }
 
     function closeCheckoutModal() {
@@ -1027,19 +1143,19 @@
 
     function selectPaymentTab(type) {
       const btnPix = document.getElementById('tabBtnPix');
-      const btnCard = document.getElementById('tabBtnCard');
+      const btnWa = document.getElementById('tabBtnCard');
       const cPix = document.getElementById('paymentContentPix');
-      const cCard = document.getElementById('paymentContentCard');
+      const cWa = document.getElementById('paymentContentWhatsApp');
 
       if (type === 'PIX') {
         btnPix.className = 'py-2.5 rounded-lg transition flex items-center justify-center space-x-1.5 bg-brand-600 text-white shadow';
-        btnCard.className = 'py-2.5 rounded-lg transition flex items-center justify-center space-x-1.5 text-surface-700 hover:text-surface-900';
+        btnWa.className = 'py-2.5 rounded-lg transition flex items-center justify-center space-x-1.5 text-surface-700 hover:text-surface-900';
         cPix.classList.remove('hidden');
-        cCard.classList.add('hidden');
+        cWa.classList.add('hidden');
       } else {
-        btnCard.className = 'py-2.5 rounded-lg transition flex items-center justify-center space-x-1.5 bg-brand-600 text-white shadow';
+        btnWa.className = 'py-2.5 rounded-lg transition flex items-center justify-center space-x-1.5 bg-brand-600 text-white shadow';
         btnPix.className = 'py-2.5 rounded-lg transition flex items-center justify-center space-x-1.5 text-surface-700 hover:text-surface-900';
-        cCard.classList.remove('hidden');
+        cWa.classList.remove('hidden');
         cPix.classList.add('hidden');
       }
     }
@@ -1048,11 +1164,11 @@
       const input = document.getElementById('pixCodeInput');
       input.select();
       navigator.clipboard.writeText(input.value);
-      alert('Código PIX Copia e Cola copiado com sucesso!');
+      alert('Código PIX Copia e Cola da taxa de setup copiado com sucesso!');
     }
 
     function confirmInstantPayment() {
-      alert('🎉 Pagamento aprovado com sucesso! Redirecionando para o ambiente do CRM...');
+      alert('🎉 Pagamento da taxa de setup confirmado! Nossa equipe técnica iniciará o onboarding da sua carteira imediatamente. Redirecionando para o CRM...');
       window.location.href = 'app.html';
     }
 
