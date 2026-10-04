@@ -9,6 +9,18 @@
   <title>SeguroFlow OS • Automação Operacional & Vendas para Corretoras de Seguros</title>
 
   <script>
+    // Invalidador de cache para navegadores mobile e desktop
+    const APP_BUILD_ID = '20261004-v5';
+    try {
+      const prev = localStorage.getItem('sf_build_id');
+      if (prev !== APP_BUILD_ID) {
+        localStorage.setItem('sf_build_id', APP_BUILD_ID);
+        if (prev && !window.location.search.includes('v=')) {
+          window.location.search = '?v=' + APP_BUILD_ID;
+        }
+      }
+    } catch (e) {}
+
     if (window.location.hostname.includes('github.io')) {
       window.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('a[href="/app"]').forEach(a => a.href = 'app.html');
@@ -148,13 +160,13 @@
     }
   </style>
 </head>
-<body class="bg-surface-50 text-surface-900 font-sans antialiased selection:bg-brand-600 selection:text-white w-full">
+<body class="bg-surface-50 text-surface-900 font-sans antialiased selection:bg-brand-600 selection:text-white w-full overflow-x-hidden">
 
   <!-- ========================================================================= -->
   <!-- NAVBAR PREMIUM COMERCIAL (LIMPA, ELEGANTE & EM UMA ÚNICA LINHA) -->
   <!-- ========================================================================= -->
   <header class="sticky top-0 z-50 glass-header text-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between flex-nowrap w-full whitespace-nowrap">
+    <div class="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 h-16 flex items-center justify-between flex-nowrap w-full whitespace-nowrap">
       
       <!-- Marca SeguroFlow OS (Compacta e em 1 linha) -->
       <a href="index.html" class="flex items-center space-x-2.5 group cursor-pointer shrink-0">
@@ -662,21 +674,76 @@
               <!-- Controles Interativos da Cotação (7 colunas) -->
               <div class="lg:col-span-7 space-y-5">
                 
-                <!-- 1. Volume de Apólices -->
+                <!-- 1. Seletor Rápido de Planos (4 Cards Touch/Mobile Interativos) -->
                 <div>
-                  <div class="flex justify-between items-center text-xs font-bold mb-1.5 text-surface-900">
-                    <span class="flex items-center space-x-1.5">
-                      <i class="ph-bold ph-files text-brand-600"></i>
-                      <span>1. Carteira de Apólices Ativas:</span>
-                    </span>
-                    <span id="quoteLabelApolices" class="text-brand-800 font-mono font-extrabold text-sm bg-brand-50 px-2 py-0.5 rounded border border-brand-200">1.200 apólices</span>
+                  <label class="block text-xs font-bold mb-2 text-surface-900 flex items-center space-x-1.5">
+                    <i class="ph-bold ph-cards text-brand-600"></i>
+                    <span>1. Selecione o Porte da Sua Carteira (ou use o slider abaixo):</span>
+                  </label>
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-3.5">
+                    
+                    <!-- Card Iniciante -->
+                    <button type="button" id="btnPresetIniciante" onclick="selectPresetPlan('INICIANTE')" class="p-3 rounded-2xl border-2 border-surface-200 bg-surface-50 hover:border-brand-500 text-left transition flex flex-col justify-between active:scale-95 cursor-pointer shadow-xs">
+                      <div>
+                        <span class="text-[9px] font-bold uppercase tracking-wider text-surface-700 block">Até 400 apólices</span>
+                        <strong class="text-sm font-extrabold text-surface-900 mt-0.5 block">Iniciante</strong>
+                      </div>
+                      <div class="mt-2.5 pt-1.5 border-t border-surface-200">
+                        <span class="text-xs font-mono font-extrabold text-emerald-800 block">R$ 699/mês</span>
+                        <span class="text-[10px] text-surface-700 font-mono block">Setup R$ 2.500</span>
+                      </div>
+                    </button>
+
+                    <!-- Card Essencial -->
+                    <button type="button" id="btnPresetEssencial" onclick="selectPresetPlan('ESSENCIAL')" class="p-3 rounded-2xl border-2 border-surface-200 bg-surface-50 hover:border-brand-500 text-left transition flex flex-col justify-between active:scale-95 cursor-pointer shadow-xs">
+                      <div>
+                        <span class="text-[9px] font-bold uppercase tracking-wider text-surface-700 block">Até 800 apólices</span>
+                        <strong class="text-sm font-extrabold text-surface-900 mt-0.5 block">Essencial</strong>
+                      </div>
+                      <div class="mt-2.5 pt-1.5 border-t border-surface-200">
+                        <span class="text-xs font-mono font-extrabold text-emerald-800 block">R$ 699/mês</span>
+                        <span class="text-[10px] text-surface-700 font-mono block">Setup R$ 2.500</span>
+                      </div>
+                    </button>
+
+                    <!-- Card Crescimento -->
+                    <button type="button" id="btnPresetCrescimento" onclick="selectPresetPlan('CRESCIMENTO')" class="p-3 rounded-2xl border-2 border-brand-600 bg-brand-50/90 text-left transition flex flex-col justify-between active:scale-95 cursor-pointer shadow-md">
+                      <div>
+                        <span class="text-[9px] font-bold uppercase tracking-wider text-brand-800 block">Até 2.500 apólices</span>
+                        <strong class="text-sm font-extrabold text-brand-950 mt-0.5 block">Crescimento</strong>
+                      </div>
+                      <div class="mt-2.5 pt-1.5 border-t border-brand-200">
+                        <span class="text-xs font-mono font-extrabold text-emerald-800 block">R$ 997/mês</span>
+                        <span class="text-[10px] text-brand-800 font-mono block">Setup R$ 3.500</span>
+                      </div>
+                    </button>
+
+                    <!-- Card Enterprise -->
+                    <button type="button" id="btnPresetEnterprise" onclick="selectPresetPlan('ENTERPRISE')" class="p-3 rounded-2xl border-2 border-surface-200 bg-surface-50 hover:border-brand-500 text-left transition flex flex-col justify-between active:scale-95 cursor-pointer shadow-xs">
+                      <div>
+                        <span class="text-[9px] font-bold uppercase tracking-wider text-surface-700 block">+2.500 apólices</span>
+                        <strong class="text-sm font-extrabold text-surface-900 mt-0.5 block">Enterprise</strong>
+                      </div>
+                      <div class="mt-2.5 pt-1.5 border-t border-surface-200">
+                        <span class="text-xs font-mono font-extrabold text-emerald-800 block">R$ 1.490/mês</span>
+                        <span class="text-[10px] text-surface-700 font-mono block">Setup R$ 5.000</span>
+                      </div>
+                    </button>
+
                   </div>
-                  <input type="range" id="quoteSliderApolices" min="100" max="5000" step="50" value="1200" class="w-full range-slider" oninput="runQuotationEngine()">
-                  <div class="flex justify-between text-[10px] text-surface-600 mt-1">
-                    <button type="button" onclick="setQuoteApolices(400)" class="hover:text-brand-700 underline">400 (Iniciante)</button>
-                    <button type="button" onclick="setQuoteApolices(800)" class="hover:text-brand-700 underline font-bold">800 (Essencial)</button>
-                    <button type="button" onclick="setQuoteApolices(1800)" class="hover:text-brand-700 underline font-bold">1.800 (Crescimento)</button>
-                    <button type="button" onclick="setQuoteApolices(3500)" class="hover:text-brand-700 underline">3.500+ (Enterprise)</button>
+
+                  <!-- Slider Interativo de Apólices -->
+                  <div class="bg-surface-50 p-3.5 rounded-2xl border border-surface-200 space-y-2">
+                    <div class="flex justify-between items-center text-xs font-bold text-surface-900">
+                      <span class="text-surface-700 font-medium">Ajuste fino da sua carteira:</span>
+                      <span id="quoteLabelApolices" class="text-brand-800 font-mono font-extrabold text-sm bg-white px-2.5 py-0.5 rounded-lg border border-brand-200 shadow-xs">1.800 apólices</span>
+                    </div>
+                    <input type="range" id="quoteSliderApolices" min="100" max="5000" step="50" value="1800" class="w-full range-slider cursor-pointer" oninput="onSliderMove()">
+                    <div class="flex justify-between text-[10px] text-surface-600 font-mono">
+                      <span>100 apólices</span>
+                      <span>2.500 apólices</span>
+                      <span>5.000 apólices</span>
+                    </div>
                   </div>
                 </div>
 
@@ -1416,54 +1483,89 @@
     // MOTOR DE COTAÇÃO EM TEMPO REAL (INTERATIVO)
     // =========================================================================
     let quoteState = {
-      apolices: 1200,
+      apolices: 1800,
       users: 5,
       wa: 2,
       targetModalPlan: 'CRESCIMENTO'
     };
 
-    function setQuoteApolices(val) {
+    function selectPresetPlan(presetKey) {
+      if (presetKey === 'INICIANTE') {
+        quoteState.apolices = 400;
+        setQuoteUsers(1, false);
+        setQuoteWa(1, false);
+      } else if (presetKey === 'ESSENCIAL') {
+        quoteState.apolices = 800;
+        setQuoteUsers(5, false);
+        setQuoteWa(1, false);
+      } else if (presetKey === 'CRESCIMENTO') {
+        quoteState.apolices = 1800;
+        setQuoteUsers(5, false);
+        setQuoteWa(2, false);
+      } else if (presetKey === 'ENTERPRISE') {
+        quoteState.apolices = 3500;
+        setQuoteUsers(25, false);
+        setQuoteWa(3, false);
+      }
+      const slider = document.getElementById('quoteSliderApolices');
+      if (slider) slider.value = quoteState.apolices;
+      runQuotationEngine();
+    }
+
+    function onSliderMove() {
       const slider = document.getElementById('quoteSliderApolices');
       if (slider) {
-        slider.value = val;
+        quoteState.apolices = parseInt(slider.value, 10);
         runQuotationEngine();
       }
     }
 
-    function setQuoteUsers(u) {
+    function setQuoteUsers(u, shouldRun = true) {
       quoteState.users = u;
       [1, 5, 12, 25].forEach(num => {
         const btn = document.getElementById(`btnQuoteUsers${num === 25 ? 'More' : num}`);
         if (btn) {
           if (num === u) {
-            btn.className = 'py-2 px-1 text-center font-bold rounded-xl border-2 border-brand-600 bg-brand-50 text-brand-800';
+            btn.className = 'py-2 px-1 text-center font-bold rounded-xl border-2 border-brand-600 bg-brand-50 text-brand-800 shadow-sm';
           } else {
             btn.className = 'py-2 px-1 text-center font-bold rounded-xl border border-surface-300 hover:border-brand-600 bg-surface-50 text-surface-800';
           }
         }
       });
-      runQuotationEngine();
+      if (shouldRun) runQuotationEngine();
     }
 
-    function setQuoteWa(w) {
+    function setQuoteWa(w, shouldRun = true) {
       quoteState.wa = w;
       [1, 2, 3].forEach(num => {
         const btn = document.getElementById(`btnQuoteWa${num}`);
         if (btn) {
           if (num === w) {
-            btn.className = 'py-2 text-center font-bold rounded-xl border-2 border-brand-600 bg-brand-50 text-brand-800';
+            btn.className = 'py-2 text-center font-bold rounded-xl border-2 border-brand-600 bg-brand-50 text-brand-800 shadow-sm';
           } else {
             btn.className = 'py-2 text-center font-bold rounded-xl border border-surface-300 hover:border-brand-600 bg-surface-50 text-surface-800';
           }
         }
       });
-      runQuotationEngine();
+      if (shouldRun) runQuotationEngine();
+    }
+
+    function highlightPresetButton(key) {
+      const presets = ['Iniciante', 'Essencial', 'Crescimento', 'Enterprise'];
+      presets.forEach(k => {
+        const btn = document.getElementById(`btnPreset${k}`);
+        if (!btn) return;
+        if (k.toUpperCase() === key.toUpperCase()) {
+          btn.className = 'p-3 rounded-2xl border-2 border-brand-600 bg-brand-50/90 text-left transition flex flex-col justify-between active:scale-95 cursor-pointer shadow-md';
+        } else {
+          btn.className = 'p-3 rounded-2xl border-2 border-surface-200 bg-surface-50 hover:border-brand-400 text-left transition flex flex-col justify-between active:scale-95 cursor-pointer shadow-xs';
+        }
+      });
     }
 
     function runQuotationEngine() {
       const slider = document.getElementById('quoteSliderApolices');
-      if (!slider) return;
-      const apolices = parseInt(slider.value, 10);
+      const apolices = slider ? parseInt(slider.value, 10) : quoteState.apolices;
       quoteState.apolices = apolices;
 
       const labelApolices = document.getElementById('quoteLabelApolices');
@@ -1475,36 +1577,44 @@
       let setupPrice = 3500;
       let monthlyPrice = 997;
       let targetModalPlan = 'CRESCIMENTO';
+      let activePresetKey = 'CRESCIMENTO';
 
-      if (apolices <= 800 && quoteState.users <= 5 && quoteState.wa === 1) {
-        planName = 'SeguroFlow Essencial';
-        planBadge = 'PLANO ESSENCIAL';
-        planDesc = 'Ideal para pequenos corretores e operações enxutas';
+      if (apolices <= 400) {
+        planName = 'SeguroFlow Iniciante';
+        planBadge = 'PLANO INICIANTE';
+        planDesc = 'Ideal para pequenos corretores e operações enxutas (até 400 apólices)';
         setupPrice = 2500;
         monthlyPrice = 699;
         targetModalPlan = 'ESSENCIAL';
-      } else if (apolices <= 1500) {
-        planName = 'SeguroFlow Crescimento';
-        planBadge = 'PLANO CRESCIMENTO';
-        planDesc = 'Ideal para corretoras estruturadas em aceleração';
-        setupPrice = 3500;
-        monthlyPrice = (quoteState.wa > 2 || quoteState.users > 5) ? 1190 : 890;
-        targetModalPlan = 'CRESCIMENTO';
+        activePresetKey = 'INICIANTE';
+      } else if (apolices <= 800) {
+        planName = 'SeguroFlow Essencial';
+        planBadge = 'PLANO ESSENCIAL';
+        planDesc = 'Para corretores estruturados com carteira até 800 apólices ativas';
+        setupPrice = 2500;
+        monthlyPrice = 699;
+        targetModalPlan = 'ESSENCIAL';
+        activePresetKey = 'ESSENCIAL';
       } else if (apolices <= 2500) {
-        planName = 'SeguroFlow Crescimento Acelerado';
-        planBadge = 'PLANO CRESCIMENTO+';
-        planDesc = 'Potência máxima de operação para médias corretoras';
+        planName = apolices <= 1500 ? 'SeguroFlow Crescimento' : 'SeguroFlow Crescimento Acelerado';
+        planBadge = 'PLANO CRESCIMENTO';
+        planDesc = 'Potência máxima de operação para médias corretoras (até 2.500 apólices)';
         setupPrice = 3500;
-        monthlyPrice = (quoteState.wa > 2 || quoteState.users > 10) ? 1290 : 997;
+        monthlyPrice = apolices <= 1500 ? 890 : 997;
         targetModalPlan = 'CRESCIMENTO';
+        activePresetKey = 'CRESCIMENTO';
       } else {
         planName = 'SeguroFlow Scale Enterprise';
         planBadge = 'PLANO SCALE ENTERPRISE';
-        planDesc = 'Para grandes corretoras, redes e franquias com alto volume';
+        planDesc = 'Para grandes corretoras, redes e franquias com alto volume (+2.500 apólices)';
         setupPrice = 5000;
         monthlyPrice = 1490;
         targetModalPlan = 'ENTERPRISE';
+        activePresetKey = 'ENTERPRISE';
       }
+
+      // Destacar o botão de preset correspondente
+      highlightPresetButton(activePresetKey);
 
       // Atualiza elementos de tela
       const badgeEl = document.getElementById('quotePlanBadge');
@@ -1534,7 +1644,7 @@
 - Carteira: ${apolices.toLocaleString('pt-BR')} apólices
 - Equipe: ${quoteState.users} operadores
 - WhatsApp: ${quoteState.wa} canal(is)
-- Plano: ${planName}
+- Plano Sugerido: ${planName}
 - Setup Único: R$ ${setupPrice.toLocaleString('pt-BR')}
 - Mensalidade: R$ ${monthlyPrice.toLocaleString('pt-BR')}/mês
 
