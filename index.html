@@ -10,7 +10,7 @@
 
   <script>
     // Invalidador de cache para navegadores mobile e desktop
-    const APP_BUILD_ID = '20261004-v6';
+    const APP_BUILD_ID = '20261004-v8';
     try {
       const prev = localStorage.getItem('sf_build_id');
       if (prev !== APP_BUILD_ID) {
@@ -688,8 +688,8 @@
                         <strong class="text-sm font-extrabold text-surface-900 mt-0.5 block">Iniciante</strong>
                       </div>
                       <div class="mt-2.5 pt-1.5 border-t border-surface-200">
-                        <span class="text-xs font-mono font-extrabold text-emerald-800 block">R$ 699/mês</span>
-                        <span class="text-[10px] text-surface-700 font-mono block">Setup R$ 2.500</span>
+                        <span class="text-xs font-mono font-extrabold text-emerald-800 block">R$ 599/mês</span>
+                        <span class="text-[10px] text-surface-700 font-mono block">Setup R$ 1.500</span>
                       </div>
                     </button>
 
@@ -700,7 +700,7 @@
                         <strong class="text-sm font-extrabold text-surface-900 mt-0.5 block">Essencial</strong>
                       </div>
                       <div class="mt-2.5 pt-1.5 border-t border-surface-200">
-                        <span class="text-xs font-mono font-extrabold text-emerald-800 block">R$ 699/mês</span>
+                        <span class="text-xs font-mono font-extrabold text-emerald-800 block">R$ 799/mês</span>
                         <span class="text-[10px] text-surface-700 font-mono block">Setup R$ 2.500</span>
                       </div>
                     </button>
@@ -724,7 +724,7 @@
                         <strong class="text-sm font-extrabold text-surface-900 mt-0.5 block">Enterprise</strong>
                       </div>
                       <div class="mt-2.5 pt-1.5 border-t border-surface-200">
-                        <span class="text-xs font-mono font-extrabold text-emerald-800 block">R$ 1.490/mês</span>
+                        <span class="text-xs font-mono font-extrabold text-emerald-800 block">R$ 1.499/mês</span>
                         <span class="text-[10px] text-surface-700 font-mono block">Setup R$ 5.000</span>
                       </div>
                     </button>
@@ -977,7 +977,7 @@
               <i class="ph-bold ph-caret-down text-brand-600"></i>
             </summary>
             <p class="text-xs text-surface-700 mt-2 leading-relaxed">
-              Cobramos uma taxa única de implementação que varia de <strong>R$ 2.500 a R$ 5.000</strong> de acordo com a volumetria da carteira de apólices e canais operacionais. Esse valor cobre todo o trabalho assistido de onboarding: saneamento da base de apólices legadas, higienização de contatos, parametrização dos fluxos de régua D-7 com Pix e treinamento ao vivo do seu time. A mensalidade é <strong>a partir de R$ 699/mês</strong>, garantindo acesso contínuo à plataforma, suporte e atualizações sem fidelidade ou carência contratual.
+              Cobramos uma taxa única de implementação que varia de <strong>R$ 1.500 a R$ 5.000</strong> de acordo com a volumetria da carteira de apólices e canais operacionais. Esse valor cobre todo o trabalho assistido de onboarding: saneamento da base de apólices legadas, higienização de contatos, parametrização dos fluxos de régua D-7 com Pix e treinamento ao vivo do seu time. A mensalidade é <strong>a partir de R$ 599/mês</strong>, garantindo acesso contínuo à plataforma, suporte e atualizações sem fidelidade ou carência contratual.
             </p>
           </details>
 
@@ -1037,7 +1037,7 @@
               <span class="text-xs text-surface-700 font-bold uppercase tracking-wider block">Mensalidade da Plataforma</span>
               <div class="flex items-baseline space-x-1.5 mt-1">
                 <span class="text-xs text-surface-600 font-semibold">a partir de</span>
-                <span class="font-display text-4xl font-extrabold text-surface-900 tracking-tight">R$ 699</span>
+                <span class="font-display text-4xl font-extrabold text-surface-900 tracking-tight">R$ 599</span>
                 <span class="text-xs text-surface-700">/mês</span>
               </div>
               <div class="text-[11px] text-surface-600 mt-1">
@@ -1052,7 +1052,7 @@
                   <i class="ph-fill ph-rocket-launch text-brand-600 text-sm"></i>
                   <span>Taxa de Implementação:</span>
                 </span>
-                <span class="font-mono font-extrabold text-brand-800 text-xs">R$ 2.500 a R$ 5.000</span>
+                <span class="font-mono font-extrabold text-brand-800 text-xs">R$ 1.500 a R$ 5.000</span>
               </div>
               <p class="text-[11px] text-surface-700 leading-relaxed">
                 Setup único e assistido: saneamento da carteira de apólices legadas, ativação dos gatilhos de WhatsApp com chaves Pix e treinamento ao vivo do seu time.
@@ -1140,9 +1140,9 @@
     <div>
       <span class="text-[10px] text-zinc-400 block uppercase font-bold tracking-wider">A partir de</span>
       <div class="flex items-baseline space-x-1">
-        <strong class="font-display text-base font-extrabold text-white">R$ 699</strong>
+        <strong class="font-display text-base font-extrabold text-white">R$ 599</strong>
         <span class="text-[10px] text-zinc-400">/mês</span>
-        <span class="text-[9px] text-cyan-300 ml-1 font-semibold">• Setup R$ 2.5k a 5k</span>
+        <span class="text-[9px] text-cyan-300 ml-1 font-semibold">• Setup R$ 1.5k a 5k</span>
       </div>
     </div>
     <div class="flex items-center space-x-2">
@@ -1171,17 +1171,21 @@
         <p class="text-xs text-surface-600 mt-0.5" id="checkoutPlanDesc">Ideal para corretoras em expansão (até 2.500 apólices ativas)</p>
       </div>
 
-      <!-- Seletor dos 3 Níveis de Carteira -->
-      <div class="grid grid-cols-3 gap-2 p-1 bg-surface-100 rounded-2xl border border-surface-200 text-xs">
-        <button type="button" onclick="selectModalPlan('ESSENCIAL')" id="btnPlanEssencial" class="py-2.5 px-2 rounded-xl text-center font-bold transition flex flex-col items-center text-surface-700 hover:text-surface-900">
+      <!-- Seletor dos 4 Níveis de Carteira -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 p-1 bg-surface-100 rounded-2xl border border-surface-200 text-xs">
+        <button type="button" onclick="selectModalPlan('INICIANTE')" id="btnPlanIniciante" class="py-2 px-1 rounded-xl text-center font-bold transition flex flex-col items-center text-surface-700 hover:text-surface-900">
+          <span class="text-[11px]">Iniciante</span>
+          <span class="text-[9px] text-surface-500 font-normal">Até 400 apólices</span>
+        </button>
+        <button type="button" onclick="selectModalPlan('ESSENCIAL')" id="btnPlanEssencial" class="py-2 px-1 rounded-xl text-center font-bold transition flex flex-col items-center text-surface-700 hover:text-surface-900">
           <span class="text-[11px]">Essencial</span>
           <span class="text-[9px] text-surface-500 font-normal">Até 800 apólices</span>
         </button>
-        <button type="button" onclick="selectModalPlan('CRESCIMENTO')" id="btnPlanCrescimento" class="py-2.5 px-2 rounded-xl text-center font-bold transition flex flex-col items-center bg-brand-700 text-white shadow">
+        <button type="button" onclick="selectModalPlan('CRESCIMENTO')" id="btnPlanCrescimento" class="py-2 px-1 rounded-xl text-center font-bold transition flex flex-col items-center bg-brand-700 text-white shadow">
           <span class="text-[11px]">Crescimento</span>
           <span class="text-[9px] text-brand-100 font-normal">Mais Escolhido</span>
         </button>
-        <button type="button" onclick="selectModalPlan('ENTERPRISE')" id="btnPlanEnterprise" class="py-2.5 px-2 rounded-xl text-center font-bold transition flex flex-col items-center text-surface-700 hover:text-surface-900">
+        <button type="button" onclick="selectModalPlan('ENTERPRISE')" id="btnPlanEnterprise" class="py-2 px-1 rounded-xl text-center font-bold transition flex flex-col items-center text-surface-700 hover:text-surface-900">
           <span class="text-[11px]">Enterprise</span>
           <span class="text-[9px] text-surface-500 font-normal">Ilimitado / Redes</span>
         </button>
@@ -1336,15 +1340,25 @@
 
     // Definição dos Planos Oficiais SeguroFlow
     const PLANS_CONFIG = {
+      INICIANTE: {
+        badge: 'Plano Iniciante (Até 400 apólices)',
+        name: 'SeguroFlow Iniciante',
+        desc: 'Para corretores individuais e operações enxutas (até 400 apólices ativas)',
+        setup: 'R$ 1.500',
+        monthly: 'R$ 599/mês',
+        summary: 'Setup assistido: saneamento e importação de até 400 apólices, 1 canal de WhatsApp com régua Pix automatizada e treinamento operacional.',
+        pix: '00020126580014br.gov.bcb.pix0136seguroflow-setup-iniciante-15005204000053039865802BR5925SEGUROFLOW TECNOLOGIA6009SAO PAULO',
+        waMsg: 'Olá Rubens! Quero agendar a implantação do SeguroFlow Iniciante (Setup R$ 1.500 + R$ 599/mês) para minha corretora.'
+      },
       ESSENCIAL: {
         badge: 'Plano Essencial (Até 800 apólices)',
         name: 'SeguroFlow Essencial',
-        desc: 'Para corretores e corretoras com até 800 apólices ativas',
+        desc: 'Para corretores estruturados com até 800 apólices ativas',
         setup: 'R$ 2.500',
-        monthly: 'R$ 699/mês',
+        monthly: 'R$ 799/mês',
         summary: 'Setup assistido: saneamento e importação de até 800 apólices, 1 canal de WhatsApp com régua Pix automatizada e treinamento operacional.',
         pix: '00020126580014br.gov.bcb.pix0136seguroflow-setup-essencial-25005204000053039865802BR5925SEGUROFLOW TECNOLOGIA6009SAO PAULO',
-        waMsg: 'Olá Rubens! Quero agendar a implantação do SeguroFlow Essencial (Setup R$ 2.500 + R$ 699/mês) para minha corretora.'
+        waMsg: 'Olá Rubens! Quero agendar a implantação do SeguroFlow Essencial (Setup R$ 2.500 + R$ 799/mês) para minha corretora.'
       },
       CRESCIMENTO: {
         badge: 'Plano Crescimento (Até 2.500 apólices)',
@@ -1361,10 +1375,10 @@
         name: 'SeguroFlow Scale Enterprise',
         desc: 'Para grandes corretoras, redes e franquias com carteiras complexas',
         setup: 'R$ 5.000',
-        monthly: 'R$ 1.490/mês',
+        monthly: 'R$ 1.499/mês',
         summary: 'Setup assistido VIP: migração assistida de múltiplas bases, multi-CNPJs, regras customizadas de SLA, esteira de sinistros prioritária e consultoria executiva.',
         pix: '00020126580014br.gov.bcb.pix0136seguroflow-setup-enterprise-50005204000053039865802BR5925SEGUROFLOW TECNOLOGIA6009SAO PAULO',
-        waMsg: 'Olá Rubens! Quero agendar a implantação do SeguroFlow Enterprise (Setup R$ 5.000 + R$ 1.490/mês) para minha corretora.'
+        waMsg: 'Olá Rubens! Quero agendar a implantação do SeguroFlow Enterprise (Setup R$ 5.000 + R$ 1.499/mês) para minha corretora.'
       }
     };
 
@@ -1387,20 +1401,23 @@
       document.getElementById('btnWhatsAppCheckout').href = waLink;
 
       // Atualiza estilos dos botões de seleção
+      const btnIniciante = document.getElementById('btnPlanIniciante');
       const btnEssencial = document.getElementById('btnPlanEssencial');
       const btnCrescimento = document.getElementById('btnPlanCrescimento');
       const btnEnterprise = document.getElementById('btnPlanEnterprise');
 
-      [btnEssencial, btnCrescimento, btnEnterprise].forEach(b => {
-        b.className = 'py-2.5 px-2 rounded-xl text-center font-bold transition flex flex-col items-center text-surface-700 hover:text-surface-900';
+      [btnIniciante, btnEssencial, btnCrescimento, btnEnterprise].forEach(b => {
+        if (b) b.className = 'py-2 px-1 rounded-xl text-center font-bold transition flex flex-col items-center text-surface-700 hover:text-surface-900';
       });
 
-      if (planKey === 'ESSENCIAL') {
-        btnEssencial.className = 'py-2.5 px-2 rounded-xl text-center font-bold transition flex flex-col items-center bg-brand-700 text-white shadow';
-      } else if (planKey === 'ENTERPRISE') {
-        btnEnterprise.className = 'py-2.5 px-2 rounded-xl text-center font-bold transition flex flex-col items-center bg-brand-700 text-white shadow';
-      } else {
-        btnCrescimento.className = 'py-2.5 px-2 rounded-xl text-center font-bold transition flex flex-col items-center bg-brand-700 text-white shadow';
+      if (planKey === 'INICIANTE' && btnIniciante) {
+        btnIniciante.className = 'py-2 px-1 rounded-xl text-center font-bold transition flex flex-col items-center bg-brand-700 text-white shadow';
+      } else if (planKey === 'ESSENCIAL' && btnEssencial) {
+        btnEssencial.className = 'py-2 px-1 rounded-xl text-center font-bold transition flex flex-col items-center bg-brand-700 text-white shadow';
+      } else if (planKey === 'ENTERPRISE' && btnEnterprise) {
+        btnEnterprise.className = 'py-2 px-1 rounded-xl text-center font-bold transition flex flex-col items-center bg-brand-700 text-white shadow';
+      } else if (btnCrescimento) {
+        btnCrescimento.className = 'py-2 px-1 rounded-xl text-center font-bold transition flex flex-col items-center bg-brand-700 text-white shadow';
       }
     }
 
@@ -1582,16 +1599,16 @@
         planName = 'SeguroFlow Iniciante';
         planBadge = 'PLANO INICIANTE';
         planDesc = 'Ideal para pequenos corretores e operações enxutas (até 400 apólices)';
-        setupPrice = 2500;
-        monthlyPrice = 699;
-        targetModalPlan = 'ESSENCIAL';
+        setupPrice = 1500;
+        monthlyPrice = 599;
+        targetModalPlan = 'INICIANTE';
         activePresetKey = 'INICIANTE';
       } else if (apolices <= 800) {
         planName = 'SeguroFlow Essencial';
         planBadge = 'PLANO ESSENCIAL';
         planDesc = 'Para corretores estruturados com carteira até 800 apólices ativas';
         setupPrice = 2500;
-        monthlyPrice = 699;
+        monthlyPrice = 799;
         targetModalPlan = 'ESSENCIAL';
         activePresetKey = 'ESSENCIAL';
       } else if (apolices <= 2500) {
@@ -1599,7 +1616,7 @@
         planBadge = 'PLANO CRESCIMENTO';
         planDesc = 'Potência máxima de operação para médias corretoras (até 2.500 apólices)';
         setupPrice = 3500;
-        monthlyPrice = apolices <= 1500 ? 890 : 997;
+        monthlyPrice = 997;
         targetModalPlan = 'CRESCIMENTO';
         activePresetKey = 'CRESCIMENTO';
       } else {
@@ -1607,7 +1624,7 @@
         planBadge = 'PLANO SCALE ENTERPRISE';
         planDesc = 'Para grandes corretoras, redes e franquias com alto volume (+2.500 apólices)';
         setupPrice = 5000;
-        monthlyPrice = 1490;
+        monthlyPrice = 1499;
         targetModalPlan = 'ENTERPRISE';
         activePresetKey = 'ENTERPRISE';
       }
