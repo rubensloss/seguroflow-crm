@@ -3,7 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>SeguroFlow • Gestão de Processos & Automação de Corretoras</title>
+  
+  <script>
+    // Invalidador de cache para navegação mobile e desktop
+    const CRM_BUILD_ID = '20261004-crm-v2';
+    try {
+      const prev = localStorage.getItem('sf_crm_build_id');
+      if (prev !== CRM_BUILD_ID) {
+        localStorage.setItem('sf_crm_build_id', CRM_BUILD_ID);
+        if (prev && !window.location.search.includes('v=')) {
+          window.location.search = '?v=' + CRM_BUILD_ID;
+        }
+      }
+    } catch(e) {}
+  </script>
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Google Fonts: Inter -->
@@ -15,6 +33,13 @@
   <script>
     tailwind.config = {
       theme: {
+        screens: {
+          'xs': '480px',
+          'sm': '640px',
+          'md': '768px',
+          'lg': '1024px',
+          'xl': '1280px',
+        },
         extend: {
           fontFamily: {
             sans: ['"Inter"', 'sans-serif'],
@@ -39,8 +64,8 @@
   <style>
     /* Custom Scrollbar */
     ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
     }
     ::-webkit-scrollbar-track {
       background: #f1f5f9;
@@ -52,9 +77,22 @@
     ::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
     }
+    .scrollbar-none::-webkit-scrollbar {
+      display: none;
+    }
+    .scrollbar-none {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
     .pipe-column {
-      min-width: 290px;
-      max-width: 320px;
+      min-width: 82vw;
+      max-width: 85vw;
+    }
+    @media (min-width: 640px) {
+      .pipe-column {
+        min-width: 290px;
+        max-width: 320px;
+      }
     }
     .whatsapp-bg {
       background-color: #efeae2;
@@ -65,18 +103,27 @@
 </head>
 <body class="h-full flex overflow-hidden font-sans bg-[#f4f6f9] text-slate-800 antialiased select-none text-[13px]">
 
-  <!-- SIDEBAR (PIPEX / SeguroFlow STYLE: DEEP NAVY CORPORATE) -->
-  <aside class="w-60 bg-[#162338] text-slate-300 flex flex-col justify-between shrink-0 border-r border-[#1e2f4a]">
+  <!-- BACKDROP OVERLAY PARA SIDEBAR NO MOBILE -->
+  <div id="sidebar-backdrop" onclick="closeMobileSidebar()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-40 hidden md:hidden transition-opacity"></div>
+
+  <!-- SIDEBAR (PIPEX / SeguroFlow STYLE: DEEP NAVY CORPORATE - OFF-CANVAS RESPONSIVO) -->
+  <aside id="app-sidebar" class="fixed inset-y-0 left-0 z-50 w-72 bg-[#162338] text-slate-300 flex flex-col justify-between shrink-0 border-r border-[#1e2f4a] transform -translate-x-full md:translate-x-0 md:static md:w-60 transition-transform duration-300 ease-in-out shadow-2xl md:shadow-none">
     <div>
       <!-- Workspace Brand -->
-      <div class="h-14 flex items-center px-4 border-b border-[#213452] gap-3">
-        <div class="w-8 h-8 rounded-md bg-[#0066cc] flex items-center justify-center text-white font-bold text-sm shadow-sm">
-          <i data-lucide="layers" class="w-4 h-4"></i>
+      <div class="h-14 flex items-center justify-between px-4 border-b border-[#213452]">
+        <div class="flex items-center gap-3 overflow-hidden">
+          <div class="w-8 h-8 rounded-md bg-[#0066cc] flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0">
+            <i data-lucide="layers" class="w-4 h-4"></i>
+          </div>
+          <div class="overflow-hidden">
+            <div class="font-bold text-white text-[13px] tracking-tight leading-tight truncate">Nova Aliança Corretora</div>
+            <div class="text-[11px] text-slate-400 font-normal truncate">Ambiente de Operações</div>
+          </div>
         </div>
-        <div class="overflow-hidden">
-          <div class="font-bold text-white text-[13px] tracking-tight leading-tight truncate">Nova Aliança Corretora</div>
-          <div class="text-[11px] text-slate-400 font-normal">Ambiente de Operações</div>
-        </div>
+        <!-- Botão Fechar no Mobile -->
+        <button type="button" onclick="closeMobileSidebar()" class="md:hidden text-slate-400 hover:text-white p-1 rounded-lg hover:bg-[#213452] transition" title="Fechar Menu">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
       </div>
 
       <!-- Quick Search / Switcher -->
@@ -133,7 +180,7 @@
       </nav>
 
       <!-- Automations Status Widget (SeguroFlow Badge) -->
-      <div class="mt-5 mx-3 p-3 rounded-lg bg-[#111c2e] border border-[#213452] text-xs">
+      <div class="mt-4 mx-3 p-3 rounded-lg bg-[#111c2e] border border-[#213452] text-xs">
         <div class="flex items-center justify-between text-slate-300 font-semibold mb-1">
           <span class="flex items-center gap-1.5 text-[11px]">
             <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-400"></i>
@@ -145,12 +192,30 @@
           WhatsApp D-7, D-0, D+2 e distribuição com SLA rodando em segundo plano.
         </p>
       </div>
+
+      <!-- Suporte & Contratação Direta Creative Web -->
+      <div class="mt-3 mx-3 p-3 rounded-lg bg-emerald-950/40 border border-emerald-500/30 text-xs">
+        <div class="flex items-center justify-between text-emerald-300 font-semibold mb-1">
+          <span class="flex items-center gap-1.5 text-[11px]">
+            <i data-lucide="headphones" class="w-3.5 h-3.5 text-emerald-400"></i>
+            Suporte Creative Web
+          </span>
+          <span class="text-[9px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono">DIRETO</span>
+        </div>
+        <p class="text-[11px] text-slate-400 leading-normal mb-2">
+          Dúvidas, integrações ou expansão de módulos com a equipe Creative Web.
+        </p>
+        <a href="https://api.whatsapp.com/send?phone=5527988140076&text=Ol%C3%A1%20Rubens!%20Estou%20no%20painel%20do%20SeguroFlow%20e%20gostaria%20de%20falar%20com%20o%20suporte%20da%20Creative%20Web." target="_blank" class="w-full py-1.5 px-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-bold text-[11px] flex items-center justify-center gap-1.5 transition shadow-sm active:scale-95">
+          <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
+          Falar no WhatsApp
+        </a>
+      </div>
     </div>
 
     <!-- User Profile Footer -->
     <div class="p-3 border-t border-[#213452] bg-[#121c2c] flex items-center justify-between">
       <div class="flex items-center gap-2.5 overflow-hidden">
-        <div class="w-7 h-7 rounded bg-slate-600 flex items-center justify-center font-bold text-xs text-white">
+        <div class="w-7 h-7 rounded bg-slate-600 flex items-center justify-center font-bold text-xs text-white shrink-0">
           RS
         </div>
         <div class="overflow-hidden">
@@ -158,61 +223,94 @@
           <div class="text-[10px] text-slate-400 truncate">Administrador Geral</div>
         </div>
       </div>
-      <i data-lucide="settings" class="w-4 h-4 text-slate-400 hover:text-white cursor-pointer"></i>
+      <i data-lucide="settings" class="w-4 h-4 text-slate-400 hover:text-white cursor-pointer shrink-0"></i>
     </div>
   </aside>
 
   <!-- MAIN CANVAS (PIPEX CLEAN LIGHT) -->
   <div class="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f4f6f9]">
     
-    <!-- TOP TOOLBAR (SeguroFlow NAVBAR) -->
-    <header class="h-14 bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0 shadow-xs">
-      <div class="flex items-center gap-3">
-        <a href="index.html" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-md text-xs font-semibold transition shadow-xs mr-1">
+    <!-- TOP TOOLBAR (SeguroFlow NAVBAR RESPONSIVO) -->
+    <header class="h-14 bg-white border-b border-slate-200 px-3 sm:px-6 flex items-center justify-between shrink-0 shadow-xs relative z-20">
+      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+        <!-- Botão Hambúrguer no Mobile -->
+        <button type="button" onclick="openMobileSidebar()" class="md:hidden p-1.5 text-slate-700 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition active:scale-95" title="Abrir Menu Lateral">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+
+        <!-- Link para o Site Comercial -->
+        <a href="index.html" class="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-md text-[11px] sm:text-xs font-semibold transition shadow-xs shrink-0">
           <i data-lucide="arrow-left" class="w-3.5 h-3.5 text-sky-400"></i>
-          Site Comercial
+          <span class="hidden xs:inline sm:inline">Site</span>
         </a>
-        <h1 id="page-title" class="text-base font-bold text-slate-900 tracking-tight">Visão Executiva & Indicadores</h1>
-        <div class="h-4 w-px bg-slate-200"></div>
-        <span class="text-xs text-slate-500 font-medium">Corretora Seguros • Unidade São Paulo</span>
+
+        <div class="min-w-0">
+          <h1 id="page-title" class="text-xs sm:text-base font-bold text-slate-900 tracking-tight truncate leading-tight">Visão Executiva & Indicadores</h1>
+          <span class="text-[10px] sm:text-xs text-slate-500 font-medium hidden sm:block truncate">Corretora Seguros • Unidade São Paulo</span>
+        </div>
       </div>
 
       <!-- Quick Action Buttons for the Meeting Demo -->
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
         <span class="text-xs text-slate-500 font-medium mr-1 hidden lg:block">Simulações Rápidas:</span>
         
-        <button onclick="triggerDemoCobranca()" class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded text-xs font-semibold transition">
+        <div class="hidden lg:flex items-center gap-2">
+          <button onclick="triggerDemoCobranca()" class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 rounded text-xs font-semibold transition">
+            <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-600"></i>
+            Disparar Régua D-7 (WhatsApp)
+          </button>
+
+          <button onclick="triggerDemoInadimplencia()" class="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-800 border border-red-300 rounded text-xs font-semibold transition">
+            <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-red-600"></i>
+            Alerta: Risco de Cancelamento
+          </button>
+
+          <button onclick="triggerDemoLigacao()" class="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded text-xs font-semibold transition">
+            <i data-lucide="phone-call" class="w-3.5 h-3.5 text-emerald-600"></i>
+            Simular Ligação de Cliente
+          </button>
+        </div>
+
+        <!-- Botão Toggle Simulações para Mobile -->
+        <button type="button" onclick="toggleMobileSimulations()" class="lg:hidden px-2 py-1.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-300 hover:bg-amber-100 transition text-[11px] font-bold flex items-center gap-1 active:scale-95" title="Ações Rápidas de Simulação">
           <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-600"></i>
-          Disparar Régua D-7 (WhatsApp)
+          <span class="hidden xs:inline">Simulações</span>
         </button>
 
-        <button onclick="triggerDemoInadimplencia()" class="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-800 border border-red-300 rounded text-xs font-semibold transition">
-          <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-red-600"></i>
-          Alerta: Risco de Cancelamento
-        </button>
-
-        <button onclick="triggerDemoLigacao()" class="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded text-xs font-semibold transition">
-          <i data-lucide="phone-call" class="w-3.5 h-3.5 text-emerald-600"></i>
-          Simular Ligação de Cliente
-        </button>
-
-        <button onclick="openNewCardModal()" class="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#0066cc] hover:bg-[#0052a3] text-white rounded text-xs font-semibold transition shadow-sm ml-2">
-          <i data-lucide="plus" class="w-4 h-4"></i>
-          Novo Card
+        <button onclick="openNewCardModal()" class="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 bg-[#0066cc] hover:bg-[#0052a3] text-white rounded text-xs font-semibold transition shadow-sm active:scale-95">
+          <i data-lucide="plus" class="w-3.5 sm:w-4 h-3.5 sm:h-4"></i>
+          <span>Novo Card</span>
         </button>
       </div>
     </header>
 
-    <!-- CONTENT WRAPPER -->
-    <main class="flex-1 overflow-y-auto p-6" id="main-content">
+    <!-- BARRA HORIZONTAL RETRÁTIL DE SIMULAÇÕES NO MOBILE -->
+    <div id="mobile-simulations-bar" class="hidden lg:hidden bg-amber-50/95 border-b border-amber-200 px-3 py-2 flex items-center gap-2 overflow-x-auto scrollbar-none text-xs shrink-0">
+      <span class="text-[10px] font-bold text-amber-900 uppercase shrink-0">Simulações Rápidas:</span>
+      <button onclick="triggerDemoCobranca()" class="shrink-0 flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-amber-100 text-amber-900 rounded font-semibold text-[11px] border border-amber-300 shadow-2xs">
+        <i data-lucide="zap" class="w-3 h-3 text-amber-600"></i>
+        Régua D-7
+      </button>
+      <button onclick="triggerDemoInadimplencia()" class="shrink-0 flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-red-50 text-red-900 rounded font-semibold text-[11px] border border-red-300 shadow-2xs">
+        <i data-lucide="alert-triangle" class="w-3 h-3 text-red-600"></i>
+        Alerta Risco
+      </button>
+      <button onclick="triggerDemoLigacao()" class="shrink-0 flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-emerald-50 text-emerald-900 rounded font-semibold text-[11px] border border-emerald-300 shadow-2xs">
+        <i data-lucide="phone-call" class="w-3 h-3 text-emerald-600"></i>
+        Simular Chamada
+      </button>
+    </div>
+
+    <!-- CONTENT WRAPPER (COM PADDING RESPONSIVO E ESPAÇO PARA BOTTOM NAV NO MOBILE) -->
+    <main class="flex-1 overflow-y-auto p-3.5 sm:p-6 pb-24 md:pb-6" id="main-content">
 
       <!-- ============================================================== -->
       <!-- TAB 1: VISÃO EXECUTIVA (DASHBOARD)                             -->
       <!-- ============================================================== -->
-      <div id="tab-dashboard" class="space-y-6">
+      <div id="tab-dashboard" class="space-y-4 sm:space-y-6">
         
-        <!-- Metrics Row (SeguroFlow Metric Cards) -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <!-- Metrics Row (SeguroFlow Metric Cards: 2 COLUNAS NO MOBILE, 4 NO DESKTOP) -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
           
           <div class="p-4 rounded-lg bg-white border border-slate-200 shadow-xs">
             <div class="flex items-center justify-between text-slate-500 mb-1">
@@ -395,35 +493,40 @@
           </div>
         </div>
 
-        <!-- Filter Bar (SeguroFlow Style) -->
-        <div class="flex items-center justify-between gap-2 bg-white p-2.5 rounded-lg border border-slate-200 shadow-xs text-xs">
-          <div class="flex items-center gap-1 overflow-x-auto">
-            <button onclick="filterParcelas('all')" id="btn-filter-all" class="px-3 py-1.5 rounded font-semibold bg-[#205493] text-white">
+        <!-- Filter Bar (SeguroFlow Style - Responsivo com Scroll Horizontal) -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-white p-2.5 rounded-lg border border-slate-200 shadow-xs text-xs">
+          <div class="flex items-center gap-1 overflow-x-auto scrollbar-none pb-1 sm:pb-0">
+            <button type="button" onclick="filterParcelas('all')" id="btn-filter-all" class="px-2.5 sm:px-3 py-1.5 rounded font-semibold bg-[#205493] text-white shrink-0">
               Todas (42)
             </button>
-            <button onclick="filterParcelas('d7')" id="btn-filter-d7" class="px-3 py-1.5 rounded font-medium text-slate-600 hover:bg-slate-100">
-              A Vencer em 7 Dias (18)
+            <button type="button" onclick="filterParcelas('d7')" id="btn-filter-d7" class="px-2.5 sm:px-3 py-1.5 rounded font-medium text-slate-600 hover:bg-slate-100 shrink-0">
+              D-7 (18)
             </button>
-            <button onclick="filterParcelas('d0')" id="btn-filter-d0" class="px-3 py-1.5 rounded font-medium text-slate-600 hover:bg-slate-100">
-              Vencendo Hoje (5)
+            <button type="button" onclick="filterParcelas('d0')" id="btn-filter-d0" class="px-2.5 sm:px-3 py-1.5 rounded font-medium text-slate-600 hover:bg-slate-100 shrink-0">
+              Hoje (5)
             </button>
-            <button onclick="filterParcelas('atraso')" id="btn-filter-atraso" class="px-3 py-1.5 rounded font-medium text-red-700 hover:bg-red-50">
-              Em Atraso / Risco (3)
+            <button type="button" onclick="filterParcelas('atraso')" id="btn-filter-atraso" class="px-2.5 sm:px-3 py-1.5 rounded font-medium text-red-700 hover:bg-red-50 shrink-0">
+              Atraso (3)
             </button>
-            <button onclick="filterParcelas('pago')" id="btn-filter-pago" class="px-3 py-1.5 rounded font-medium text-slate-600 hover:bg-slate-100">
-              Pagas com Baixa (16)
+            <button type="button" onclick="filterParcelas('pago')" id="btn-filter-pago" class="px-2.5 sm:px-3 py-1.5 rounded font-medium text-slate-600 hover:bg-slate-100 shrink-0">
+              Pagas (16)
             </button>
           </div>
 
-          <div class="relative w-64 hidden md:block">
+          <div class="relative w-full sm:w-64">
             <i data-lucide="search" class="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400"></i>
-            <input type="text" placeholder="Filtrar por segurado ou placa..." class="w-full pl-8 pr-3 py-1 rounded border border-slate-200 text-xs focus:outline-none focus:border-blue-500">
+            <input type="text" placeholder="Filtrar por segurado ou placa..." class="w-full pl-8 pr-3 py-1.5 rounded border border-slate-200 text-xs focus:outline-none focus:border-blue-500 bg-slate-50 focus:bg-white transition">
           </div>
         </div>
 
-        <!-- Parcelas Table (Clean SeguroFlow Grid) -->
-        <div class="bg-white rounded-lg border border-slate-200 shadow-xs overflow-hidden">
-          <table class="w-full text-left text-xs">
+        <!-- Cards Mobile (Visível apenas em Smartphones para ergonomia perfeita) -->
+        <div class="sm:hidden space-y-2.5" id="cards-parcelas-mobile">
+          <!-- Injetado dinamicamente via JS -->
+        </div>
+
+        <!-- Parcelas Table (Clean SeguroFlow Grid com Rolagem Horizontal Suave) -->
+        <div class="hidden sm:block bg-white rounded-lg border border-slate-200 shadow-xs overflow-x-auto">
+          <table class="w-full text-left text-xs min-w-[680px]">
             <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200 uppercase tracking-wider text-[11px]">
               <tr>
                 <th class="px-4 py-3">Segurado</th>
@@ -449,27 +552,35 @@
       <!-- ============================================================== -->
       <div id="tab-kanban" class="space-y-4 hidden">
         
-        <div class="flex items-center justify-between bg-white p-4 rounded-lg border border-slate-200 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-lg border border-slate-200 shadow-xs">
           <div>
-            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <h2 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
               <i data-lucide="trello" class="w-4 h-4 text-blue-600"></i>
               Pipe de Atendimento & Operações
             </h2>
-            <p class="text-xs text-slate-500 mt-0.5">
-              Fluxo kanban oficial da corretora. Arraste os cards entre as fases ou clique para abrir os detalhes.
+            <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">
+              Fluxo kanban oficial da corretora. Arraste ou deslize horizontalmente entre as fases.
             </p>
           </div>
 
-          <div class="flex items-center gap-2 text-xs">
-            <span class="text-slate-500">Filtrar por responsável:</span>
+          <!-- Navegador Rápido de Colunas no Mobile -->
+          <div class="sm:hidden flex gap-1.5 overflow-x-auto scrollbar-none pb-0.5" id="kanban-mobile-tabs">
+            <button type="button" onclick="scrollKanbanTo(0)" class="shrink-0 px-2.5 py-1 rounded-full bg-sky-100 text-sky-800 text-[11px] font-semibold border border-sky-200 active:scale-95">Triagem (2)</button>
+            <button type="button" onclick="scrollKanbanTo(1)" class="shrink-0 px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 text-[11px] font-semibold border border-blue-200 active:scale-95">Cotação (2)</button>
+            <button type="button" onclick="scrollKanbanTo(2)" class="shrink-0 px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 text-[11px] font-semibold border border-amber-200 active:scale-95">Aguardando (1)</button>
+            <button type="button" onclick="scrollKanbanTo(3)" class="shrink-0 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-semibold border border-emerald-200 active:scale-95">Emitido (8)</button>
+          </div>
+
+          <div class="hidden sm:flex items-center gap-2 text-xs">
+            <span class="text-slate-500">Filtrar responsável:</span>
             <span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium border border-slate-200">Amanda (6)</span>
             <span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium border border-slate-200">Gabriel (4)</span>
             <span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium border border-slate-200">Juliana (5)</span>
           </div>
         </div>
 
-        <!-- Kanban Horizontal Columns (SeguroFlow Style) -->
-        <div class="flex gap-4 overflow-x-auto pb-4 items-start">
+        <!-- Kanban Horizontal Columns com Touch Snap -->
+        <div id="kanban-container" class="flex gap-3 sm:gap-4 overflow-x-auto pb-4 items-start snap-x snap-mandatory scroll-smooth px-0.5">
           
           <!-- Column 1: Triagem -->
           <div class="pipe-column bg-[#ebedf0] rounded-lg p-2.5 flex flex-col gap-2 shrink-0 border border-slate-200/80">
@@ -629,25 +740,25 @@
       <!-- ============================================================== -->
       <div id="tab-chamadas" class="space-y-4 hidden">
         
-        <div class="flex items-center justify-between bg-white p-4 rounded-lg border border-slate-200 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-lg border border-slate-200 shadow-xs">
           <div>
-            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <h2 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
               <i data-lucide="phone-call" class="w-4 h-4 text-emerald-600"></i>
               Central de Chamadas & Triagem Inteligente
             </h2>
-            <p class="text-xs text-slate-500 mt-0.5">
+            <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">
               Acabe com o "Efeito Bumerangue": ligações são transcritas, distribuídas com SLA e o cliente é notificado no WhatsApp na hora.
             </p>
           </div>
 
-          <button onclick="triggerDemoLigacao()" class="px-3 py-1.5 rounded bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-sm">
+          <button onclick="triggerDemoLigacao()" class="self-start sm:self-auto px-3 py-1.5 rounded bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-sm active:scale-95 shrink-0">
             <i data-lucide="phone-incoming" class="w-3.5 h-3.5"></i>
             Simular Ligação Agora
           </button>
         </div>
 
         <!-- Log de Chamadas -->
-        <div class="bg-white rounded-lg border border-slate-200 shadow-xs p-5 space-y-4" id="chamadas-list">
+        <div class="bg-white rounded-lg border border-slate-200 shadow-xs p-3.5 sm:p-5 space-y-3.5 sm:space-y-4" id="chamadas-list">
           <!-- Injected by JS -->
         </div>
 
@@ -658,23 +769,23 @@
       <!-- ============================================================== -->
       <div id="tab-renovacoes" class="space-y-4 hidden">
         
-        <div class="flex items-center justify-between bg-white p-4 rounded-lg border border-slate-200 shadow-xs">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-lg border border-slate-200 shadow-xs">
           <div>
-            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <h2 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
               <i data-lucide="rotate-cw" class="w-4 h-4 text-indigo-600"></i>
               Esteira Preventiva de Renovações (30 a 45 dias)
             </h2>
-            <p class="text-xs text-slate-500 mt-0.5">
+            <p class="text-[11px] sm:text-xs text-slate-500 mt-0.5">
               Garante a retenção da carteira calculando previamente o bônus antes que o segurado seja abordado pelo banco.
             </p>
           </div>
-          <span class="text-xs bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded font-semibold">
+          <span class="self-start sm:self-auto text-xs bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded font-semibold shrink-0">
             Retenção de Carteira: 94.2%
           </span>
         </div>
 
-        <div class="bg-white rounded-lg border border-slate-200 shadow-xs overflow-hidden">
-          <table class="w-full text-left text-xs">
+        <div class="bg-white rounded-lg border border-slate-200 shadow-xs overflow-x-auto">
+          <table class="w-full text-left text-xs min-w-[650px]">
             <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200 uppercase tracking-wider text-[11px]">
               <tr>
                 <th class="px-4 py-3">Segurado</th>
@@ -820,18 +931,18 @@
   </div>
 
   <!-- ============================================================== -->
-  <!-- MODAL: SeguroFlow CARD DRAWER (DETALHES DO CARD)                    -->
+  <!-- MODAL: SeguroFlow CARD DRAWER (DETALHES DO CARD - RESPONSIVO)        -->
   <!-- ============================================================== -->
-  <div id="drawer-card" class="fixed inset-0 bg-slate-900/50 backdrop-blur-2xs z-50 flex items-center justify-center p-4 hidden">
-    <div class="w-full max-w-4xl bg-white rounded-lg shadow-xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+  <div id="drawer-card" class="fixed inset-0 bg-slate-900/60 backdrop-blur-2xs z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 hidden">
+    <div class="w-full max-w-4xl bg-white rounded-t-2xl sm:rounded-lg shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[90vh]">
       
       <!-- Drawer Header -->
-      <div class="px-6 py-3.5 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-        <div class="flex items-center gap-3">
+      <div class="px-4 sm:px-6 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
           <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-100 text-blue-800" id="drawer-tag">Porto Seguro</span>
-          <h3 class="text-sm font-bold text-slate-900" id="drawer-title">Vinicius Peixoto</h3>
+          <h3 class="text-sm font-bold text-slate-900 truncate" id="drawer-title">Vinicius Peixoto</h3>
         </div>
-        <button onclick="closeCardDrawer()" class="text-slate-400 hover:text-slate-700 p-1">
+        <button type="button" onclick="closeCardDrawer()" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-200 transition" title="Fechar">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
@@ -840,7 +951,7 @@
       <div class="flex-1 overflow-y-auto grid grid-cols-1 md:grid-cols-5 divide-y md:divide-y-0 md:divide-x divide-slate-200">
         
         <!-- Left: Process Fields (3 cols) -->
-        <div class="md:col-span-3 p-6 space-y-4 text-xs">
+        <div class="md:col-span-3 p-4 sm:p-6 space-y-3.5 text-xs">
           <div class="font-bold text-slate-800 text-sm uppercase tracking-wider pb-2 border-b border-slate-100">
             Campos do Processo
           </div>
@@ -848,7 +959,7 @@
           <div class="space-y-3">
             <div>
               <label class="text-[11px] font-semibold text-slate-500 block mb-1">Motivo do Card / Demanda:</label>
-              <div class="p-2 rounded bg-slate-50 border border-slate-200 text-slate-800" id="drawer-motivo">
+              <div class="p-2 rounded bg-slate-50 border border-slate-200 text-slate-800 font-medium" id="drawer-motivo">
                 2ª via de boleto (vence hoje)
               </div>
             </div>
@@ -886,7 +997,7 @@
         </div>
 
         <!-- Right: Activity & WhatsApp History (2 cols) -->
-        <div class="md:col-span-2 p-6 bg-slate-50 space-y-4 text-xs">
+        <div class="md:col-span-2 p-4 sm:p-6 bg-slate-50 space-y-3.5 text-xs">
           <div class="font-bold text-slate-800 text-sm uppercase tracking-wider pb-2 border-b border-slate-200">
             Registro do WhatsApp
           </div>
@@ -906,7 +1017,7 @@
           </div>
 
           <div class="text-center pt-2">
-            <button onclick="closeCardDrawer()" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded text-xs transition">
+            <button type="button" onclick="closeCardDrawer()" class="w-full sm:w-auto px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded text-xs transition active:scale-95">
               Fechar Visualização
             </button>
           </div>
@@ -916,6 +1027,31 @@
 
     </div>
   </div>
+
+  <!-- BARRA DE NAVEGAÇÃO INFERIOR MOBILE (ESTILO APP NATIVO) -->
+  <nav id="mobile-bottom-nav" class="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-1.5 flex items-center justify-around shadow-lg">
+    <button type="button" onclick="switchTab('dashboard')" id="bottom-nav-dashboard" class="flex flex-col items-center justify-center py-1 px-2 rounded-lg text-blue-600 font-bold transition">
+      <i data-lucide="layout-grid" class="w-4 h-4"></i>
+      <span class="text-[10px] mt-0.5">Visão</span>
+    </button>
+    <button type="button" onclick="switchTab('cobranca')" id="bottom-nav-cobranca" class="flex flex-col items-center justify-center py-1 px-2 rounded-lg text-slate-500 font-medium transition relative">
+      <i data-lucide="calendar-check-2" class="w-4 h-4"></i>
+      <span class="text-[10px] mt-0.5">Régua</span>
+      <span class="absolute top-0.5 right-1.5 w-2 h-2 rounded-full bg-amber-500"></span>
+    </button>
+    <button type="button" onclick="switchTab('kanban')" id="bottom-nav-kanban" class="flex flex-col items-center justify-center py-1 px-2 rounded-lg text-slate-500 font-medium transition">
+      <i data-lucide="trello" class="w-4 h-4"></i>
+      <span class="text-[10px] mt-0.5">Kanban</span>
+    </button>
+    <button type="button" onclick="switchTab('chamadas')" id="bottom-nav-chamadas" class="flex flex-col items-center justify-center py-1 px-2 rounded-lg text-slate-500 font-medium transition">
+      <i data-lucide="phone-incoming" class="w-4 h-4"></i>
+      <span class="text-[10px] mt-0.5">Chamadas</span>
+    </button>
+    <button type="button" onclick="openMobileSidebar()" class="flex flex-col items-center justify-center py-1 px-2 rounded-lg text-slate-500 font-medium transition">
+      <i data-lucide="menu" class="w-4 h-4"></i>
+      <span class="text-[10px] mt-0.5">Mais</span>
+    </button>
+  </nav>
 
   <!-- JAVASCRIPT LOGIC & STATE -->
   <script>
@@ -1032,37 +1168,74 @@
       }
     ];
 
+    // Mobile Sidebar Drawer Controls
+    function openMobileSidebar() {
+      const sidebar = document.getElementById('app-sidebar');
+      const backdrop = document.getElementById('sidebar-backdrop');
+      if (sidebar) sidebar.classList.remove('-translate-x-full');
+      if (backdrop) backdrop.classList.remove('hidden');
+    }
+
+    function closeMobileSidebar() {
+      const sidebar = document.getElementById('app-sidebar');
+      const backdrop = document.getElementById('sidebar-backdrop');
+      if (sidebar) sidebar.classList.add('-translate-x-full');
+      if (backdrop) backdrop.classList.add('hidden');
+    }
+
+    function toggleMobileSimulations() {
+      const bar = document.getElementById('mobile-simulations-bar');
+      if (bar) bar.classList.toggle('hidden');
+    }
+
+    function scrollKanbanTo(index) {
+      const container = document.getElementById('kanban-container');
+      if (!container) return;
+      const cols = container.querySelectorAll('.pipe-column');
+      if (cols[index]) {
+        cols[index].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+      }
+    }
+
     // Switch Tabs
     function switchTab(tabId) {
       const tabs = ['dashboard', 'cobranca', 'kanban', 'chamadas', 'renovacoes', 'ocr'];
       tabs.forEach(t => {
         const el = document.getElementById('tab-' + t);
         const nav = document.getElementById('nav-' + t);
+        const bottomNav = document.getElementById('bottom-nav-' + t);
         if (t === tabId) {
-          el.classList.remove('hidden');
-          nav.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition text-white bg-[#223554]";
+          if (el) el.classList.remove('hidden');
+          if (nav) nav.className = "w-full flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition text-white bg-[#223554]";
+          if (bottomNav) bottomNav.className = "flex flex-col items-center justify-center py-1 px-2 rounded-lg text-blue-600 font-bold transition";
         } else {
-          el.classList.add('hidden');
-          nav.className = "w-full flex items-center justify-between px-3 py-2 rounded-md text-[13px] font-medium transition text-slate-300 hover:text-white hover:bg-[#1d2d46]";
+          if (el) el.classList.add('hidden');
+          if (nav) nav.className = "w-full flex items-center justify-between px-3 py-2 rounded-md text-[13px] font-medium transition text-slate-300 hover:text-white hover:bg-[#1d2d46]";
+          if (bottomNav) bottomNav.className = "flex flex-col items-center justify-center py-1 px-2 rounded-lg text-slate-500 font-medium transition relative";
         }
       });
 
       const titles = {
         'dashboard': 'Visão Executiva & Indicadores',
-        'cobranca': 'Régua de Parcelas & Prevenção de Inadimplência',
+        'cobranca': 'Régua de Parcelas & Prevenção',
         'kanban': 'Pipe de Atendimento & Operações',
         'chamadas': 'Central de Chamadas & Triagem',
         'renovacoes': 'Esteira Preventiva de Renovações (30d)',
         'ocr': 'Extrator Estruturado CNH / Apólice'
       };
-      document.getElementById('page-title').innerText = titles[tabId];
+      const titleEl = document.getElementById('page-title');
+      if (titleEl) titleEl.innerText = titles[tabId] || 'SeguroFlow OS';
+      
+      closeMobileSidebar();
       lucide.createIcons();
     }
 
-    // Render Parcelas
+    // Render Parcelas (Tabela Desktop + Cards Mobile)
     function renderParcelas(filter = 'all') {
       const tbody = document.getElementById('tabela-parcelas-body');
-      tbody.innerHTML = '';
+      const cardsContainer = document.getElementById('cards-parcelas-mobile');
+      if (tbody) tbody.innerHTML = '';
+      if (cardsContainer) cardsContainer.innerHTML = '';
 
       const filtered = parcelas.filter(p => {
         if (filter === 'all') return true;
@@ -1070,27 +1243,62 @@
       });
 
       filtered.forEach(p => {
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-50 transition";
-        tr.innerHTML = `
-          <td class="px-4 py-3 font-semibold text-slate-900">${p.segurado}</td>
-          <td class="px-4 py-3 text-slate-600">${p.ramo}</td>
-          <td class="px-4 py-3 text-slate-500">${p.seguradora}</td>
-          <td class="px-4 py-3 text-slate-600 font-mono">${p.parcela}</td>
-          <td class="px-4 py-3 font-bold text-slate-800 font-mono">${p.valor}</td>
-          <td class="px-4 py-3 text-slate-600 font-mono">${p.vencimento}</td>
-          <td class="px-4 py-3">
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${p.statusBadge}">
-              ${p.status}
-            </span>
-          </td>
-          <td class="px-4 py-3 text-right">
-            <button onclick="openCardDrawer('${p.segurado}', '${p.seguradora}', 'Parcela ${p.parcela} (${p.valor})', 'Amanda', 'Em dia', '${p.ramo}')" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] border border-slate-200 transition">
-              Ver Detalhes
-            </button>
-          </td>
-        `;
-        tbody.appendChild(tr);
+        // Tabela Desktop
+        if (tbody) {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-50 transition";
+          tr.innerHTML = `
+            <td class="px-4 py-3 font-semibold text-slate-900">${p.segurado}</td>
+            <td class="px-4 py-3 text-slate-600">${p.ramo}</td>
+            <td class="px-4 py-3 text-slate-500">${p.seguradora}</td>
+            <td class="px-4 py-3 text-slate-600 font-mono">${p.parcela}</td>
+            <td class="px-4 py-3 font-bold text-slate-800 font-mono">${p.valor}</td>
+            <td class="px-4 py-3 text-slate-600 font-mono">${p.vencimento}</td>
+            <td class="px-4 py-3">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${p.statusBadge}">
+                ${p.status}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-right">
+              <button type="button" onclick="openCardDrawer('${p.segurado}', '${p.seguradora}', 'Parcela ${p.parcela} (${p.valor})', 'Amanda', 'Em dia', '${p.ramo}')" class="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] border border-slate-200 transition">
+                Ver Detalhes
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        }
+
+        // Cards Mobile
+        if (cardsContainer) {
+          const card = document.createElement('div');
+          card.className = "bg-white p-3.5 rounded-lg border border-slate-200 shadow-2xs space-y-2 hover:border-blue-400 transition";
+          card.innerHTML = `
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <strong class="text-xs font-bold text-slate-900 block leading-tight">${p.segurado}</strong>
+                <span class="text-[11px] text-slate-500 block mt-0.5">${p.ramo} • <span class="font-medium text-slate-700">${p.seguradora}</span></span>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold border shrink-0 ${p.statusBadge}">
+                ${p.status}
+              </span>
+            </div>
+            <div class="flex items-center justify-between text-xs pt-2 border-t border-slate-100">
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded text-[10px]">${p.parcela}</span>
+                <span class="font-bold text-slate-900 font-mono">${p.valor}</span>
+              </div>
+              <span class="text-[11px] text-slate-500 font-mono flex items-center gap-1">
+                <i data-lucide="clock" class="w-3 h-3 text-slate-400"></i> ${p.vencimento}
+              </span>
+            </div>
+            <div class="pt-1.5 flex justify-end">
+              <button type="button" onclick="openCardDrawer('${p.segurado}', '${p.seguradora}', 'Parcela ${p.parcela} (${p.valor})', 'Amanda', 'Em dia', '${p.ramo}')" class="w-full py-1.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs border border-slate-200 text-center transition active:scale-98">
+                Ver Detalhes do Card
+              </button>
+            </div>
+          `;
+          cardsContainer.appendChild(card);
+        }
       });
       lucide.createIcons();
     }
@@ -1100,10 +1308,12 @@
       const buttons = ['all', 'd7', 'd0', 'atraso', 'pago'];
       buttons.forEach(b => {
         const btn = document.getElementById('btn-filter-' + b);
-        if (b === type) {
-          btn.className = "px-3 py-1.5 rounded font-semibold bg-[#205493] text-white";
-        } else {
-          btn.className = "px-3 py-1.5 rounded font-medium text-slate-600 hover:bg-slate-100";
+        if (btn) {
+          if (b === type) {
+            btn.className = "px-2.5 sm:px-3 py-1.5 rounded font-semibold bg-[#205493] text-white shrink-0";
+          } else {
+            btn.className = "px-2.5 sm:px-3 py-1.5 rounded font-medium text-slate-600 hover:bg-slate-100 shrink-0";
+          }
         }
       });
       renderParcelas(type);
@@ -1112,29 +1322,30 @@
     // Render Chamadas
     function renderChamadas() {
       const list = document.getElementById('chamadas-list');
+      if (!list) return;
       list.innerHTML = '';
 
       chamadas.forEach(c => {
         const item = document.createElement('div');
-        item.className = "p-4 rounded-lg bg-slate-50 border border-slate-200 space-y-2.5";
+        item.className = "p-3.5 sm:p-4 rounded-lg bg-slate-50 border border-slate-200 space-y-2.5";
         item.innerHTML = `
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+          <div class="flex flex-wrap items-center justify-between gap-1.5">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-600 shrink-0"></span>
               <span class="font-bold text-slate-900 text-xs">${c.cliente}</span>
               <span class="text-slate-500 font-mono text-[11px]">${c.telefone}</span>
-              <span class="text-xs bg-white text-slate-700 px-2 py-0.5 rounded border border-slate-200 font-medium">${c.seguro}</span>
+              <span class="text-[11px] bg-white text-slate-700 px-2 py-0.5 rounded border border-slate-200 font-medium">${c.seguro}</span>
             </div>
-            <span class="text-slate-400 font-mono text-[11px]">${c.tempo}</span>
+            <span class="text-slate-400 font-mono text-[11px] shrink-0">${c.tempo}</span>
           </div>
-          <div class="p-2.5 rounded bg-white border border-slate-200 text-xs text-slate-700">
+          <div class="p-2.5 rounded bg-white border border-slate-200 text-xs text-slate-700 leading-relaxed">
             <strong>Resumo da Chamada:</strong> ${c.resumo}
           </div>
-          <div class="p-2.5 rounded bg-emerald-50 border border-emerald-200 text-xs text-emerald-900">
+          <div class="p-2.5 rounded bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 leading-relaxed">
             <strong>Notificação Automática Disparada no WhatsApp do Cliente:</strong>
             <p class="mt-0.5 text-slate-700 italic">"${c.whatsappMsg}"</p>
           </div>
-          <div class="flex items-center justify-between text-[11px] text-slate-500 pt-1">
+          <div class="flex flex-wrap items-center justify-between text-[11px] text-slate-500 pt-1 gap-1">
             <span>Responsável atribuído: <strong class="text-slate-800">${c.analista}</strong></span>
             <span class="text-emerald-700 font-semibold">✓ Sem risco de retorno ao telefone do dono</span>
           </div>
