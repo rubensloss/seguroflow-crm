@@ -151,61 +151,62 @@
 <body class="bg-surface-50 text-surface-900 font-sans antialiased selection:bg-brand-600 selection:text-white w-full">
 
   <!-- ========================================================================= -->
-  <!-- NAVBAR PREMIUM COMERCIAL (LIMPA & ELEGANTE) -->
+  <!-- NAVBAR PREMIUM COMERCIAL (LIMPA, ELEGANTE & EM UMA ÚNICA LINHA) -->
   <!-- ========================================================================= -->
   <header class="sticky top-0 z-50 glass-header text-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between flex-nowrap w-full whitespace-nowrap">
       
-      <!-- Marca SeguroFlow OS -->
-      <a href="index.html" class="flex items-center space-x-3 group cursor-pointer shrink-0">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 via-blue-500 to-cyan-400 flex items-center justify-center text-white font-extrabold font-display text-lg shadow-md group-hover:scale-105 transition-transform duration-300">
+      <!-- Marca SeguroFlow OS (Compacta e em 1 linha) -->
+      <a href="index.html" class="flex items-center space-x-2.5 group cursor-pointer shrink-0">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 via-blue-500 to-cyan-400 flex items-center justify-center text-white font-extrabold font-display text-base shadow-md group-hover:scale-105 transition-transform duration-300">
           <i class="ph-bold ph-shield-check"></i>
         </div>
-        <div>
-          <div class="flex items-center space-x-1.5">
-            <span class="font-display tracking-wider text-sm font-extrabold uppercase block group-hover:text-brand-300 transition-colors">Seguro<span class="text-cyan-400">Flow</span></span>
-            <span class="px-1.5 py-0.5 rounded-md bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-extrabold text-[9px] tracking-widest shadow-sm">OS</span>
-          </div>
-          <span class="text-[9px] text-zinc-400 tracking-wider uppercase hidden sm:block">Inteligência Operacional para Corretoras</span>
+        <div class="flex items-center space-x-1.5">
+          <span class="font-display tracking-wider text-base font-extrabold uppercase text-white group-hover:text-cyan-300 transition-colors">Seguro<span class="text-cyan-400">Flow</span></span>
+          <span class="px-1.5 py-0.5 rounded bg-blue-600/30 border border-blue-400/30 text-cyan-300 font-extrabold text-[9px] tracking-widest">OS</span>
         </div>
       </a>
 
-      <!-- Menu de Navegação Comercial -->
-      <nav class="hidden md:flex items-center space-x-8 text-xs font-bold uppercase tracking-wider text-zinc-300">
+      <!-- Menu de Navegação Comercial (Sem quebras de linha) -->
+      <nav class="hidden lg:flex items-center space-x-5 xl:space-x-7 text-xs font-semibold uppercase tracking-wider text-zinc-300">
         <a href="#motores" class="hover:text-cyan-400 transition-colors py-1">Os 4 Motores</a>
-        <a href="#diagnostico" class="hover:text-cyan-400 transition-colors py-1">O Diagnóstico</a>
-        <a href="#calculadora" class="hover:text-cyan-400 transition-colors py-1 flex items-center gap-1 text-emerald-400">
+        <a href="#diagnostico" class="hover:text-cyan-400 transition-colors py-1">Diagnóstico</a>
+        <a href="#calculadora" class="hover:text-emerald-400 transition-colors py-1 flex items-center gap-1 text-emerald-400">
           <i class="ph-bold ph-calculator"></i>
-          <span>Calculadora ROI</span>
+          <span>Cotador & ROI</span>
+        </a>
+        <a href="#demonstracao" class="hover:text-cyan-400 transition-colors py-1 flex items-center gap-1">
+          <i class="ph-bold ph-play-circle text-cyan-400"></i>
+          <span>Vídeo</span>
         </a>
         <a href="#comparativo" class="hover:text-cyan-400 transition-colors py-1">Comparativo</a>
         <a href="#planos" class="hover:text-cyan-400 transition-colors py-1">Planos</a>
         <a href="#faq" class="hover:text-cyan-400 transition-colors py-1">FAQ</a>
       </nav>
 
-      <!-- Ações do Topo -->
-      <div class="flex items-center space-x-3 shrink-0">
-        <a href="app.html" class="flex items-center space-x-1.5 px-3 sm:px-4 py-2 text-xs font-bold rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all hover:scale-105 active:scale-95 shadow-sm">
+      <!-- Ações do Topo: CRM + Contratar Direto no WhatsApp -->
+      <div class="flex items-center space-x-2.5 shrink-0">
+        <a href="app.html" class="flex items-center space-x-1.5 px-3.5 py-2 text-xs font-bold rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-all hover:scale-105 active:scale-95 shadow-sm">
           <i class="ph-bold ph-layout text-cyan-300 text-sm"></i>
           <span class="hidden sm:inline">Acessar CRM</span>
           <span class="sm:hidden">CRM</span>
         </a>
-        <button onclick="openCheckoutModal('CRESCIMENTO')" class="flex items-center space-x-1.5 px-4 sm:px-5 py-2 text-xs font-bold rounded-xl bg-brand-600 hover:bg-brand-500 text-white transition-all shadow-md shadow-brand-900/30 hover:scale-105 active:scale-95">
-          <i class="ph-bold ph-lightning text-sm"></i>
+        <a href="https://api.whatsapp.com/send?text=Ol%C3%A1%20Rubens!%20Gostaria%20de%20conversar%20sobre%20a%20implanta%C3%A7%C3%A3o%20e%20contrata%C3%A7%C3%A3o%20do%20SeguroFlow%20OS%20para%20minha%20corretora." target="_blank" class="flex items-center space-x-1.5 px-4 py-2 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-md shadow-emerald-900/30 hover:scale-105 active:scale-95">
+          <i class="ph-bold ph-whatsapp-logo text-base"></i>
           <span>Contratar</span>
-        </button>
+        </a>
       </div>
 
     </div>
   </header>
 
   <!-- ========================================================================= -->
-  <!-- HERO SECTION PRINCIPAL (SAAS MODERNO & VISUALMENTE IMPECÁVEL) -->
+  <!-- HERO SECTION PRINCIPAL (FUNDO VIVO & MOCKUP COM VÍDEO DO PRODUTO) -->
   <!-- ========================================================================= -->
-  <section class="relative bg-gradient-to-b from-surface-950 via-surface-900 to-surface-950 text-white py-16 sm:py-24 overflow-hidden border-b border-surface-800">
+  <section class="relative bg-surface-950 text-white py-14 sm:py-20 overflow-hidden border-b border-surface-800" style="background-image: linear-gradient(to bottom, rgba(5, 10, 24, 0.88), rgba(9, 17, 34, 0.94), rgba(5, 10, 24, 0.98)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=2000&q=85'); background-size: cover; background-position: center;">
     
     <!-- Elementos de Iluminação Suave no Fundo (Ambient Light) -->
-    <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-r from-blue-600/20 via-cyan-500/15 to-emerald-500/20 blur-[120px] pointer-events-none rounded-full"></div>
+    <div class="absolute -top-40 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-r from-blue-600/30 via-cyan-500/20 to-emerald-500/25 blur-[130px] pointer-events-none rounded-full"></div>
 
     <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
       
@@ -228,82 +229,133 @@
       </p>
 
       <!-- Botões de Ação Principais -->
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5 max-w-md mx-auto">
-        <a href="app.html" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs sm:text-sm transition-all shadow-lg shadow-brand-900/40 hover:scale-105 active:scale-95 flex items-center justify-center space-x-2">
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3.5 max-w-lg mx-auto">
+        <a href="app.html" class="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs sm:text-sm transition-all shadow-lg shadow-brand-900/40 hover:scale-105 active:scale-95 flex items-center justify-center space-x-2">
           <i class="ph-bold ph-layout text-base"></i>
-          <span>Ver Demonstração do CRM ao Vivo</span>
+          <span>Ver Demonstração do CRM</span>
         </a>
-        <button onclick="scrollToSection('calculadora')" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm transition-all backdrop-blur-md border border-white/20 active:scale-95 flex items-center justify-center space-x-2">
-          <i class="ph-bold ph-calculator text-base text-cyan-300"></i>
-          <span>Calcular Perdas da Minha Carteira</span>
+        <button onclick="scrollToSection('calculadora')" class="w-full sm:w-auto px-6 py-3.5 rounded-xl bg-emerald-600/90 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm transition-all shadow-lg shadow-emerald-900/30 active:scale-95 flex items-center justify-center space-x-2">
+          <i class="ph-bold ph-calculator text-base text-white"></i>
+          <span>Fazer Cotação em Tempo Real</span>
+        </button>
+        <button onclick="scrollToSection('demonstracao')" class="w-full sm:w-auto px-5 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm transition-all backdrop-blur-md border border-white/20 active:scale-95 flex items-center justify-center space-x-2">
+          <i class="ph-bold ph-play-circle text-base text-cyan-300"></i>
+          <span>Assistir Vídeo</span>
         </button>
       </div>
 
-      <!-- SHOWCASE VISUAL DO PRODUTO (CARD MODERNO NO LUGAR DE VÍDEO ESCURO) -->
-      <div class="mt-14 max-w-5xl mx-auto rounded-3xl bg-surface-900/90 border border-white/15 p-4 sm:p-6 shadow-2xl backdrop-blur-xl text-left">
+      <!-- SHOWCASE DO PRODUTO: SMARTPHONE MOCKUP COM VÍDEO OFICIAL + CARDS OPERACIONAIS -->
+      <div id="demonstracao" class="mt-14 max-w-5xl mx-auto rounded-3xl bg-surface-900/90 border border-white/15 p-4 sm:p-7 shadow-2xl backdrop-blur-xl text-left">
         
-        <div class="flex items-center justify-between pb-4 mb-4 border-b border-white/10 text-xs">
+        <div class="flex items-center justify-between pb-4 mb-6 border-b border-white/10 text-xs">
           <div class="flex items-center space-x-2">
             <span class="w-3 h-3 rounded-full bg-rose-500/80"></span>
             <span class="w-3 h-3 rounded-full bg-amber-500/80"></span>
             <span class="w-3 h-3 rounded-full bg-emerald-500/80"></span>
-            <span class="text-zinc-400 font-mono text-[11px] ml-2 hidden sm:inline">app.seguroflow.com.br/operacoes</span>
+            <span class="text-zinc-400 font-mono text-[11px] ml-2 hidden sm:inline">demonstracao.seguroflow.com.br</span>
           </div>
-          <div class="flex items-center space-x-3 text-[11px] font-mono text-emerald-400">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>Régua D-7 Ativa • 1.840 Apólices Protegidas</span>
+          <div class="flex items-center space-x-3 text-[11px] font-mono text-cyan-300">
+            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+            <span>Vídeo Oficial SeguroFlow OS (2m 35s)</span>
           </div>
         </div>
 
-        <!-- 3 Cards Ilustrativos da Operação em Tempo Real -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Layout em Grid: Vídeo Mockup + Cards Operacionais -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
           
-          <!-- Card Operacional 1: Régua D-7 -->
-          <div class="bg-surface-800/80 rounded-2xl p-4 border border-white/10 space-y-2 hover-lift">
-            <div class="flex items-center justify-between text-[11px] font-mono">
-              <span class="text-emerald-400 font-bold flex items-center gap-1">
-                <i class="ph-fill ph-check-circle"></i> RÉGUA D-7 PIX
-              </span>
-              <span class="text-zinc-400">Há 4 min</span>
-            </div>
-            <strong class="text-white block text-sm font-display">Auto Frota 12 Veículos</strong>
-            <p class="text-xs text-zinc-300">Metalúrgica Silva • Parcela 3/10 (R$ 1.840)</p>
-            <div class="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] font-mono">
-              <span class="text-zinc-400">Porto Seguro</span>
-              <span class="text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded">Liquidado em 14s</span>
+          <!-- Mockup Smartphone do Vídeo (5 Colunas no Desktop) -->
+          <div class="lg:col-span-5 flex justify-center">
+            <div class="relative w-full max-w-[270px] sm:max-w-[300px] aspect-[9/16] rounded-[2.5rem] bg-slate-950 p-2.5 shadow-2xl border-4 border-slate-700/80 shadow-cyan-500/20 group">
+              <!-- Notch do Celular -->
+              <div class="absolute top-4 left-1/2 -translate-x-1/2 w-24 h-4 bg-slate-800 rounded-full z-20 flex items-center justify-center">
+                <div class="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-700"></div>
+              </div>
+              
+              <!-- Elemento de Vídeo Limpo -->
+              <div class="relative w-full h-full rounded-[2rem] overflow-hidden bg-black flex items-center justify-center">
+                <video id="heroProductVideo" class="w-full h-full object-cover" autoplay loop muted playsinline poster="thumb_sf02.jpg">
+                  <source src="SeguroFlow_Demonstracao.mp4" type="video/mp4">
+                  Seu navegador não suporta reprodução de vídeo.
+                </video>
+
+                <!-- Barra Flutuante de Controle do Vídeo -->
+                <div class="absolute bottom-3 left-2.5 right-2.5 flex items-center justify-between z-20 bg-slate-950/85 backdrop-blur-md px-3 py-2 rounded-xl border border-white/15 text-xs">
+                  <button onclick="toggleVideoPlay()" id="btnVideoPlay" class="text-white hover:text-cyan-300 font-bold flex items-center space-x-1">
+                    <i class="ph-fill ph-pause text-sm" id="iconVideoPlay"></i>
+                    <span class="text-[10px]" id="labelVideoPlay">Pausar</span>
+                  </button>
+                  <button onclick="toggleVideoMute()" id="btnVideoSound" class="text-white hover:text-emerald-300 font-bold flex items-center space-x-1">
+                    <i class="ph-bold ph-speaker-slash text-sm" id="iconVideoSound"></i>
+                    <span class="text-[10px]" id="labelVideoSound">Ativar Som</span>
+                  </button>
+                  <button onclick="openCinemaModal()" class="text-cyan-300 hover:text-white p-1 rounded hover:bg-white/10" title="Assistir em Tela Cheia">
+                    <i class="ph-bold ph-arrows-out-simple text-sm"></i>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Card Operacional 2: Central Zero Bumerangue -->
-          <div class="bg-surface-800/80 rounded-2xl p-4 border border-white/10 space-y-2 hover-lift">
-            <div class="flex items-center justify-between text-[11px] font-mono">
-              <span class="text-cyan-400 font-bold flex items-center gap-1">
-                <i class="ph-fill ph-phone-call"></i> ZERO BUMERANGUE
-              </span>
-              <span class="text-zinc-400">Há 12 min</span>
+          <!-- Destaques Operacionais do Vídeo (7 Colunas no Desktop) -->
+          <div class="lg:col-span-7 space-y-3.5">
+            <div class="text-xs font-mono text-cyan-300 uppercase tracking-wider font-bold">
+              O que você vê na demonstração:
             </div>
-            <strong class="text-white block text-sm font-display">Sinistro Guincho Urgente</strong>
-            <p class="text-xs text-zinc-300">Dra. Camila Ramos • Tokio Marine Auto</p>
-            <div class="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] font-mono">
-              <span class="text-zinc-400">SLA Atendimento</span>
-              <span class="text-cyan-300 font-bold bg-cyan-500/10 px-2 py-0.5 rounded">1º Contato Resolvido</span>
+            
+            <!-- Item 1: Régua D-7 -->
+            <div class="bg-surface-800/80 rounded-2xl p-4 border border-white/10 space-y-1.5 hover-lift">
+              <div class="flex items-center justify-between text-[11px] font-mono">
+                <span class="text-emerald-400 font-bold flex items-center gap-1.5">
+                  <i class="ph-fill ph-check-circle text-sm"></i> 02 • RÉGUA DE PARCELAS D-7
+                </span>
+                <span class="text-zinc-400">Automação Oficial Pix</span>
+              </div>
+              <strong class="text-white block text-sm font-display">Sete dias antes, o Pix já chegou ao segurado</strong>
+              <p class="text-xs text-zinc-300 leading-relaxed">
+                O cliente recebe o código Pix e o boleto direto no WhatsApp com a chave da seguradora, garantindo renovação e liquidação instantânea.
+              </p>
             </div>
-          </div>
 
-          <!-- Card Operacional 3: OCR CNH -->
-          <div class="bg-surface-800/80 rounded-2xl p-4 border border-white/10 space-y-2 hover-lift">
-            <div class="flex items-center justify-between text-[11px] font-mono">
-              <span class="text-amber-400 font-bold flex items-center gap-1">
-                <i class="ph-fill ph-scan"></i> OCR COMPUTACIONAL
-              </span>
-              <span class="text-zinc-400">Há 18 min</span>
+            <!-- Item 2: Central Zero Bumerangue -->
+            <div class="bg-surface-800/80 rounded-2xl p-4 border border-white/10 space-y-1.5 hover-lift">
+              <div class="flex items-center justify-between text-[11px] font-mono">
+                <span class="text-cyan-400 font-bold flex items-center gap-1.5">
+                  <i class="ph-fill ph-phone-call text-sm"></i> 03 • ZERO BUMERANGUE
+                </span>
+                <span class="text-zinc-400">Triagem Inteligente</span>
+              </div>
+              <strong class="text-white block text-sm font-display">Acabe com a loucura de mensagens repetidas no WhatsApp</strong>
+              <p class="text-xs text-zinc-300 leading-relaxed">
+                Centraliza sinistros, segundas vias e dúvidas frequentes em esteira automatizada. O corretor atende no primeiro contato.
+              </p>
             </div>
-            <strong class="text-white block text-sm font-display">Nova Cotação SUV Blindado</strong>
-            <p class="text-xs text-zinc-300">Dr. Roberto Albuquerque • CNH Digitalizada</p>
-            <div class="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] font-mono">
-              <span class="text-zinc-400">Multicálculo</span>
-              <span class="text-amber-300 font-bold bg-amber-500/10 px-2 py-0.5 rounded">Extraído em 1.4s</span>
+
+            <!-- Item 3: OCR CNH & Documentos -->
+            <div class="bg-surface-800/80 rounded-2xl p-4 border border-white/10 space-y-1.5 hover-lift">
+              <div class="flex items-center justify-between text-[11px] font-mono">
+                <span class="text-amber-400 font-bold flex items-center gap-1.5">
+                  <i class="ph-fill ph-scan text-sm"></i> 05 • LEITOR OCR DE DOCUMENTOS
+                </span>
+                <span class="text-zinc-400">Visão Computacional 1.4s</span>
+              </div>
+              <strong class="text-white block text-sm font-display">Foto da CNH no WhatsApp = Ficha cadastrada no CRM</strong>
+              <p class="text-xs text-zinc-300 leading-relaxed">
+                Extração automática de nome, CPF, placa, chassi e dados do condutor sem digitação manual da equipe.
+              </p>
             </div>
+
+            <!-- Botão de Ação ao Lado do Vídeo -->
+            <div class="pt-2 flex flex-col sm:flex-row gap-3">
+              <a href="https://api.whatsapp.com/send?text=Ol%C3%A1%20Rubens!%20Acabei%20de%20assistir%20ao%20v%C3%ADdeo%20do%20SeguroFlow%20OS%20e%20gostaria%20de%20agendar%20uma%20demonstra%C3%A7%C3%A3o%20para%20minha%20corretora." target="_blank" class="flex-1 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow-lg transition">
+                <i class="ph-bold ph-whatsapp-logo text-base"></i>
+                <span>Tirar Dúvidas sobre o Vídeo no WhatsApp</span>
+              </a>
+              <button onclick="openCinemaModal()" class="py-3 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center justify-center space-x-1.5 border border-white/15 transition">
+                <i class="ph-bold ph-arrows-out text-sm"></i>
+                <span>Ver em Tela Cheia</span>
+              </button>
+            </div>
+
           </div>
 
         </div>
@@ -584,15 +636,153 @@
           </div>
         </section>
 
-        <!-- SEÇÃO 3: CALCULADORA INTERATIVA DE PERDAS & ROI -->
+        <!-- SEÇÃO 3: CALCULADORA INTERATIVA DE COTAÇÃO EM TEMPO REAL & RETORNO ROI -->
         <section id="calculadora" class="space-y-6">
           <div class="border-b border-surface-200 pb-4">
-            <span class="text-xs font-bold tracking-widest text-emerald-700 uppercase">Simulação Financeira</span>
-            <h2 class="font-display text-3xl font-extrabold text-surface-900 mt-1">Quanto dinheiro sua corretora está deixando vazar?</h2>
-            <p class="text-xs text-surface-800 mt-1">Mova os controles com os números aproximados da sua corretora e veja o retorno financeiro imediato.</p>
+            <span class="text-xs font-bold tracking-widest text-emerald-700 uppercase">Cotação & Diagnóstico em Tempo Real</span>
+            <h2 class="font-display text-3xl font-extrabold text-surface-900 mt-1">Cotador Interativo SeguroFlow OS</h2>
+            <p class="text-xs text-surface-800 mt-1">Simule o orçamento da sua corretora em tempo real ou calcule o dinheiro que está vazando da sua carteira.</p>
           </div>
 
-          <div class="bg-white rounded-2xl border border-surface-200 p-6 sm:p-8 shadow-sm space-y-6">
+          <!-- Alternador de Abas: Cotador de Planos vs Diagnóstico de Perdas -->
+          <div class="grid grid-cols-2 gap-2 p-1 bg-surface-200 rounded-2xl border border-surface-300 text-xs font-bold max-w-md">
+            <button id="btnTabCotador" onclick="switchCalcTab('COTADOR')" class="py-2.5 px-3 rounded-xl transition bg-brand-700 text-white shadow flex items-center justify-center space-x-1.5">
+              <i class="ph-bold ph-receipt text-sm"></i>
+              <span>Cotação da Corretora</span>
+            </button>
+            <button id="btnTabRoi" onclick="switchCalcTab('ROI')" class="py-2.5 px-3 rounded-xl transition text-surface-700 hover:text-surface-900 flex items-center justify-center space-x-1.5">
+              <i class="ph-bold ph-chart-line-up text-sm"></i>
+              <span>Diagnóstico de Perdas</span>
+            </button>
+          </div>
+
+          <!-- ABA 1: COTADOR DE IMPLANTAÇÃO & MENSALIDADE EM TEMPO REAL -->
+          <div id="calcContentCotador" class="bg-white rounded-2xl border border-surface-200 p-6 sm:p-8 shadow-sm space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              
+              <!-- Controles Interativos da Cotação (7 colunas) -->
+              <div class="lg:col-span-7 space-y-5">
+                
+                <!-- 1. Volume de Apólices -->
+                <div>
+                  <div class="flex justify-between items-center text-xs font-bold mb-1.5 text-surface-900">
+                    <span class="flex items-center space-x-1.5">
+                      <i class="ph-bold ph-files text-brand-600"></i>
+                      <span>1. Carteira de Apólices Ativas:</span>
+                    </span>
+                    <span id="quoteLabelApolices" class="text-brand-800 font-mono font-extrabold text-sm bg-brand-50 px-2 py-0.5 rounded border border-brand-200">1.200 apólices</span>
+                  </div>
+                  <input type="range" id="quoteSliderApolices" min="100" max="5000" step="50" value="1200" class="w-full range-slider" oninput="runQuotationEngine()">
+                  <div class="flex justify-between text-[10px] text-surface-600 mt-1">
+                    <button type="button" onclick="setQuoteApolices(400)" class="hover:text-brand-700 underline">400 (Iniciante)</button>
+                    <button type="button" onclick="setQuoteApolices(800)" class="hover:text-brand-700 underline font-bold">800 (Essencial)</button>
+                    <button type="button" onclick="setQuoteApolices(1800)" class="hover:text-brand-700 underline font-bold">1.800 (Crescimento)</button>
+                    <button type="button" onclick="setQuoteApolices(3500)" class="hover:text-brand-700 underline">3.500+ (Enterprise)</button>
+                  </div>
+                </div>
+
+                <!-- 2. Usuários / Corretores da Equipe -->
+                <div>
+                  <label class="block text-xs font-bold mb-1.5 text-surface-900 flex items-center space-x-1.5">
+                    <i class="ph-bold ph-users text-brand-600"></i>
+                    <span>2. Corretores e Operadores na Plataforma:</span>
+                  </label>
+                  <div class="grid grid-cols-4 gap-2 text-xs">
+                    <button type="button" id="btnQuoteUsers1" onclick="setQuoteUsers(1)" class="py-2 px-1 text-center font-bold rounded-xl border border-surface-300 hover:border-brand-600 bg-surface-50 text-surface-800">1 Usuário</button>
+                    <button type="button" id="btnQuoteUsers5" onclick="setQuoteUsers(5)" class="py-2 px-1 text-center font-bold rounded-xl border-2 border-brand-600 bg-brand-50 text-brand-800">2 a 5</button>
+                    <button type="button" id="btnQuoteUsers12" onclick="setQuoteUsers(12)" class="py-2 px-1 text-center font-bold rounded-xl border border-surface-300 hover:border-brand-600 bg-surface-50 text-surface-800">6 a 12</button>
+                    <button type="button" id="btnQuoteUsersMore" onclick="setQuoteUsers(25)" class="py-2 px-1 text-center font-bold rounded-xl border border-surface-300 hover:border-brand-600 bg-surface-50 text-surface-800">Ilimitado</button>
+                  </div>
+                </div>
+
+                <!-- 3. Canais de WhatsApp Oficiais -->
+                <div>
+                  <label class="block text-xs font-bold mb-1.5 text-surface-900 flex items-center space-x-1.5">
+                    <i class="ph-bold ph-whatsapp-logo text-emerald-600"></i>
+                    <span>3. Canais Oficiais de WhatsApp Integrados:</span>
+                  </label>
+                  <div class="grid grid-cols-3 gap-2 text-xs">
+                    <button type="button" id="btnQuoteWa1" onclick="setQuoteWa(1)" class="py-2 text-center font-bold rounded-xl border border-surface-300 hover:border-brand-600 bg-surface-50 text-surface-800">1 Número Oficial</button>
+                    <button type="button" id="btnQuoteWa2" onclick="setQuoteWa(2)" class="py-2 text-center font-bold rounded-xl border-2 border-brand-600 bg-brand-50 text-brand-800">2 Números</button>
+                    <button type="button" id="btnQuoteWa3" onclick="setQuoteWa(3)" class="py-2 text-center font-bold rounded-xl border border-surface-300 hover:border-brand-600 bg-surface-50 text-surface-800">3+ Números</button>
+                  </div>
+                </div>
+
+                <!-- 4. Escopo do Onboarding & Serviços Inclusos -->
+                <div class="bg-surface-50 rounded-xl p-3.5 border border-surface-200 space-y-2 text-xs">
+                  <span class="font-bold text-surface-900 block">Itens inclusos no pacote cotado:</span>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-[11px] text-surface-800">
+                    <span class="flex items-center space-x-1.5"><i class="ph-bold ph-check text-emerald-600"></i><span>Saneamento de apólices legadas</span></span>
+                    <span class="flex items-center space-x-1.5"><i class="ph-bold ph-check text-emerald-600"></i><span>Régua D-7, D-0 e D+2 com Pix</span></span>
+                    <span class="flex items-center space-x-1.5"><i class="ph-bold ph-check text-emerald-600"></i><span>Central Zero Bumerangue</span></span>
+                    <span class="flex items-center space-x-1.5"><i class="ph-bold ph-check text-emerald-600"></i><span>Leitor OCR de CNH e Apólices</span></span>
+                    <span class="flex items-center space-x-1.5"><i class="ph-bold ph-check text-emerald-600"></i><span>Esteira Kanban operacional</span></span>
+                    <span class="flex items-center space-x-1.5"><i class="ph-bold ph-check text-emerald-600"></i><span>Treinamento ao vivo da equipe</span></span>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Resultado da Cotação em Tempo Real (5 colunas) -->
+              <div class="lg:col-span-5 p-6 rounded-2xl bg-gradient-to-br from-brand-50 via-white to-emerald-50 border-2 border-brand-300 shadow-md flex flex-col justify-between space-y-4">
+                
+                <div>
+                  <div class="flex items-center justify-between">
+                    <span id="quotePlanBadge" class="px-2.5 py-1 rounded-full text-[11px] font-bold font-mono bg-brand-100 text-brand-900 border border-brand-200">
+                      PLANO CRESCIMENTO
+                    </span>
+                    <span class="text-xs text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                      Cotação Instantânea
+                    </span>
+                  </div>
+                  
+                  <h3 id="quotePlanName" class="text-xl font-extrabold text-surface-900 mt-2 font-display">SeguroFlow Crescimento</h3>
+                  <p id="quotePlanDesc" class="text-xs text-surface-600 mt-0.5">Dimensionado sob medida para a sua operação</p>
+                </div>
+
+                <!-- Detalhamento dos Valores -->
+                <div class="space-y-3 pt-2 border-t border-brand-200">
+                  <div class="bg-white/80 rounded-xl p-3 border border-brand-200">
+                    <span class="text-xs text-surface-700 font-semibold block">Taxa de Implantação Assistida (Setup Único):</span>
+                    <div id="quoteSetupVal" class="text-2xl font-extrabold text-brand-800 font-mono mt-0.5">R$ 3.500</div>
+                    <span class="text-[10px] text-surface-600 block mt-0.5">Saneamento de apólices, ativação de WhatsApp e treinamento ao vivo.</span>
+                  </div>
+
+                  <div class="bg-white/80 rounded-xl p-3 border border-emerald-200">
+                    <span class="text-xs text-surface-700 font-semibold block">Mensalidade da Plataforma em Nuvem:</span>
+                    <div class="flex items-baseline space-x-1 mt-0.5">
+                      <span id="quoteMonthlyVal" class="text-3xl font-extrabold text-emerald-700 font-mono">R$ 997</span>
+                      <span class="text-xs text-surface-700 font-semibold">/mês</span>
+                    </div>
+                    <span class="text-[10px] text-surface-600 block mt-0.5">Sem carência contratual • Cancele quando quiser.</span>
+                  </div>
+
+                  <div id="quoteRoiBox" class="p-2.5 rounded-xl bg-emerald-50 text-emerald-900 text-xs font-semibold border border-emerald-200 flex items-center space-x-2">
+                    <i class="ph-bold ph-trend-up text-base text-emerald-600 shrink-0"></i>
+                    <span id="quoteRoiEstimate">Com 1.200 apólices, você recupera aprox. R$ 39.800/ano em comissões salvas!</span>
+                  </div>
+                </div>
+
+                <!-- Botões de Ação da Cotação -->
+                <div class="space-y-2 pt-2">
+                  <a id="btnQuoteWhatsApp" href="#" target="_blank" class="w-full py-3.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg transition flex items-center justify-center space-x-2 active:scale-98">
+                    <i class="ph-bold ph-whatsapp-logo text-base"></i>
+                    <span>Receber Esta Cotação no WhatsApp</span>
+                  </a>
+
+                  <button onclick="openCheckoutFromQuote()" class="w-full py-3 px-4 rounded-xl bg-brand-700 hover:bg-brand-600 text-white font-bold text-xs shadow transition flex items-center justify-center space-x-2 active:scale-98">
+                    <i class="ph-bold ph-check-circle text-sm"></i>
+                    <span>Garantir Vaga de Setup Agora</span>
+                  </button>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ABA 2: DIAGNÓSTICO DE ROI & PERDAS DA CARTEIRA -->
+          <div id="calcContentRoi" class="hidden bg-white rounded-2xl border border-surface-200 p-6 sm:p-8 shadow-sm space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
               
               <!-- Sliders -->
@@ -998,6 +1188,26 @@
     </div>
   </div>
 
+  <!-- MODAL DE VÍDEO EM TELA CHEIA (CINEMA MODE) -->
+  <div id="cinemaModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4 hidden">
+    <div class="relative w-full max-w-md max-h-[90vh] flex flex-col items-center">
+      <div class="w-full flex justify-between items-center text-white mb-3 px-2">
+        <div class="flex items-center space-x-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+          <span class="font-bold text-xs font-mono">Vídeo Oficial SeguroFlow OS</span>
+        </div>
+        <button onclick="closeCinemaModal()" class="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition">
+          <i class="ph-bold ph-x text-base"></i>
+        </button>
+      </div>
+      <div class="relative w-full aspect-[9/16] max-h-[78vh] rounded-3xl overflow-hidden bg-black shadow-2xl border border-white/20">
+        <video id="cinemaVideo" class="w-full h-full object-contain" controls playsinline>
+          <source src="SeguroFlow_Demonstracao.mp4" type="video/mp4">
+        </video>
+      </div>
+    </div>
+  </div>
+
   <!-- FOOTER EXECUTIVO -->
   <footer class="py-12 bg-surface-900 border-t border-white/10 text-xs text-zinc-400">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
@@ -1181,9 +1391,232 @@
       }, 3000);
     }
 
+    // =========================================================================
+    // ALTERNADOR DE ABAS DA CALCULADORA (COTADOR vs DIAGNÓSTICO ROI)
+    // =========================================================================
+    function switchCalcTab(tab) {
+      const btnCotador = document.getElementById('btnTabCotador');
+      const btnRoi = document.getElementById('btnTabRoi');
+      const cCotador = document.getElementById('calcContentCotador');
+      const cRoi = document.getElementById('calcContentRoi');
+
+      if (tab === 'COTADOR') {
+        btnCotador.className = 'py-2.5 px-3 rounded-xl transition bg-brand-700 text-white shadow flex items-center justify-center space-x-1.5';
+        btnRoi.className = 'py-2.5 px-3 rounded-xl transition text-surface-700 hover:text-surface-900 flex items-center justify-center space-x-1.5';
+        cCotador.classList.remove('hidden');
+        cRoi.classList.add('hidden');
+      } else {
+        btnRoi.className = 'py-2.5 px-3 rounded-xl transition bg-brand-700 text-white shadow flex items-center justify-center space-x-1.5';
+        btnCotador.className = 'py-2.5 px-3 rounded-xl transition text-surface-700 hover:text-surface-900 flex items-center justify-center space-x-1.5';
+        cRoi.classList.remove('hidden');
+        cCotador.classList.add('hidden');
+      }
+    }
+
+    // =========================================================================
+    // MOTOR DE COTAÇÃO EM TEMPO REAL (INTERATIVO)
+    // =========================================================================
+    let quoteState = {
+      apolices: 1200,
+      users: 5,
+      wa: 2,
+      targetModalPlan: 'CRESCIMENTO'
+    };
+
+    function setQuoteApolices(val) {
+      const slider = document.getElementById('quoteSliderApolices');
+      if (slider) {
+        slider.value = val;
+        runQuotationEngine();
+      }
+    }
+
+    function setQuoteUsers(u) {
+      quoteState.users = u;
+      [1, 5, 12, 25].forEach(num => {
+        const btn = document.getElementById(`btnQuoteUsers${num === 25 ? 'More' : num}`);
+        if (btn) {
+          if (num === u) {
+            btn.className = 'py-2 px-1 text-center font-bold rounded-xl border-2 border-brand-600 bg-brand-50 text-brand-800';
+          } else {
+            btn.className = 'py-2 px-1 text-center font-bold rounded-xl border border-surface-300 hover:border-brand-600 bg-surface-50 text-surface-800';
+          }
+        }
+      });
+      runQuotationEngine();
+    }
+
+    function setQuoteWa(w) {
+      quoteState.wa = w;
+      [1, 2, 3].forEach(num => {
+        const btn = document.getElementById(`btnQuoteWa${num}`);
+        if (btn) {
+          if (num === w) {
+            btn.className = 'py-2 text-center font-bold rounded-xl border-2 border-brand-600 bg-brand-50 text-brand-800';
+          } else {
+            btn.className = 'py-2 text-center font-bold rounded-xl border border-surface-300 hover:border-brand-600 bg-surface-50 text-surface-800';
+          }
+        }
+      });
+      runQuotationEngine();
+    }
+
+    function runQuotationEngine() {
+      const slider = document.getElementById('quoteSliderApolices');
+      if (!slider) return;
+      const apolices = parseInt(slider.value, 10);
+      quoteState.apolices = apolices;
+
+      const labelApolices = document.getElementById('quoteLabelApolices');
+      if (labelApolices) labelApolices.textContent = `${apolices.toLocaleString('pt-BR')} apólices`;
+
+      let planName = 'SeguroFlow Crescimento';
+      let planBadge = 'PLANO CRESCIMENTO';
+      let planDesc = 'Dimensionado sob medida para corretoras em expansão';
+      let setupPrice = 3500;
+      let monthlyPrice = 997;
+      let targetModalPlan = 'CRESCIMENTO';
+
+      if (apolices <= 800 && quoteState.users <= 5 && quoteState.wa === 1) {
+        planName = 'SeguroFlow Essencial';
+        planBadge = 'PLANO ESSENCIAL';
+        planDesc = 'Ideal para pequenos corretores e operações enxutas';
+        setupPrice = 2500;
+        monthlyPrice = 699;
+        targetModalPlan = 'ESSENCIAL';
+      } else if (apolices <= 1500) {
+        planName = 'SeguroFlow Crescimento';
+        planBadge = 'PLANO CRESCIMENTO';
+        planDesc = 'Ideal para corretoras estruturadas em aceleração';
+        setupPrice = 3500;
+        monthlyPrice = (quoteState.wa > 2 || quoteState.users > 5) ? 1190 : 890;
+        targetModalPlan = 'CRESCIMENTO';
+      } else if (apolices <= 2500) {
+        planName = 'SeguroFlow Crescimento Acelerado';
+        planBadge = 'PLANO CRESCIMENTO+';
+        planDesc = 'Potência máxima de operação para médias corretoras';
+        setupPrice = 3500;
+        monthlyPrice = (quoteState.wa > 2 || quoteState.users > 10) ? 1290 : 997;
+        targetModalPlan = 'CRESCIMENTO';
+      } else {
+        planName = 'SeguroFlow Scale Enterprise';
+        planBadge = 'PLANO SCALE ENTERPRISE';
+        planDesc = 'Para grandes corretoras, redes e franquias com alto volume';
+        setupPrice = 5000;
+        monthlyPrice = 1490;
+        targetModalPlan = 'ENTERPRISE';
+      }
+
+      // Atualiza elementos de tela
+      const badgeEl = document.getElementById('quotePlanBadge');
+      if (badgeEl) badgeEl.textContent = planBadge;
+
+      const nameEl = document.getElementById('quotePlanName');
+      if (nameEl) nameEl.textContent = planName;
+
+      const descEl = document.getElementById('quotePlanDesc');
+      if (descEl) descEl.textContent = planDesc;
+
+      const setupEl = document.getElementById('quoteSetupVal');
+      if (setupEl) setupEl.textContent = `R$ ${setupPrice.toLocaleString('pt-BR')}`;
+
+      const monthlyEl = document.getElementById('quoteMonthlyVal');
+      if (monthlyEl) monthlyEl.textContent = `R$ ${monthlyPrice.toLocaleString('pt-BR')}`;
+
+      // Estimativa de retorno
+      const recuperadoEstimado = Math.round(apolices * 33.2);
+      const roiEl = document.getElementById('quoteRoiEstimate');
+      if (roiEl) {
+        roiEl.textContent = `Com ${apolices.toLocaleString('pt-BR')} apólices, você recupera aprox. R$ ${recuperadoEstimado.toLocaleString('pt-BR')}/ano em comissões salvas!`;
+      }
+
+      // Link do WhatsApp com a cotação detalhada
+      const msg = `Olá Rubens! Fiz uma cotação em tempo real no SeguroFlow OS:
+- Carteira: ${apolices.toLocaleString('pt-BR')} apólices
+- Equipe: ${quoteState.users} operadores
+- WhatsApp: ${quoteState.wa} canal(is)
+- Plano: ${planName}
+- Setup Único: R$ ${setupPrice.toLocaleString('pt-BR')}
+- Mensalidade: R$ ${monthlyPrice.toLocaleString('pt-BR')}/mês
+
+Quero agendar a implantação na minha corretora!`;
+
+      const waBtn = document.getElementById('btnQuoteWhatsApp');
+      if (waBtn) {
+        waBtn.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+      }
+
+      quoteState.targetModalPlan = targetModalPlan;
+    }
+
+    function openCheckoutFromQuote() {
+      openCheckoutModal(quoteState.targetModalPlan || 'CRESCIMENTO');
+    }
+
+    // =========================================================================
+    // CONTROLES DE VÍDEO DO HERO & CINEMA MODE
+    // =========================================================================
+    function toggleVideoPlay() {
+      const v = document.getElementById('heroProductVideo');
+      const icon = document.getElementById('iconVideoPlay');
+      const label = document.getElementById('labelVideoPlay');
+      if (!v) return;
+      if (v.paused) {
+        v.play();
+        if (icon) icon.className = 'ph-fill ph-pause text-sm';
+        if (label) label.textContent = 'Pausar';
+      } else {
+        v.pause();
+        if (icon) icon.className = 'ph-fill ph-play text-sm';
+        if (label) label.textContent = 'Assistir';
+      }
+    }
+
+    function toggleVideoMute() {
+      const v = document.getElementById('heroProductVideo');
+      const icon = document.getElementById('iconVideoSound');
+      const label = document.getElementById('labelVideoSound');
+      if (!v) return;
+      if (v.muted) {
+        v.muted = false;
+        if (icon) icon.className = 'ph-bold ph-speaker-high text-sm text-emerald-400';
+        if (label) label.textContent = 'Mudo';
+      } else {
+        v.muted = true;
+        if (icon) icon.className = 'ph-bold ph-speaker-slash text-sm';
+        if (label) label.textContent = 'Ativar Som';
+      }
+    }
+
+    function openCinemaModal() {
+      const heroVid = document.getElementById('heroProductVideo');
+      const cinemaModal = document.getElementById('cinemaModal');
+      const cinemaVid = document.getElementById('cinemaVideo');
+      if (heroVid) heroVid.pause();
+      if (cinemaVid && heroVid) {
+        cinemaVid.currentTime = heroVid.currentTime;
+        cinemaVid.muted = false;
+        cinemaVid.play().catch(() => {});
+      }
+      if (cinemaModal) cinemaModal.classList.remove('hidden');
+    }
+
+    function closeCinemaModal() {
+      const cinemaModal = document.getElementById('cinemaModal');
+      const cinemaVid = document.getElementById('cinemaVideo');
+      const heroVid = document.getElementById('heroProductVideo');
+      if (cinemaVid) cinemaVid.pause();
+      if (heroVid && cinemaVid) {
+        heroVid.currentTime = cinemaVid.currentTime;
+        heroVid.play().catch(() => {});
+      }
+      if (cinemaModal) cinemaModal.classList.add('hidden');
+    }
+
     // Inicialização ao Carregar
     document.addEventListener('DOMContentLoaded', () => {
       runCalculator();
+      runQuotationEngine();
     });
   </script>
 </body>
