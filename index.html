@@ -10,7 +10,7 @@
 
   <script>
     // Invalidador de cache para navegadores mobile e desktop
-    const APP_BUILD_ID = '20261004-v5';
+    const APP_BUILD_ID = '20261004-v6';
     try {
       const prev = localStorage.getItem('sf_build_id');
       if (prev !== APP_BUILD_ID) {
@@ -81,7 +81,6 @@
 
   <style>
     html, body {
-      overflow-x: clip;
       max-width: 100vw;
       width: 100%;
       -webkit-text-size-adjust: 100%;
@@ -96,7 +95,7 @@
       .desktop-sticky-card {
         position: -webkit-sticky !important;
         position: sticky !important;
-        top: 6.5rem !important; /* 104px */
+        top: 7rem !important; /* 112px */
         z-index: 30 !important;
       }
     }
@@ -160,7 +159,7 @@
     }
   </style>
 </head>
-<body class="bg-surface-50 text-surface-900 font-sans antialiased selection:bg-brand-600 selection:text-white w-full overflow-x-hidden">
+<body class="bg-surface-50 text-surface-900 font-sans antialiased selection:bg-brand-600 selection:text-white w-full">
 
   <!-- ========================================================================= -->
   <!-- NAVBAR PREMIUM COMERCIAL (LIMPA, ELEGANTE & EM UMA ÚNICA LINHA) -->
@@ -1018,8 +1017,8 @@
       <!-- ========================================================
            COLUNA DIREITA: CARD FLUTUANTE STICKY (PADRÃO VIVANT)
            ======================================================== -->
-      <div class="lg:col-span-4" id="planos">
-        <div class="desktop-sticky-card bg-white rounded-3xl border-2 border-brand-300 p-6 sm:p-7 shadow-xl space-y-6">
+      <div class="lg:col-span-4 relative" id="planos">
+        <div class="desktop-sticky-card lg:sticky lg:top-28 z-30 bg-white rounded-3xl border-2 border-brand-300 p-6 sm:p-7 shadow-xl space-y-6">
           
           <!-- Badge de Status e Garantia -->
           <div class="flex items-center justify-between">
@@ -1275,7 +1274,7 @@
   </div>
 
   <!-- FOOTER EXECUTIVO -->
-  <footer class="py-12 bg-surface-900 border-t border-white/10 text-xs text-zinc-400">
+  <footer class="py-12 pb-28 lg:pb-12 bg-surface-900 border-t border-white/10 text-xs text-zinc-400">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
       <div class="flex items-center space-x-3">
         <div class="w-8 h-8 rounded-lg bg-blue-600/30 flex items-center justify-center text-cyan-300 text-base">
