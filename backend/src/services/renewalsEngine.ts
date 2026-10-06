@@ -6,6 +6,22 @@ import {
   TemplateComponent,
 } from "./whatsappCloud";
 import { decryptSensitive } from "../security/crypto";
+import { getSaoPauloDateAndHour } from "./scheduler";
+
+function getTargetDateStr(baseDateStr: string, offsetDays: number): string {
+  const [year, month, day] = baseDateStr.split("-").map(Number);
+  const dt = new Date(Date.UTC(year, month - 1, day + offsetDays, 12, 0, 0));
+  const y = dt.getUTCFullYear();
+  const m = String(dt.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(dt.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function getCalendarDayBounds(dateStr: string): { gte: Date; lte: Date } {
+  const gte = new Date(`${dateStr}T00:00:00.000Z`);
+  const lte = new Date(new Date(`${dateStr}T23:59:59.999-03:00`).getTime());
+  return { gte, lte };
+}
 
 /**
  * Motor de Varredura de Renovações (60, 30 e 15 dias)
@@ -19,17 +35,20 @@ export async function runRenewalsScan(targetBrokerageId?: string): Promise<{
   created30: number;
   created15: number;
 }> {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const { dateStr: todayBrt } = getSaoPauloDateAndHour();
 
   let created60 = 0;
   let created30 = 0;
   let created15 = 0;
 
-  // Janelas
-  const days60Date = new Date(today.getTime() + 60 * 24 * 60 * 60 * 1000);
-  const days30Date = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
-  const days15Date = new Date(today.getTime() + 15 * 24 * 60 * 60 * 1000);
+  // Janelas calculadas no fuso de Brasília
+  const days60Str = getTargetDateStr(todayBrt, 60);
+  const days30Str = getTargetDateStr(todayBrt, 30);
+  const days15Str = getTargetDateStr(todayBrt, 15);
+
+  const range60 = getCalendarDayBounds(days60Str);
+  const range30 = getCalendarDayBounds(days30Str);
+  const range15 = getCalendarDayBounds(days15Str);
 
   const baseWhere = targetBrokerageId ? { brokerageId: targetBrokerageId } : {};
 
@@ -39,8 +58,8 @@ export async function runRenewalsScan(targetBrokerageId?: string): Promise<{
       ...baseWhere,
       status: "ACTIVE",
       endDate: {
-        gte: days60Date,
-        lt: new Date(days60Date.getTime() + 24 * 60 * 60 * 1000),
+        gte: range60.gte,
+        lte: range60.lte,
       },
       renewals: { none: { alertWindow: RenewalWindow.DAYS_60 } },
     },
@@ -66,8 +85,8 @@ export async function runRenewalsScan(targetBrokerageId?: string): Promise<{
       ...baseWhere,
       status: "ACTIVE",
       endDate: {
-        gte: days30Date,
-        lt: new Date(days30Date.getTime() + 24 * 60 * 60 * 1000),
+        gte: range30.gte,
+        lte: range30.lte,
       },
       renewals: { none: { alertWindow: RenewalWindow.DAYS_30 } },
     },
@@ -93,8 +112,8 @@ export async function runRenewalsScan(targetBrokerageId?: string): Promise<{
       ...baseWhere,
       status: "ACTIVE",
       endDate: {
-        gte: days15Date,
-        lt: new Date(days15Date.getTime() + 24 * 60 * 60 * 1000),
+        gte: range15.gte,
+        lte: range15.lte,
       },
       renewals: { none: { alertWindow: RenewalWindow.DAYS_15 } },
     },

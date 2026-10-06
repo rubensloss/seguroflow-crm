@@ -3,7 +3,10 @@ import { env } from "../../config/env";
 import { buildSystemPrompt } from "./systemPrompt";
 import { AGENT_TOOLS, executeAgentTool } from "./tools";
 
-const anthropic = env.ANTHROPIC_API_KEY ? new Anthropic({ apiKey: env.ANTHROPIC_API_KEY }) : null;
+function getAnthropicClient(): Anthropic | null {
+  const apiKey = process.env.ANTHROPIC_API_KEY || env.ANTHROPIC_API_KEY;
+  return apiKey ? new Anthropic({ apiKey }) : null;
+}
 
 export interface AgentTurnParams {
   brokerageName: string;
@@ -16,6 +19,7 @@ export interface AgentTurnParams {
 
 export async function runAgentTurn(params: AgentTurnParams): Promise<string> {
   const { brokerageName, brokerageId, phone, insuredId, messageHistory, userMessage } = params;
+  const anthropic = getAnthropicClient();
 
   if (!anthropic) {
     console.log("[Agent Mock Turn] Executando resposta simulada sem chave Anthropic");

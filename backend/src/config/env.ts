@@ -11,7 +11,7 @@ const envSchema = z.object({
   JWT_EXPIRES_IN: z.string().default("7d"),
   ENCRYPTION_KEY: z.string().min(16).default("creativealways_seguroflow_key_32b"),
   ANTHROPIC_API_KEY: z.string().optional().default(""),
-  ANTHROPIC_MODEL: z.string().default("claude-3-5-sonnet-latest"),
+  ANTHROPIC_MODEL: z.string().default("claude-sonnet-4-5"),
   OPENAI_API_KEY: z.string().optional().default(""),
   GEMINI_API_KEY: z.string().optional().default(""),
   WHATSAPP_GRAPH_API_VERSION: z.string().default("v21.0"),

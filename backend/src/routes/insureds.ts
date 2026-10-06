@@ -112,3 +112,40 @@ insuredsRouter.post("/", requireAuth, async (req: Request, res: Response) => {
 
   res.status(201).json(insured);
 });
+
+// Edição de segurado
+insuredsRouter.patch("/:id", requireAuth, async (req: Request, res: Response) => {
+  const { name, cpf, phone, email, notes } = req.body;
+  const brokerageId = req.user!.brokerageId;
+
+  const insured = await prisma.insured.findFirst({
+    where: { id: req.params.id, brokerageId },
+  });
+
+  if (!insured) {
+    res.status(404).json({ error: "Segurado não encontrado" });
+    return;
+  }
+
+  const updated = await prisma.insured.update({
+    where: { id: insured.id },
+    data: {
+      name: name || undefined,
+      cpf: cpf !== undefined ? (cpf ? cpf.replace(/\D/g, "") : null) : undefined,
+      phone: phone ? phone.replace(/\D/g, "") : undefined,
+      email: email !== undefined ? (email || null) : undefined,
+      notes: notes !== undefined ? notes : undefined,
+    },
+  });
+
+  await recordAuditLog({
+    brokerageId,
+    userId: req.user!.userId,
+    action: "UPDATE_INSURED",
+    resource: `Insured:${updated.id}`,
+    req,
+  });
+
+  res.json(updated);
+});
+

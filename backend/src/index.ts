@@ -22,7 +22,7 @@ import { conversationsRouter } from "./routes/conversations";
 import { financesRouter } from "./routes/finances";
 import { clientPortalRouter } from "./routes/clientPortal";
 import { cronRouter } from "./routes/cron";
-import { startInternalScheduler } from "./services/scheduler";
+import { startInternalScheduler, getSchedulerStatus } from "./services/scheduler";
 
 const app = express();
 
@@ -49,12 +49,32 @@ app.use(express.urlencoded({ extended: true, limit: "20mb" }));
 // Rota de Health Check
 app.get("/health", async (_req: Request, res: Response) => {
   let dbOk = false;
+  let hasWhatsAppConfigured = false;
+
   try {
     await prisma.$queryRaw`SELECT 1`;
     dbOk = true;
   } catch {
     dbOk = false;
   }
+
+  if (dbOk) {
+    try {
+      const brkWithMeta = await prisma.brokerage.findFirst({
+        where: {
+          whatsappPhoneNumberId: { not: null },
+          whatsappAccessTokenEncrypted: { not: null },
+        },
+        select: { id: true },
+      });
+      hasWhatsAppConfigured = Boolean(brkWithMeta);
+    } catch {
+      hasWhatsAppConfigured = false;
+    }
+  }
+
+  const schedulerInfo = getSchedulerStatus();
+  const anthropicKey = process.env.ANTHROPIC_API_KEY || env.ANTHROPIC_API_KEY;
 
   res.json({
     status: "ok",
@@ -63,6 +83,13 @@ app.get("/health", async (_req: Request, res: Response) => {
     version: "1.0.0",
     ecosystem: "https://creativealways.com.br/solucoes/",
     database: dbOk ? "connected" : "disconnected",
+    scheduler: schedulerInfo.status,
+    schedulerDetails: schedulerInfo,
+    integrations: {
+      anthropic: anthropicKey ? "configured" : "missing",
+      whatsapp: hasWhatsAppConfigured ? "configured" : "missing",
+      openai: Boolean(process.env.OPENAI_API_KEY || env.OPENAI_API_KEY) ? "configured" : "missing",
+    },
     timestamp: new Date().toISOString(),
   });
 });

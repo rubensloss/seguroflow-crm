@@ -4,6 +4,7 @@ import { InsuranceBranch, PolicyStatus } from "@prisma/client";
 import { prisma } from "../config/prisma";
 import { requireAuth } from "../security/auth";
 import { recordAuditLog } from "../services/auditLog";
+import { resolveAssistance24hPhone } from "../services/insurerDirectory";
 
 export const policiesRouter = Router();
 
@@ -68,6 +69,44 @@ policiesRouter.get("/:id", requireAuth, async (req: Request, res: Response) => {
   }
 
   res.json(policy);
+});
+
+// Atualização de apólice
+policiesRouter.patch("/:id", requireAuth, async (req: Request, res: Response) => {
+  const { policyNumber, insurerName, branch, assistance24hPhone, startDate, endDate, premiumAmount, itemDescription, status } = req.body;
+  const policy = await prisma.policy.findFirst({
+    where: { id: req.params.id, brokerageId: req.user!.brokerageId },
+  });
+
+  if (!policy) {
+    res.status(404).json({ error: "Apólice não encontrada" });
+    return;
+  }
+
+  const updated = await prisma.policy.update({
+    where: { id: policy.id },
+    data: {
+      policyNumber: policyNumber || undefined,
+      insurerName: insurerName || undefined,
+      branch: branch || undefined,
+      assistance24hPhone: assistance24hPhone !== undefined ? assistance24hPhone : undefined,
+      startDate: startDate ? new Date(startDate) : undefined,
+      endDate: endDate ? new Date(endDate) : undefined,
+      premiumAmount: premiumAmount !== undefined ? Number(premiumAmount) : undefined,
+      itemDescription: itemDescription !== undefined ? itemDescription : undefined,
+      status: status || undefined,
+    },
+  });
+
+  await recordAuditLog({
+    brokerageId: req.user!.brokerageId,
+    userId: req.user!.userId,
+    action: "UPDATE_POLICY",
+    resource: `Policy:${updated.id}`,
+    req,
+  });
+
+  res.json(updated);
 });
 
 // Criação de apólice e geração automática de parcelas
@@ -198,7 +237,7 @@ policiesRouter.post("/from-proposal-ocr", requireAuth, async (req: Request, res:
         premiumAmount: premNum,
         commissionPercentage: commPct,
         commissionAmount: commAmount,
-        assistance24hPhone: assistance24hPhone || "0800 727 0800",
+        assistance24hPhone: resolveAssistance24hPhone(assistance24hPhone, insurerName),
         itemDescription: itemDescription || "Item segurado",
         status: "ACTIVE",
       },

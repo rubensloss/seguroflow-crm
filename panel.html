@@ -138,9 +138,21 @@
             <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
             <span>Dashboard & KPIs</span>
           </button>
+          <button onclick="switchTab('pipeline')" id="btn-tab-pipeline" class="nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-all text-left">
+            <i data-lucide="columns-3" class="w-4 h-4 text-cyan-400"></i>
+            <span>Funil de Vendas (Kanban)</span>
+          </button>
+          <button onclick="switchTab('portfolio')" id="btn-tab-portfolio" class="nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-all text-left">
+            <i data-lucide="users" class="w-4 h-4 text-emerald-400"></i>
+            <span>Carteira & Cadastros</span>
+          </button>
           <button onclick="switchTab('proposals')" id="btn-tab-proposals" class="nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-all text-left">
-            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-400"></i>
+            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-blue-400"></i>
             <span>Propostas & Parcelas OCR</span>
+          </button>
+          <button onclick="switchTab('import')" id="btn-tab-import" class="nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-all text-left">
+            <i data-lucide="upload-cloud" class="w-4 h-4 text-teal-400"></i>
+            <span>Importar Planilha (/api/import)</span>
           </button>
           <button onclick="switchTab('finances')" id="btn-tab-finances" class="nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-all text-left">
             <i data-lucide="circle-dollar-sign" class="w-4 h-4 text-amber-400"></i>
@@ -157,6 +169,14 @@
           <button onclick="switchTab('cadence')" id="btn-tab-cadence" class="nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-all text-left">
             <i data-lucide="calendar-clock" class="w-4 h-4 text-purple-400"></i>
             <span>Régua D-7 & Renovações</span>
+          </button>
+          <button onclick="switchTab('templates')" id="btn-tab-templates" class="nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-all text-left">
+            <i data-lucide="message-circle" class="w-4 h-4 text-indigo-400"></i>
+            <span>Templates Meta Oficiais</span>
+          </button>
+          <button onclick="switchTab('settings-whatsapp')" id="btn-tab-settings-whatsapp" class="nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-all text-left">
+            <i data-lucide="settings" class="w-4 h-4 text-emerald-400"></i>
+            <span>WhatsApp Oficial & Meta</span>
           </button>
         </div>
 
@@ -482,14 +502,540 @@
           </div>
         </div>
 
+        <!-- TAB 7: FUNIL DE VENDAS (KANBAN) -->
+        <div id="tab-pipeline" class="tab-pane hidden space-y-6">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-xl font-bold text-white">Funil de Vendas & SLA</h2>
+              <p class="text-xs text-slate-400 font-mono">Gestão de oportunidades comerciais com controle de estouro de SLA por fase</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="openNewDealModal()" class="px-3 py-1.5 text-xs bg-sky-500 hover:bg-sky-400 text-black font-bold rounded-lg flex items-center gap-1.5 transition-colors">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                <span>Nova Oportunidade</span>
+              </button>
+              <button onclick="loadPipelineData()" class="px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 rounded-lg flex items-center gap-1.5 transition-colors">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                <span>Atualizar</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Kanban Board 5 Colunas -->
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-3 min-h-[500px]">
+            <!-- Coluna 1: NOVO -->
+            <div class="bg-slate-900 border border-white/10 rounded-xl p-3 flex flex-col">
+              <div class="flex items-center justify-between pb-2 mb-3 border-b border-white/5">
+                <span class="text-xs font-bold text-sky-400 font-mono">1. NOVO LEAD</span>
+                <span id="col-count-novo" class="text-[10px] bg-sky-500/10 text-sky-400 px-1.5 py-0.5 rounded font-mono">0</span>
+              </div>
+              <div id="col-cards-novo" class="space-y-2 flex-1 overflow-y-auto"></div>
+            </div>
+
+            <!-- Coluna 2: COTAÇÃO -->
+            <div class="bg-slate-900 border border-white/10 rounded-xl p-3 flex flex-col">
+              <div class="flex items-center justify-between pb-2 mb-3 border-b border-white/5">
+                <span class="text-xs font-bold text-amber-400 font-mono">2. COTAÇÃO</span>
+                <span id="col-count-cotacao" class="text-[10px] bg-amber-500/10 text-amber-400 px-1.5 py-0.5 rounded font-mono">0</span>
+              </div>
+              <div id="col-cards-cotacao" class="space-y-2 flex-1 overflow-y-auto"></div>
+            </div>
+
+            <!-- Coluna 3: PROPOSTA -->
+            <div class="bg-slate-900 border border-white/10 rounded-xl p-3 flex flex-col">
+              <div class="flex items-center justify-between pb-2 mb-3 border-b border-white/5">
+                <span class="text-xs font-bold text-purple-400 font-mono">3. PROPOSTA</span>
+                <span id="col-count-proposta" class="text-[10px] bg-purple-500/10 text-purple-400 px-1.5 py-0.5 rounded font-mono">0</span>
+              </div>
+              <div id="col-cards-proposta" class="space-y-2 flex-1 overflow-y-auto"></div>
+            </div>
+
+            <!-- Coluna 4: EMISSÃO -->
+            <div class="bg-slate-900 border border-white/10 rounded-xl p-3 flex flex-col">
+              <div class="flex items-center justify-between pb-2 mb-3 border-b border-white/5">
+                <span class="text-xs font-bold text-emerald-400 font-mono">4. EMISSÃO</span>
+                <span id="col-count-emissao" class="text-[10px] bg-emerald-500/10 text-emerald-400 px-1.5 py-0.5 rounded font-mono">0</span>
+              </div>
+              <div id="col-cards-emissao" class="space-y-2 flex-1 overflow-y-auto"></div>
+            </div>
+
+            <!-- Coluna 5: PÓS-VENDA -->
+            <div class="bg-slate-900 border border-white/10 rounded-xl p-3 flex flex-col">
+              <div class="flex items-center justify-between pb-2 mb-3 border-b border-white/5">
+                <span class="text-xs font-bold text-slate-300 font-mono">5. PÓS-VENDA</span>
+                <span id="col-count-pos-venda" class="text-[10px] bg-slate-500/10 text-slate-400 px-1.5 py-0.5 rounded font-mono">0</span>
+              </div>
+              <div id="col-cards-pos-venda" class="space-y-2 flex-1 overflow-y-auto"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 8: CARTEIRA & CADASTROS (SEGURADOS, APÓLICES, PARCELAS) -->
+        <div id="tab-portfolio" class="tab-pane hidden space-y-6">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-xl font-bold text-white">Carteira de Clientes & Cadastros</h2>
+              <p class="text-xs text-slate-400 font-mono">Listagem, busca e edição em tempo real de segurados, apólices e parcelas</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="switchPortfolioSubTab('insureds')" id="subtab-btn-insureds" class="px-3 py-1.5 text-xs bg-sky-500 text-black font-bold rounded-lg transition-colors">
+                Segurados
+              </button>
+              <button onclick="switchPortfolioSubTab('policies')" id="subtab-btn-policies" class="px-3 py-1.5 text-xs bg-slate-800 text-slate-300 border border-white/10 rounded-lg hover:text-white transition-colors">
+                Apólices
+              </button>
+              <button onclick="switchPortfolioSubTab('installments')" id="subtab-btn-installments" class="px-3 py-1.5 text-xs bg-slate-800 text-slate-300 border border-white/10 rounded-lg hover:text-white transition-colors">
+                Parcelas
+              </button>
+            </div>
+          </div>
+
+          <!-- SUBTAB 1: SEGURADOS -->
+          <div id="subtab-pane-insureds" class="space-y-4">
+            <div class="flex items-center gap-3">
+              <div class="flex-1 relative">
+                <input type="text" id="insured-search-input" onkeyup="handleSearchInsureds(event)" placeholder="Buscar por Nome, CPF ou Telefone..." class="w-full px-3 py-2 bg-slate-900 border border-white/10 rounded-lg text-white text-xs">
+              </div>
+              <button onclick="loadInsuredsList()" class="px-3 py-2 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 rounded-lg">Buscar</button>
+              <button onclick="openNewInsuredModal()" class="px-3 py-2 text-xs bg-emerald-500 hover:bg-emerald-400 text-black font-bold rounded-lg flex items-center gap-1.5">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                <span>Novo Segurado</span>
+              </button>
+            </div>
+
+            <div class="bg-slate-900 border border-white/10 rounded-xl overflow-hidden">
+              <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-800/80 text-[10px] font-mono uppercase text-slate-400 border-b border-white/5">
+                  <tr>
+                    <th class="p-3">Nome do Segurado</th>
+                    <th class="p-3">CPF</th>
+                    <th class="p-3">Telefone</th>
+                    <th class="p-3">Apólices</th>
+                    <th class="p-3 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="insureds-table-body">
+                  <tr><td colspan="5" class="p-4 text-center text-slate-500">Carregando segurados...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SUBTAB 2: APÓLICES -->
+          <div id="subtab-pane-policies" class="hidden space-y-4">
+            <div class="bg-slate-900 border border-white/10 rounded-xl overflow-hidden">
+              <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-800/80 text-[10px] font-mono uppercase text-slate-400 border-b border-white/5">
+                  <tr>
+                    <th class="p-3">Número</th>
+                    <th class="p-3">Segurado</th>
+                    <th class="p-3">Seguradora</th>
+                    <th class="p-3">Ramo</th>
+                    <th class="p-3">Vigência Fim</th>
+                    <th class="p-3">Prêmio</th>
+                    <th class="p-3">Assistência 24h</th>
+                    <th class="p-3 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="policies-table-body">
+                  <tr><td colspan="8" class="p-4 text-center text-slate-500">Carregando apólices...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- SUBTAB 3: PARCELAS -->
+          <div id="subtab-pane-installments" class="hidden space-y-4">
+            <div class="bg-slate-900 border border-white/10 rounded-xl overflow-hidden">
+              <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-800/80 text-[10px] font-mono uppercase text-slate-400 border-b border-white/5">
+                  <tr>
+                    <th class="p-3">Parcela</th>
+                    <th class="p-3">Segurado</th>
+                    <th class="p-3">Vencimento</th>
+                    <th class="p-3">Valor</th>
+                    <th class="p-3">Status</th>
+                    <th class="p-3">Código Pix / Boleto</th>
+                    <th class="p-3 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="installments-table-body">
+                  <tr><td colspan="7" class="p-4 text-center text-slate-500">Carregando parcelas...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 9: IMPORTAÇÃO DE PLANILHA CSV (/api/import) -->
+        <div id="tab-import" class="tab-pane hidden space-y-6">
+          <div>
+            <h2 class="text-xl font-bold text-white">Importação da Carteira de Clientes</h2>
+            <p class="text-xs text-slate-400 font-mono">Envie sua planilha CSV para cadastrar segurados e apólices em lote no PostgreSQL</p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Upload Box -->
+            <div class="bg-slate-900 border border-white/10 rounded-2xl p-5 space-y-4">
+              <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                <span class="text-xs font-mono font-bold text-teal-400 uppercase">Carregar Arquivo CSV</span>
+                <button onclick="downloadSampleCsvTemplate()" class="text-[11px] text-sky-400 hover:underline flex items-center gap-1">
+                  <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                  <span>Baixar Modelo CSV</span>
+                </button>
+              </div>
+
+              <div class="text-xs text-slate-400 space-y-1">
+                <p>O cabeçalho padrão esperado é:</p>
+                <code class="block p-2 bg-slate-800 rounded font-mono text-[11px] text-teal-300">
+                  Nome, CPF, Telefone, Email, Seguradora, Apolice, Ramo, VigenciaFim, Premio
+                </code>
+              </div>
+
+              <div>
+                <label class="block text-slate-300 font-mono text-xs mb-1">Selecionar Arquivo .CSV</label>
+                <input type="file" id="import-csv-file" accept=".csv,text/csv" class="w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-teal-500/10 file:text-teal-400 hover:file:bg-teal-500/20">
+              </div>
+
+              <div>
+                <label class="block text-slate-300 font-mono text-xs mb-1">Ou Cole o Conteúdo CSV Diretamente:</label>
+                <textarea id="import-csv-text" rows="5" placeholder="Nome, CPF, Telefone, Email, Seguradora, Apolice, Ramo, VigenciaFim, Premio&#10;Carlos Silva, 12345678900, 5527999887766, carlos@gmail.com, Porto Seguro, 0531.123, AUTO, 2027-10-15, 3200" class="w-full p-2.5 bg-slate-800 border border-white/10 rounded-lg text-white font-mono text-xs"></textarea>
+              </div>
+
+              <button onclick="handleExecuteCsvImport()" id="btn-run-import" class="w-full py-2.5 bg-teal-500 hover:bg-teal-400 text-black font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2">
+                <i data-lucide="upload" class="w-4 h-4"></i>
+                <span>Importar Carteira para o Sistema</span>
+              </button>
+            </div>
+
+            <!-- Import Results Card -->
+            <div class="bg-slate-900 border border-white/10 rounded-2xl p-5 space-y-4 flex flex-col justify-between">
+              <div>
+                <div class="border-b border-white/10 pb-3 flex items-center justify-between">
+                  <span class="text-xs font-mono font-bold text-slate-300 uppercase">Resultado do Processamento</span>
+                  <span id="import-status-badge" class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-400">Aguardando Envio</span>
+                </div>
+
+                <div id="import-feedback-box" class="mt-4 space-y-3 text-xs text-slate-300">
+                  <p class="text-slate-400">Nenhuma importação realizada nesta sessão. Selecione um arquivo CSV ou cole os dados e clique em "Importar Carteira".</p>
+                </div>
+              </div>
+
+              <div class="p-3 bg-slate-800/60 rounded-xl border border-white/5 text-[11px] text-slate-400 space-y-1">
+                <div class="font-bold text-slate-200">Dica de Implantação:</div>
+                <p>Todos os segurados criados via importação já ficam aptos para receber os lembretes preventivos da Régua D-7 e o acesso seguro ao Portal do Cliente.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 10: TEMPLATES META OFICIAIS -->
+        <div id="tab-templates" class="tab-pane hidden space-y-6">
+          <div>
+            <h2 class="text-xl font-bold text-white">Modelos de Mensagem Meta Aprovados</h2>
+            <p class="text-xs text-slate-400 font-mono">Templates oficiais da Meta WhatsApp Cloud API utilizados na cobrança e renovações</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Template 1: cobranca_d7 -->
+            <div class="bg-slate-900 border border-white/10 rounded-2xl p-4 space-y-3">
+              <div class="flex items-center justify-between border-b border-white/5 pb-2">
+                <span class="text-xs font-mono font-bold text-amber-400">cobranca_d7</span>
+                <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono">UTILITY</span>
+              </div>
+              <p class="text-xs text-slate-300 font-mono">"Olá, {{1}}! Lembramos que sua parcela da {{2}} no valor de R$ {{3}} vence em 7 dias ({{4}}). Copie o Pix abaixo para efetuar o pagamento diretamente à seguradora."</p>
+              <div class="text-[10px] text-slate-500 font-mono">Gatilho: D-7 antes do vencimento</div>
+            </div>
+
+            <!-- Template 2: cobranca_d0 -->
+            <div class="bg-slate-900 border border-white/10 rounded-2xl p-4 space-y-3">
+              <div class="flex items-center justify-between border-b border-white/5 pb-2">
+                <span class="text-xs font-mono font-bold text-amber-400">cobranca_d0</span>
+                <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono">UTILITY</span>
+              </div>
+              <p class="text-xs text-slate-300 font-mono">"Olá, {{1}}! Sua parcela da {{2}} (R$ {{3}}) vence hoje. Segue a chave Pix oficial para garantir a vigência ininterrupta do seu seguro."</p>
+              <div class="text-[10px] text-slate-500 font-mono">Gatilho: D-0 no dia do vencimento</div>
+            </div>
+
+            <!-- Template 3: cobranca_d2 -->
+            <div class="bg-slate-900 border border-white/10 rounded-2xl p-4 space-y-3">
+              <div class="flex items-center justify-between border-b border-white/5 pb-2">
+                <span class="text-xs font-mono font-bold text-rose-400">cobranca_d2</span>
+                <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono">UTILITY</span>
+              </div>
+              <p class="text-xs text-slate-300 font-mono">"Aviso amigável: {{1}}, não identificamos a baixa da parcela de R$ {{2}} da {{3}}. Caso já tenha pago, desconsidere. Segue 2ª via atualizada."</p>
+              <div class="text-[10px] text-slate-500 font-mono">Gatilho: D+2 após vencimento</div>
+            </div>
+
+            <!-- Template 4: renovacao_60d -->
+            <div class="bg-slate-900 border border-white/10 rounded-2xl p-4 space-y-3">
+              <div class="flex items-center justify-between border-b border-white/5 pb-2">
+                <span class="text-xs font-mono font-bold text-purple-400">renovacao_60d</span>
+                <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono">MARKETING / UTILITY</span>
+              </div>
+              <p class="text-xs text-slate-300 font-mono">"Olá, {{1}}! Sua apólice da {{2}} vence em 60 dias. Já iniciamos a busca das melhores condições no mercado para sua renovação."</p>
+              <div class="text-[10px] text-slate-500 font-mono">Gatilho: 60 dias antes do fim da vigência</div>
+            </div>
+
+            <!-- Template 5: auth_otp_code -->
+            <div class="bg-slate-900 border border-white/10 rounded-2xl p-4 space-y-3">
+              <div class="flex items-center justify-between border-b border-white/5 pb-2">
+                <span class="text-xs font-mono font-bold text-sky-400">auth_otp_code</span>
+                <span class="text-[9px] px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 font-mono">AUTHENTICATION</span>
+              </div>
+              <p class="text-xs text-slate-300 font-mono">"{{1}} é seu código de verificação para acesso seguro ao Portal do Cliente. Válido por 10 minutos. Não compartilhe com ninguém."</p>
+              <div class="text-[10px] text-slate-500 font-mono">Gatilho: Login OTP no Portal / Sinistro Online</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 11: WHATSAPP OFICIAL & CONFIGURAÇÕES META -->
+        <div id="tab-settings-whatsapp" class="tab-pane hidden space-y-6">
+          <div>
+            <h2 class="text-xl font-bold text-white">Configurações da Meta WhatsApp Cloud API</h2>
+            <p class="text-xs text-slate-400 font-mono">Conecte o número de WhatsApp oficial da sua corretora com criptografia AES-256-GCM</p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Form de Credenciais -->
+            <div class="bg-slate-900 border border-white/10 rounded-2xl p-5 space-y-4">
+              <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                <span class="text-xs font-mono font-bold text-emerald-400 uppercase">Credenciais do Aplicativo Meta</span>
+                <span class="text-[10px] text-slate-400 font-mono">Isolamento por Corretora</span>
+              </div>
+
+              <div class="space-y-3 text-xs">
+                <div>
+                  <label class="block text-slate-300 font-mono mb-1">Phone Number ID (Meta Graph)</label>
+                  <input type="text" id="cfg-phone-id" placeholder="Ex: 104829102938475" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
+                </div>
+
+                <div>
+                  <label class="block text-slate-300 font-mono mb-1">WhatsApp Business Account ID (WABA)</label>
+                  <input type="text" id="cfg-waba-id" placeholder="Ex: 293840192837465" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
+                </div>
+
+                <div>
+                  <label class="block text-slate-300 font-mono mb-1">Permanent System User Access Token</label>
+                  <input type="password" id="cfg-access-token" placeholder="EAAGm..." class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-slate-300 font-mono mb-1">App Secret</label>
+                    <input type="password" id="cfg-app-secret" placeholder="Ex: 8f3a9b..." class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
+                  </div>
+                  <div>
+                    <label class="block text-slate-300 font-mono mb-1">Verify Token</label>
+                    <input type="text" id="cfg-verify-token" placeholder="Token único de validação" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-slate-300 font-mono mb-1">WhatsApp de Alerta do Corretor (Transbordo)</label>
+                  <input type="text" id="cfg-alert-phone" placeholder="Ex: 5527988140076" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
+                </div>
+
+                <div class="flex items-center justify-between pt-2">
+                  <label class="text-slate-300 font-mono text-xs">Atendente de IA Ativa no WhatsApp</label>
+                  <input type="checkbox" id="cfg-agent-enabled" checked class="w-4 h-4 rounded bg-slate-800 border-white/10 text-emerald-500 focus:ring-0">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 pt-3">
+                  <button onclick="handleTestWhatsAppConnection()" id="btn-test-whatsapp" class="py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 font-bold rounded-xl transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="radio" class="w-4 h-4 text-emerald-400"></i>
+                    <span>Testar Conexão</span>
+                  </button>
+                  <button onclick="handleSaveWhatsAppCredentials()" id="btn-save-whatsapp" class="py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold rounded-xl transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="lock" class="w-4 h-4"></i>
+                    <span>Salvar Criptografado</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Status e Informações do Webhook -->
+            <div class="bg-slate-900 border border-white/10 rounded-2xl p-5 space-y-4 flex flex-col justify-between">
+              <div class="space-y-4">
+                <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                  <span class="text-xs font-mono font-bold text-slate-300 uppercase">Status da Conexão</span>
+                  <div id="wa-connection-status-badge" class="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                    Aguardando Teste
+                  </div>
+                </div>
+
+                <div id="wa-test-feedback-box" class="p-3 bg-slate-800/80 rounded-xl border border-white/5 text-xs text-slate-300 space-y-1">
+                  <p class="text-slate-400">Clique em "Testar Conexão" para verificar a validade do seu token e Phone Number ID diretamente contra a Meta Graph API v21.0.</p>
+                </div>
+
+                <div class="space-y-2 pt-2">
+                  <span class="text-xs font-mono text-slate-400 uppercase font-bold">URL do Webhook para o Painel da Meta:</span>
+                  <div class="flex items-center gap-2">
+                    <input type="text" readonly id="cfg-webhook-url-display" value="https://backend-production-a35b.up.railway.app/api/webhooks/whatsapp" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-slate-300 font-mono text-xs select-all">
+                    <button onclick="navigator.clipboard.writeText(document.getElementById('cfg-webhook-url-display').value); alert('URL copiada!');" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 rounded-lg text-xs shrink-0">Copiar</button>
+                  </div>
+                  <p class="text-[11px] text-slate-500">Configure esta URL na aba WhatsApp &gt; Configuração &gt; Webhook do seu Meta App.</p>
+                </div>
+              </div>
+
+              <div class="p-3 bg-emerald-500/5 rounded-xl border border-emerald-500/20 text-[11px] text-slate-400 space-y-1">
+                <div class="font-bold text-emerald-400 flex items-center gap-1.5">
+                  <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                  <span>Segurança LGPD & Assinatura Criptográfica:</span>
+                </div>
+                <p>O Webhook do SeguroFlow valida estritamente a assinatura HMAC-SHA256 (X-Hub-Signature-256) com o App Secret exclusivo da sua corretora, isolando mensagens e dados de clientes.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </main>
+    </div>
+  </div>
+
+  <!-- MODAL: NOVA OPORTUNIDADE NO FUNIL -->
+  <div id="modal-deal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-md p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <h3 class="font-bold text-white text-sm">Nova Oportunidade no Funil</h3>
+        <button onclick="closeModal('modal-deal')" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-300 font-mono mb-1">Título do Negócio / Lead</label>
+          <input type="text" id="deal-title" placeholder="Ex: Seguro Auto Toyota Corolla" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-slate-300 font-mono mb-1">Valor Estimado (R$)</label>
+            <input type="number" id="deal-value" placeholder="3200" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
+          </div>
+          <div>
+            <label class="block text-slate-300 font-mono mb-1">SLA Limite (Horas)</label>
+            <input type="number" id="deal-sla" value="24" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
+          </div>
+        </div>
+        <div>
+          <label class="block text-slate-300 font-mono mb-1">Fase Inicial</label>
+          <select id="deal-stage" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white">
+            <option value="NOVO">1. NOVO LEAD</option>
+            <option value="COTACAO">2. COTAÇÃO</option>
+            <option value="PROPOSTA">3. PROPOSTA</option>
+            <option value="EMISSAO">4. EMISSÃO</option>
+            <option value="POS_VENDA">5. PÓS-VENDA</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-slate-300 font-mono mb-1">Notas / Observações</label>
+          <textarea id="deal-notes" rows="2" placeholder="Detalhes do cliente ou veículo..." class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white"></textarea>
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button onclick="closeModal('modal-deal')" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg">Cancelar</button>
+          <button onclick="handleSubmitNewDeal()" class="flex-1 py-2 bg-sky-500 hover:bg-sky-400 text-black font-bold rounded-lg">Salvar Oportunidade</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: SEGURADO (NOVO OU EDITAR) -->
+  <div id="modal-insured" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-md p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <h3 id="modal-insured-title" class="font-bold text-white text-sm">Dados do Segurado</h3>
+        <button onclick="closeModal('modal-insured')" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+      <input type="hidden" id="modal-insured-id">
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-300 font-mono mb-1">Nome Completo</label>
+          <input type="text" id="ins-edit-name" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-slate-300 font-mono mb-1">CPF (apenas números)</label>
+            <input type="text" id="ins-edit-cpf" placeholder="12345678900" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
+          </div>
+          <div>
+            <label class="block text-slate-300 font-mono mb-1">Telefone (com DDD)</label>
+            <input type="text" id="ins-edit-phone" placeholder="5527999887766" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
+          </div>
+        </div>
+        <div>
+          <label class="block text-slate-300 font-mono mb-1">E-mail</label>
+          <input type="email" id="ins-edit-email" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white">
+        </div>
+        <div>
+          <label class="block text-slate-300 font-mono mb-1">Observações Internas</label>
+          <textarea id="ins-edit-notes" rows="2" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white"></textarea>
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button onclick="closeModal('modal-insured')" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg">Cancelar</button>
+          <button onclick="handleSubmitSaveInsured()" class="flex-1 py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-bold rounded-lg">Salvar Segurado</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EDITAR APÓLICE -->
+  <div id="modal-policy" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-md p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <h3 class="font-bold text-white text-sm">Editar Apólice</h3>
+        <button onclick="closeModal('modal-policy')" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+      <input type="hidden" id="modal-policy-id">
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-300 font-mono mb-1">Número da Apólice</label>
+          <input type="text" id="pol-edit-number" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-slate-300 font-mono mb-1">Seguradora</label>
+            <input type="text" id="pol-edit-insurer" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white">
+          </div>
+          <div>
+            <label class="block text-slate-300 font-mono mb-1">Prêmio Total (R$)</label>
+            <input type="number" id="pol-edit-premium" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
+          </div>
+        </div>
+        <div>
+          <label class="block text-slate-300 font-mono mb-1">Telefone de Assistência 24h</label>
+          <input type="text" id="pol-edit-assistance" placeholder="0800 oficial da seguradora" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button onclick="closeModal('modal-policy')" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg">Cancelar</button>
+          <button onclick="handleSubmitSavePolicy()" class="flex-1 py-2 bg-sky-500 hover:bg-sky-400 text-black font-bold rounded-lg">Salvar Alterações</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ATUALIZAR PIX / BOLETO DA PARCELA -->
+  <div id="modal-installment" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-md p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <h3 class="font-bold text-white text-sm">Atualizar Linha Digitável / Chave Pix</h3>
+        <button onclick="closeModal('modal-installment')" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+      <input type="hidden" id="modal-installment-id">
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-300 font-mono mb-1">Código Pix / Código de Barras da Seguradora</label>
+          <textarea id="inst-edit-code" rows="3" placeholder="Cole a chave Pix Copia e Cola ou linha digitável do boleto..." class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono text-xs"></textarea>
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button onclick="closeModal('modal-installment')" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg">Cancelar</button>
+          <button onclick="handleSubmitSaveInstallmentCode()" class="flex-1 py-2 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-lg">Atualizar Parcela</button>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- CLIENT-SIDE CONTROLLER SCRIPT -->
   <script>
-    const API_BASE = window.location.origin.includes('localhost') 
-      ? 'http://localhost:8080' 
+    const API_BASE = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
+      ? (window.location.port === '3001' ? 'http://localhost:3001' : (window.location.port ? window.location.origin : 'http://localhost:3001'))
       : 'https://backend-production-a35b.up.railway.app';
 
     let currentToken = localStorage.getItem('sf_token') || '';
@@ -642,9 +1188,12 @@
       lucide.createIcons();
 
       if (tabName === 'dashboard') loadDashboardData();
+      if (tabName === 'pipeline') loadPipelineData();
+      if (tabName === 'portfolio') loadPortfolioData('insureds');
       if (tabName === 'finances') loadFinancesData();
       if (tabName === 'claims') loadClaimsData();
       if (tabName === 'inbox') loadInboxData();
+      if (tabName === 'settings-whatsapp') loadWhatsAppSettings();
     }
 
     // Carregamento de Dashboard
@@ -666,7 +1215,7 @@
       }
     }
 
-    // Geração dinâmica de parcelas no formulário de Propostas
+    // Geração dinâmica de parcelas no formulário de Propostas (CORRIGIDO ITEM 8 - SEM RECUO DE FUSO)
     function generateProposalInstallmentsPreview() {
       const count = parseInt(document.getElementById('prop-installments-count').value);
       const premium = parseFloat(document.getElementById('prop-premium').value) || 0;
@@ -675,12 +1224,24 @@
 
       container.innerHTML = '';
       const part = (premium / count).toFixed(2);
-      const baseDate = new Date(firstDueStr || Date.now());
+
+      // Parse explícito de ano, mês e dia para evitar regressão por UTC midnight
+      const [startYear, startMonth, startDay] = (firstDueStr || new Date().toISOString().slice(0, 10))
+        .split('-')
+        .map(Number);
 
       for (let i = 1; i <= count; i++) {
-        const d = new Date(baseDate);
-        d.setMonth(d.getMonth() + (i - 1));
-        const dateStr = d.toLocaleDateString('pt-BR');
+        const targetMonthIdx = (startMonth - 1) + (i - 1);
+        const y = startYear + Math.floor(targetMonthIdx / 12);
+        const m = (targetMonthIdx % 12);
+        const dObj = new Date(y, m, startDay, 12, 0, 0);
+        if (dObj.getMonth() !== m) {
+          dObj.setDate(0); // Ajusta para o último dia do mês se o mês tiver menos dias
+        }
+        const dd = String(dObj.getDate()).padStart(2, '0');
+        const mm = String(dObj.getMonth() + 1).padStart(2, '0');
+        const yyyy = dObj.getFullYear();
+        const dateStr = `${dd}/${mm}/${yyyy}`;
 
         const item = document.createElement('div');
         item.className = 'p-2.5 bg-slate-800/80 border border-white/5 rounded-xl flex items-center justify-between text-xs';
@@ -698,7 +1259,7 @@
       }
     }
 
-    // Cadastro de proposta com grade de parcelamento
+    // Cadastro de proposta com grade de parcelamento (CORRIGIDO ITEM 8)
     async function handleSaveProposalWithInstallments() {
       const insurerName = document.getElementById('prop-insurer').value;
       const branch = document.getElementById('prop-branch').value;
@@ -710,14 +1271,25 @@
 
       const installments = [];
       const part = (premiumAmount / count).toFixed(2);
-      const baseDate = new Date(firstDueStr || Date.now());
+      const [startYear, startMonth, startDay] = (firstDueStr || new Date().toISOString().slice(0, 10))
+        .split('-')
+        .map(Number);
 
       for (let i = 1; i <= count; i++) {
-        const d = new Date(baseDate);
-        d.setMonth(d.getMonth() + (i - 1));
+        const targetMonthIdx = (startMonth - 1) + (i - 1);
+        const y = startYear + Math.floor(targetMonthIdx / 12);
+        const m = (targetMonthIdx % 12);
+        const dObj = new Date(y, m, startDay, 12, 0, 0);
+        if (dObj.getMonth() !== m) {
+          dObj.setDate(0);
+        }
+        const yyyy = dObj.getFullYear();
+        const mm = String(dObj.getMonth() + 1).padStart(2, '0');
+        const dd = String(dObj.getDate()).padStart(2, '0');
+
         installments.push({
           installmentNumber: i,
-          dueDate: d.toISOString().split('T')[0],
+          dueDate: `${yyyy}-${mm}-${dd}`,
           amount: Number(part),
           paymentMethod: 'BOLETO',
         });
@@ -945,17 +1517,633 @@
     }
 
     async function triggerRunRenewalsManual() {
-      const resEl = document.getElementById('renewals-manual-result');
-      resEl.innerText = 'Processando varredura de renovações da corretora...';
+    // ========================================================
+    // MODAL UTILITIES
+    // ========================================================
+    function closeModal(modalId) {
+      const el = document.getElementById(modalId);
+      if (el) el.classList.add('hidden');
+    }
+
+    // ========================================================
+    // FUNIL DE VENDAS (KANBAN & SLA)
+    // ========================================================
+    async function loadPipelineData() {
       try {
-        const res = await fetch(`${API_BASE}/api/renewals/scan`, {
-          method: 'POST',
+        const res = await fetch(`${API_BASE}/api/pipeline`, {
           headers: { Authorization: `Bearer ${currentToken}` }
         });
         const data = await res.json();
-        resEl.innerText = `✅ Sucesso: ${data.message} (60d: ${data.result?.created60 || 0}, 30d: ${data.result?.created30 || 0}, 15d: ${data.result?.created15 || 0})`;
+        if (!res.ok) throw new Error(data.error || 'Erro ao carregar funil');
+
+        const stages = ['novo', 'cotacao', 'proposta', 'emissao', 'pos-venda'];
+        const stageKeys = {
+          novo: 'NOVO',
+          cotacao: 'COTACAO',
+          proposta: 'PROPOSTA',
+          emissao: 'EMISSAO',
+          'pos-venda': 'POS_VENDA'
+        };
+
+        const nextStages = {
+          NOVO: 'COTACAO',
+          COTACAO: 'PROPOSTA',
+          PROPOSTA: 'EMISSAO',
+          EMISSAO: 'POS_VENDA',
+          POS_VENDA: null
+        };
+
+        stages.forEach(s => {
+          const key = stageKeys[s];
+          const cards = (data.stages && data.stages[key]) || [];
+          document.getElementById(`col-count-${s}`).innerText = cards.length;
+          const container = document.getElementById(`col-cards-${s}`);
+          container.innerHTML = '';
+
+          if (cards.length === 0) {
+            container.innerHTML = '<div class="p-3 text-center text-slate-500 text-[11px] font-mono">Nenhum card nesta fase</div>';
+            return;
+          }
+
+          cards.forEach(card => {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'bg-slate-800/90 border border-white/5 rounded-xl p-3 space-y-2 hover:border-sky-500/30 transition-all';
+            
+            const slaBadge = card.slaBreached
+              ? '<span class="px-1.5 py-0.5 rounded text-[9px] font-mono bg-rose-500/20 text-rose-400 border border-rose-500/30 animate-pulse">SLA ESTOURADO</span>'
+              : `<span class="px-1.5 py-0.5 rounded text-[9px] font-mono bg-emerald-500/10 text-emerald-400">${card.hoursInStage}h na fase</span>`;
+
+            const next = nextStages[card.stage];
+            const moveBtn = next 
+              ? `<button onclick="handleMovePipelineStage('${card.id}', '${next}')" class="px-2 py-1 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 rounded text-[10px] font-mono transition-colors">Avançar &gt;</button>`
+              : '<span class="text-[10px] text-emerald-400 font-mono">Concluído</span>';
+
+            cardEl.innerHTML = `
+              <div class="flex items-start justify-between gap-1">
+                <span class="font-bold text-white text-xs">${card.title}</span>
+                ${slaBadge}
+              </div>
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="text-slate-400">${card.insured?.name || 'Lead s/ titular'}</span>
+                <span class="font-mono text-emerald-400 font-bold">${card.value ? 'R$ ' + Number(card.value).toLocaleString('pt-BR') : '--'}</span>
+              </div>
+              <div class="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] text-slate-500">
+                <span>Limite: ${card.slaHours}h</span>
+                ${moveBtn}
+              </div>
+            `;
+            container.appendChild(cardEl);
+          });
+        });
+      } catch (err) {
+        console.error('Erro no pipeline:', err);
+      }
+    }
+
+    async function handleMovePipelineStage(cardId, nextStage) {
+      try {
+        const res = await fetch(`${API_BASE}/api/pipeline/${cardId}/stage`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({ stage: nextStage })
+        });
+        if (!res.ok) throw new Error('Falha ao movimentar card');
+        loadPipelineData();
       } catch (e) {
-        resEl.innerText = '❌ Erro ao executar: ' + e.message;
+        alert(e.message);
+      }
+    }
+
+    function openNewDealModal() {
+      document.getElementById('deal-title').value = '';
+      document.getElementById('deal-value').value = '';
+      document.getElementById('deal-notes').value = '';
+      document.getElementById('modal-deal').classList.remove('hidden');
+    }
+
+    async function handleSubmitNewDeal() {
+      const title = document.getElementById('deal-title').value;
+      const value = parseFloat(document.getElementById('deal-value').value) || undefined;
+      const slaHours = parseInt(document.getElementById('deal-sla').value) || 24;
+      const stage = document.getElementById('deal-stage').value;
+      const notes = document.getElementById('deal-notes').value;
+
+      if (!title) {
+        alert('Informe o título da oportunidade');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/pipeline`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({ title, value, slaHours, stage, notes })
+        });
+        if (!res.ok) throw new Error('Erro ao salvar oportunidade');
+        closeModal('modal-deal');
+        loadPipelineData();
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    // ========================================================
+    // CARTEIRA & CADASTROS (SEGURADOS, APÓLICES, PARCELAS)
+    // ========================================================
+    let currentPortfolioTab = 'insureds';
+
+    function switchPortfolioSubTab(subtab) {
+      currentPortfolioTab = subtab;
+      ['insureds', 'policies', 'installments'].forEach(t => {
+        document.getElementById(`subtab-pane-${t}`).classList.add('hidden');
+        document.getElementById(`subtab-btn-${t}`).className = 'px-3 py-1.5 text-xs bg-slate-800 text-slate-300 border border-white/10 rounded-lg hover:text-white transition-colors';
+      });
+
+      document.getElementById(`subtab-pane-${subtab}`).classList.remove('hidden');
+      document.getElementById(`subtab-btn-${subtab}`).className = 'px-3 py-1.5 text-xs bg-sky-500 text-black font-bold rounded-lg transition-colors';
+
+      loadPortfolioData(subtab);
+    }
+
+    function loadPortfolioData(subtab) {
+      if (subtab === 'insureds') loadInsuredsList();
+      if (subtab === 'policies') loadPoliciesList();
+      if (subtab === 'installments') loadInstallmentsList();
+    }
+
+    async function loadInsuredsList(searchQuery = '') {
+      const tbody = document.getElementById('insureds-table-body');
+      tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-500">Carregando...</td></tr>';
+      try {
+        const url = searchQuery 
+          ? `${API_BASE}/api/insureds?q=${encodeURIComponent(searchQuery)}`
+          : `${API_BASE}/api/insureds`;
+        const res = await fetch(url, { headers: { Authorization: `Bearer ${currentToken}` } });
+        const insureds = await res.json();
+
+        tbody.innerHTML = '';
+        if (Array.isArray(insureds) && insureds.length > 0) {
+          insureds.forEach(ins => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-b border-white/5 hover:bg-slate-800/40';
+            const countPolicies = ins.policies?.length || 0;
+            tr.innerHTML = `
+              <td class="p-3 font-bold text-white">${ins.name}</td>
+              <td class="p-3 font-mono text-slate-400">${ins.cpf ? ins.cpf.replace(/(\\d{3})(\\d{3})(\\d{3})(\\d{2})/, '$1.$2.$3-$4') : '--'}</td>
+              <td class="p-3 font-mono text-slate-300">${ins.phone}</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded font-mono text-[10px] ${countPolicies > 0 ? 'bg-sky-500/10 text-sky-400' : 'bg-slate-800 text-slate-500'}">${countPolicies} apólice(s)</span></td>
+              <td class="p-3 text-right">
+                <button onclick="openEditInsuredModal('${ins.id}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 rounded text-[11px]">Editar</button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } else {
+          tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-500">Nenhum segurado encontrado.</td></tr>';
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-rose-400">Erro: ${err.message}</td></tr>`;
+      }
+    }
+
+    function handleSearchInsureds(e) {
+      if (e.key === 'Enter') {
+        loadInsuredsList(document.getElementById('insured-search-input').value.trim());
+      }
+    }
+
+    function openNewInsuredModal() {
+      document.getElementById('modal-insured-title').innerText = 'Novo Segurado';
+      document.getElementById('modal-insured-id').value = '';
+      document.getElementById('ins-edit-name').value = '';
+      document.getElementById('ins-edit-cpf').value = '';
+      document.getElementById('ins-edit-phone').value = '';
+      document.getElementById('ins-edit-email').value = '';
+      document.getElementById('ins-edit-notes').value = '';
+      document.getElementById('modal-insured').classList.remove('hidden');
+    }
+
+    async function openEditInsuredModal(id) {
+      try {
+        const res = await fetch(`${API_BASE}/api/insureds/${id}`, {
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        const ins = await res.json();
+        if (!res.ok) throw new Error(ins.error || 'Erro ao carregar dados do segurado');
+
+        document.getElementById('modal-insured-title').innerText = 'Editar Segurado';
+        document.getElementById('modal-insured-id').value = ins.id;
+        document.getElementById('ins-edit-name').value = ins.name || '';
+        document.getElementById('ins-edit-cpf').value = ins.cpf || '';
+        document.getElementById('ins-edit-phone').value = ins.phone || '';
+        document.getElementById('ins-edit-email').value = ins.email || '';
+        document.getElementById('ins-edit-notes').value = ins.notes || '';
+        document.getElementById('modal-insured').classList.remove('hidden');
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function handleSubmitSaveInsured() {
+      const id = document.getElementById('modal-insured-id').value;
+      const name = document.getElementById('ins-edit-name').value;
+      const cpf = document.getElementById('ins-edit-cpf').value;
+      const phone = document.getElementById('ins-edit-phone').value;
+      const email = document.getElementById('ins-edit-email').value;
+      const notes = document.getElementById('ins-edit-notes').value;
+
+      if (!name || !phone) {
+        alert('Nome e Telefone são obrigatórios.');
+        return;
+      }
+
+      try {
+        const url = id ? `${API_BASE}/api/insureds/${id}` : `${API_BASE}/api/insureds`;
+        const method = id ? 'PATCH' : 'POST';
+        const res = await fetch(url, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({ name, cpf, phone, email, notes })
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Erro ao salvar segurado');
+        }
+        closeModal('modal-insured');
+        loadInsuredsList();
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function loadPoliciesList() {
+      const tbody = document.getElementById('policies-table-body');
+      tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-500">Carregando apólices...</td></tr>';
+      try {
+        const res = await fetch(`${API_BASE}/api/policies`, {
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        const policies = await res.json();
+        tbody.innerHTML = '';
+        if (Array.isArray(policies) && policies.length > 0) {
+          policies.forEach(pol => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-b border-white/5 hover:bg-slate-800/40';
+            tr.innerHTML = `
+              <td class="p-3 font-mono font-bold text-white">${pol.policyNumber}</td>
+              <td class="p-3 text-slate-300">${pol.insured?.name || '--'}</td>
+              <td class="p-3 text-slate-300">${pol.insurerName}</td>
+              <td class="p-3 font-mono text-[11px] text-sky-400">${pol.branch}</td>
+              <td class="p-3 font-mono text-slate-400">${new Date(pol.endDate).toLocaleDateString('pt-BR')}</td>
+              <td class="p-3 font-mono font-bold text-emerald-400">R$ ${Number(pol.premiumAmount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+              <td class="p-3 font-mono text-[11px] text-slate-400">${pol.assistance24hPhone || 'Padrão Corretora'}</td>
+              <td class="p-3 text-right">
+                <button onclick="openEditPolicyModal('${pol.id}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 rounded text-[11px]">Editar</button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } else {
+          tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-500">Nenhuma apólice cadastrada.</td></tr>';
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-rose-400">Erro: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function openEditPolicyModal(id) {
+      try {
+        const res = await fetch(`${API_BASE}/api/policies/${id}`, {
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        const pol = await res.json();
+        if (!res.ok) throw new Error(pol.error || 'Erro ao carregar apólice');
+
+        document.getElementById('modal-policy-id').value = pol.id;
+        document.getElementById('pol-edit-number').value = pol.policyNumber || '';
+        document.getElementById('pol-edit-insurer').value = pol.insurerName || '';
+        document.getElementById('pol-edit-premium').value = pol.premiumAmount || '';
+        document.getElementById('pol-edit-assistance').value = pol.assistance24hPhone || '';
+        document.getElementById('modal-policy').classList.remove('hidden');
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function handleSubmitSavePolicy() {
+      const id = document.getElementById('modal-policy-id').value;
+      const policyNumber = document.getElementById('pol-edit-number').value;
+      const insurerName = document.getElementById('pol-edit-insurer').value;
+      const premiumAmount = parseFloat(document.getElementById('pol-edit-premium').value) || undefined;
+      const assistance24hPhone = document.getElementById('pol-edit-assistance').value;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/policies/${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({ policyNumber, insurerName, premiumAmount, assistance24hPhone })
+        });
+        if (!res.ok) throw new Error('Erro ao atualizar apólice');
+        closeModal('modal-policy');
+        loadPoliciesList();
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    async function loadInstallmentsList() {
+      const tbody = document.getElementById('installments-table-body');
+      tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-500">Carregando parcelas...</td></tr>';
+      try {
+        const res = await fetch(`${API_BASE}/api/installments?limit=50`, {
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        const installments = await res.json();
+        tbody.innerHTML = '';
+        if (Array.isArray(installments) && installments.length > 0) {
+          installments.forEach(inst => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-b border-white/5 hover:bg-slate-800/40';
+
+            const statusColors = {
+              PAID: 'bg-emerald-500/10 text-emerald-400',
+              OVERDUE: 'bg-rose-500/20 text-rose-400',
+              SENT_D7: 'bg-amber-500/10 text-amber-400',
+              SENT_D0: 'bg-sky-500/10 text-sky-400',
+              SENT_D2: 'bg-purple-500/10 text-purple-400',
+              PENDING: 'bg-slate-800 text-slate-400',
+            };
+            const badgeClass = statusColors[inst.status] || 'bg-slate-800 text-slate-400';
+
+            tr.innerHTML = `
+              <td class="p-3 font-mono font-bold text-white">#${inst.installmentNumber}</td>
+              <td class="p-3 text-slate-300">${inst.policy?.insured?.name || '--'}</td>
+              <td class="p-3 font-mono text-slate-400">${new Date(inst.dueDate).toLocaleDateString('pt-BR')}</td>
+              <td class="p-3 font-mono font-bold text-emerald-400">R$ ${Number(inst.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded font-mono text-[10px] ${badgeClass}">${inst.status}</span></td>
+              <td class="p-3 font-mono text-[10px] text-slate-400 truncate max-w-[120px]">${inst.paymentCode || 'Não informado'}</td>
+              <td class="p-3 text-right space-x-1">
+                ${inst.status !== 'PAID' ? `<button onclick="handleMarkInstallmentPaid('${inst.id}')" class="px-2 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded text-[10px] font-mono">Baixar Pago</button>` : ''}
+                <button onclick="openEditInstallmentCodeModal('${inst.id}', '${inst.paymentCode || ''}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[10px] font-mono">Pix/Boleto</button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } else {
+          tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-500">Nenhuma parcela localizada.</td></tr>';
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-rose-400">Erro: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function handleMarkInstallmentPaid(id) {
+      if (!confirm('Confirma a baixa desta parcela como PAGA?')) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/installments/${id}/mark-paid`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        if (!res.ok) throw new Error('Falha ao baixar parcela');
+        loadInstallmentsList();
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    function openEditInstallmentCodeModal(id, currentCode) {
+      document.getElementById('modal-installment-id').value = id;
+      document.getElementById('inst-edit-code').value = currentCode || '';
+      document.getElementById('modal-installment').classList.remove('hidden');
+    }
+
+    async function handleSubmitSaveInstallmentCode() {
+      const id = document.getElementById('modal-installment-id').value;
+      const paymentCode = document.getElementById('inst-edit-code').value.trim();
+
+      try {
+        const res = await fetch(`${API_BASE}/api/installments/${id}/payment-code`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({ paymentCode })
+        });
+        if (!res.ok) throw new Error('Erro ao salvar código de pagamento');
+        closeModal('modal-installment');
+        loadInstallmentsList();
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    // ========================================================
+    // IMPORTAÇÃO DE PLANILHA CSV (/api/import)
+    // ========================================================
+    function downloadSampleCsvTemplate() {
+      const csvContent = "Nome,CPF,Telefone,Email,Seguradora,Apolice,Ramo,VigenciaFim,Premio\\nCarlos Eduardo,12345678900,5527999887766,carlos@gmail.com,Porto Seguro,0531.02.123,AUTO,2027-10-15,3450\\nMariana Costa,98765432111,5527988776655,mariana@gmail.com,Allianz Seguros,0182.99.456,RESIDENCIAL,2027-11-20,1850";
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'modelo_importacao_seguroflow.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    async function handleExecuteCsvImport() {
+      const fileInput = document.getElementById('import-csv-file');
+      const textInput = document.getElementById('import-csv-text').value.trim();
+      const statusBadge = document.getElementById('import-status-badge');
+      const feedbackBox = document.getElementById('import-feedback-box');
+      const btn = document.getElementById('btn-run-import');
+
+      if (!fileInput.files[0] && !textInput) {
+        alert('Por favor, selecione um arquivo CSV ou cole o conteúdo no campo de texto.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'Processando Importação...';
+      statusBadge.innerText = 'Processando';
+      statusBadge.className = 'px-2 py-0.5 rounded text-[10px] font-mono bg-sky-500/10 text-sky-400 animate-pulse';
+
+      try {
+        let res;
+        if (fileInput.files[0]) {
+          const formData = new FormData();
+          formData.append('file', fileInput.files[0]);
+          res = await fetch(`${API_BASE}/api/import`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${currentToken}` },
+            body: formData
+          });
+        } else {
+          res = await fetch(`${API_BASE}/api/import`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${currentToken}`
+            },
+            body: JSON.stringify({ csvText: textInput })
+          });
+        }
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro na importação');
+
+        statusBadge.innerText = 'Concluído com Sucesso';
+        statusBadge.className = 'px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400';
+
+        feedbackBox.innerHTML = `
+          <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl space-y-1">
+            <div class="font-bold text-emerald-400">Importação Concluída:</div>
+            <div>• Linhas processadas: <strong>${data.totalLinesProcessed}</strong></div>
+            <div>• Segurados cadastrados: <strong>${data.importedInsureds}</strong></div>
+            <div>• Apólices vinculadas: <strong>${data.importedPolicies}</strong></div>
+            ${data.errors?.length > 0 ? `<div class="text-rose-400 mt-2">• Erros encontrados: ${data.errors.length} linha(s) com dados incompletos.</div>` : ''}
+          </div>
+        `;
+        alert(`✅ Importação concluída! ${data.importedInsureds} segurados e ${data.importedPolicies} apólices importados.`);
+      } catch (err) {
+        statusBadge.innerText = 'Falha';
+        statusBadge.className = 'px-2 py-0.5 rounded text-[10px] font-mono bg-rose-500/20 text-rose-400';
+        feedbackBox.innerHTML = `<div class="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 font-bold">Erro: ${err.message}</div>`;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="upload" class="w-4 h-4"></i><span>Importar Carteira para o Sistema</span>';
+        lucide.createIcons();
+      }
+    }
+
+    // ========================================================
+    // WHATSAPP OFICIAL & CONFIGURAÇÕES META
+    // ========================================================
+    async function loadWhatsAppSettings() {
+      try {
+        const res = await fetch(`${API_BASE}/api/brokerages/settings`, {
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        const data = await res.json();
+        if (res.ok) {
+          document.getElementById('cfg-phone-id').value = data.whatsappPhoneNumberId || '';
+          document.getElementById('cfg-waba-id').value = data.whatsappBusinessAccountId || '';
+          document.getElementById('cfg-verify-token').value = data.whatsappVerifyToken || '';
+          document.getElementById('cfg-alert-phone').value = data.alertPhone || '';
+          document.getElementById('cfg-agent-enabled').checked = data.agentEnabled ?? true;
+
+          const badge = document.getElementById('wa-connection-status-badge');
+          if (data.hasAccessToken && data.whatsappPhoneNumberId) {
+            badge.innerText = 'Credenciais Gravadas';
+            badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+          }
+        }
+      } catch (err) {
+        console.error('Erro ao carregar configurações da corretora:', err);
+      }
+    }
+
+    async function handleTestWhatsAppConnection() {
+      const phoneNumberId = document.getElementById('cfg-phone-id').value.trim();
+      const accessToken = document.getElementById('cfg-access-token').value.trim();
+      const badge = document.getElementById('wa-connection-status-badge');
+      const feedback = document.getElementById('wa-test-feedback-box');
+      const btn = document.getElementById('btn-test-whatsapp');
+
+      btn.disabled = true;
+      btn.innerText = 'Testando com Meta...';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/brokerages/settings/whatsapp/test`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({
+            whatsappPhoneNumberId: phoneNumberId || undefined,
+            whatsappAccessToken: accessToken || undefined
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          badge.innerText = 'Conectado com Sucesso';
+          badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+          feedback.innerHTML = `
+            <div class="text-emerald-400 font-bold">✅ Conexão Validada com a Meta Graph API!</div>
+            <div class="text-slate-300 mt-1">Nome no WhatsApp: <strong>${data.data?.verified_name || data.data?.display_phone_number || 'Validado'}</strong></div>
+            <div class="text-slate-400 text-[11px]">Qualidade: ${data.data?.quality_rating || 'GREEN'} • WABA ID: ${data.data?.id || phoneNumberId}</div>
+          `;
+        } else {
+          badge.innerText = 'Erro na Conexão';
+          badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono bg-rose-500/20 text-rose-400 border border-rose-500/30';
+          feedback.innerHTML = `<div class="text-rose-400 font-bold">❌ Falha: ${data.error || 'Token ou Phone Number ID inválido na Meta.'}</div>`;
+        }
+      } catch (err) {
+        badge.innerText = 'Erro de Comunicação';
+        badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono bg-rose-500/20 text-rose-400 border border-rose-500/30';
+        feedback.innerHTML = `<div class="text-rose-400 font-bold">Erro: ${err.message}</div>`;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="radio" class="w-4 h-4 text-emerald-400"></i><span>Testar Conexão</span>';
+        lucide.createIcons();
+      }
+    }
+
+    async function handleSaveWhatsAppCredentials() {
+      const phoneNumberId = document.getElementById('cfg-phone-id').value.trim();
+      const wabaId = document.getElementById('cfg-waba-id').value.trim();
+      const accessToken = document.getElementById('cfg-access-token').value.trim();
+      const appSecret = document.getElementById('cfg-app-secret').value.trim();
+      const verifyToken = document.getElementById('cfg-verify-token').value.trim();
+      const alertPhone = document.getElementById('cfg-alert-phone').value.trim();
+      const agentEnabled = document.getElementById('cfg-agent-enabled').checked;
+
+      if (!phoneNumberId || !accessToken || !appSecret || !verifyToken) {
+        alert('Por favor, preencha Phone Number ID, Access Token, App Secret e Verify Token.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/brokerages/settings/whatsapp`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({
+            whatsappPhoneNumberId: phoneNumberId,
+            whatsappBusinessAccountId: wabaId || undefined,
+            whatsappAccessToken: accessToken,
+            whatsappAppSecret: appSecret,
+            whatsappVerifyToken: verifyToken,
+            alertPhone: alertPhone || undefined,
+            agentEnabled
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro ao salvar credenciais');
+
+        alert('✅ Credenciais da Meta salvas com sucesso no banco de dados com criptografia AES-256-GCM!');
+        loadWhatsAppSettings();
+      } catch (err) {
+        alert('Erro ao salvar: ' + err.message);
       }
     }
   </script>

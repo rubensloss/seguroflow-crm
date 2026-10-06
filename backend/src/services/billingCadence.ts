@@ -5,6 +5,22 @@ import {
   TemplateComponent,
 } from "./whatsappCloud";
 import { decryptSensitive } from "../security/crypto";
+import { getSaoPauloDateAndHour } from "./scheduler";
+
+function getTargetDateStr(baseDateStr: string, offsetDays: number): string {
+  const [year, month, day] = baseDateStr.split("-").map(Number);
+  const dt = new Date(Date.UTC(year, month - 1, day + offsetDays, 12, 0, 0));
+  const y = dt.getUTCFullYear();
+  const m = String(dt.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(dt.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function getCalendarDayBounds(dateStr: string): { gte: Date; lte: Date } {
+  const gte = new Date(`${dateStr}T00:00:00.000Z`);
+  const lte = new Date(new Date(`${dateStr}T23:59:59.999-03:00`).getTime());
+  return { gte, lte };
+}
 
 /**
  * Motor da Régua de Cobrança Preventiva (D-7, D-0, D+2)
@@ -21,17 +37,16 @@ export async function runBillingCadenceScan(targetBrokerageId?: string): Promise
   d0Count: number;
   d2Count: number;
 }> {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const { dateStr: todayBrt } = getSaoPauloDateAndHour();
 
-  // Janelas de data
-  const dateD7 = new Date(today);
-  dateD7.setDate(today.getDate() + 7);
+  // Janelas de data calculadas no fuso de Brasília
+  const dateD7Str = getTargetDateStr(todayBrt, +7);
+  const dateD0Str = todayBrt;
+  const dateD2Str = getTargetDateStr(todayBrt, -2);
 
-  const dateD0 = new Date(today);
-
-  const dateD2 = new Date(today);
-  dateD2.setDate(today.getDate() - 2);
+  const rangeD7 = getCalendarDayBounds(dateD7Str);
+  const rangeD0 = getCalendarDayBounds(dateD0Str);
+  const rangeD2 = getCalendarDayBounds(dateD2Str);
 
   let d7Count = 0;
   let d0Count = 0;
@@ -39,15 +54,15 @@ export async function runBillingCadenceScan(targetBrokerageId?: string): Promise
 
   const baseWhere = targetBrokerageId ? { brokerageId: targetBrokerageId } : {};
 
-  // 1. Disparos D-7 (Vencimento em exatamente 7 dias)
+  // 1. Disparos D-7 (Vencimento em exatamente 7 dias no horário de Brasília)
   const installmentsD7 = await prisma.installment.findMany({
     where: {
       ...baseWhere,
       status: "PENDING",
       sentD7At: null,
       dueDate: {
-        gte: dateD7,
-        lt: new Date(dateD7.getTime() + 24 * 60 * 60 * 1000),
+        gte: rangeD7.gte,
+        lte: rangeD7.lte,
       },
     },
     include: {
@@ -66,15 +81,15 @@ export async function runBillingCadenceScan(targetBrokerageId?: string): Promise
     }
   }
 
-  // 2. Disparos D-0 (Vencimento hoje)
+  // 2. Disparos D-0 (Vencimento hoje no horário de Brasília)
   const installmentsD0 = await prisma.installment.findMany({
     where: {
       ...baseWhere,
       status: { in: ["PENDING", "SENT_D7"] },
       sentD0At: null,
       dueDate: {
-        gte: dateD0,
-        lt: new Date(dateD0.getTime() + 24 * 60 * 60 * 1000),
+        gte: rangeD0.gte,
+        lte: rangeD0.lte,
       },
     },
     include: {
@@ -93,15 +108,15 @@ export async function runBillingCadenceScan(targetBrokerageId?: string): Promise
     }
   }
 
-  // 3. Disparos D+2 (Atraso de 2 dias após vencimento)
+  // 3. Disparos D+2 (Atraso de 2 dias após vencimento no horário de Brasília)
   const installmentsD2 = await prisma.installment.findMany({
     where: {
       ...baseWhere,
       status: { in: ["PENDING", "SENT_D7", "SENT_D0"] },
       sentD2At: null,
       dueDate: {
-        gte: dateD2,
-        lt: new Date(dateD2.getTime() + 24 * 60 * 60 * 1000),
+        gte: rangeD2.gte,
+        lte: rangeD2.lte,
       },
     },
     include: {

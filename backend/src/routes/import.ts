@@ -10,7 +10,7 @@ export const importRouter = Router();
 
 // Importação em lote da carteira de clientes da corretora (Setup / Implantação)
 importRouter.post(
-  "/portfolio",
+  ["/", "/portfolio"],
   requireAuth,
   upload.single("file"),
   async (req: Request, res: Response) => {

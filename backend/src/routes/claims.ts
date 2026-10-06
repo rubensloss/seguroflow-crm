@@ -4,6 +4,16 @@ import { ClaimStatus } from "@prisma/client";
 import { prisma } from "../config/prisma";
 import { requireAuth } from "../security/auth";
 import { recordAuditLog } from "../services/auditLog";
+import { checkRateLimit } from "../security/rateLimit";
+import {
+  generateOtpCode,
+  createOtpChallengeToken,
+  verifyOtpChallengeToken,
+  sendOtpToWhatsApp,
+} from "../services/otpService";
+import { resolveAssistance24hPhone } from "../services/insurerDirectory";
+import { sendWhatsAppTextMessage } from "../services/whatsappCloud";
+import { decryptSensitive } from "../security/crypto";
 
 export const claimsRouter = Router();
 
@@ -132,11 +142,105 @@ claimsRouter.patch("/:id/status", requireAuth, async (req: Request, res: Respons
   res.json(updated);
 });
 
-// Abertura de Sinistro Online (Auto & Transporte de Cargas RCTR-C) — Pode ser usado via link seguro ou QR Code
+// Solicitação de código de confirmação para Sinistro Online (Anti-Spam / Anti-Fraude)
+claimsRouter.post("/online-intake/request-verification", async (req: Request, res: Response) => {
+  const { brokerageSlug, brokerageId, policyNumber, phoneOrCpf } = req.body;
+
+  if ((!brokerageSlug && !brokerageId) || !policyNumber || !phoneOrCpf) {
+    res.status(400).json({ error: "Corretora, Número da Apólice e Telefone/CPF são obrigatórios." });
+    return;
+  }
+
+  const cleanDoc = String(phoneOrCpf).replace(/\D/g, "");
+  const clientIp = req.ip || req.socket.remoteAddress || "unknown";
+  const rateLimitKey = `claim_req:${clientIp}:${cleanDoc}`;
+  const rate = checkRateLimit(rateLimitKey, 5, 15 * 60 * 1000);
+  if (!rate.allowed) {
+    res.status(429).json({ error: "Muitas tentativas. Aguarde 15 minutos para solicitar novo código." });
+    return;
+  }
+
+  // 1. Identifica a corretora
+  const brokerage = await prisma.brokerage.findFirst({
+    where: {
+      OR: [
+        brokerageSlug ? { slug: String(brokerageSlug).trim() } : { id: "undefined" },
+        brokerageId ? { id: String(brokerageId).trim() } : { id: "undefined" },
+      ],
+    },
+  });
+
+  if (!brokerage) {
+    res.status(404).json({ error: "Corretora não encontrada." });
+    return;
+  }
+
+  // 2. Busca a apólice ativa com conferência estrita de dados
+  const policy = await prisma.policy.findFirst({
+    where: {
+      brokerageId: brokerage.id,
+      policyNumber: String(policyNumber).trim(),
+      status: "ACTIVE",
+    },
+    include: { insured: true },
+  });
+
+  if (!policy) {
+    res.status(404).json({ error: "Apólice ativa não encontrada nesta corretora com este número." });
+    return;
+  }
+
+  // 3. Valida se o documento ou telefone informado confere com o titular da apólice
+  const cleanInsuredPhone = policy.insured.phone.replace(/\D/g, "");
+  const cleanInsuredCpf = policy.insured.cpf ? policy.insured.cpf.replace(/\D/g, "") : "";
+
+  const matchesCpf = cleanDoc.length === 11 && cleanInsuredCpf === cleanDoc;
+  const matchesPhone = cleanDoc.length >= 10 && (cleanInsuredPhone === cleanDoc || cleanInsuredPhone.endsWith(cleanDoc));
+
+  if (!matchesCpf && !matchesPhone) {
+    res.status(401).json({ error: "Os dados de identificação (CPF ou Telefone) não conferem com o titular da apólice." });
+    return;
+  }
+
+  // 4. Gera código OTP e envia ao WhatsApp do segurado
+  const otp = generateOtpCode(6);
+  const verificationToken = createOtpChallengeToken({
+    brokerageId: brokerage.id,
+    policyId: policy.id,
+    insuredId: policy.insured.id,
+    target: cleanDoc,
+    scope: "CLAIM_INTAKE_VERIFY",
+    otp,
+  });
+
+  await sendOtpToWhatsApp({
+    brokerage,
+    phone: policy.insured.phone,
+    otp,
+    actionDescription: `abertura de aviso de sinistro da apólice ${policy.policyNumber}`,
+  });
+
+  const maskedPhone = policy.insured.phone.replace(/(\d{4})\d{4}(\d{4})/, "$1-****-$2");
+
+  res.json({
+    success: true,
+    message: "Código de confirmação enviado via WhatsApp ao segurado titular da apólice.",
+    verificationToken,
+    maskedPhone,
+    brokerageName: brokerage.name,
+    policyNumber: policy.policyNumber,
+  });
+});
+
+// Abertura de Sinistro Online (Auto & Transporte de Cargas RCTR-C) — Protegido contra Spam
 claimsRouter.post("/online-intake", async (req: Request, res: Response) => {
   const {
+    brokerageSlug,
+    brokerageId,
     phoneOrCpf,
     policyNumber,
+    verificationToken,
+    verificationCode,
     incidentType,
     incidentDate,
     incidentLocation,
@@ -147,54 +251,106 @@ claimsRouter.post("/online-intake", async (req: Request, res: Response) => {
     cargoManifestNumber,
   } = req.body;
 
-  if (!phoneOrCpf || !description || !incidentType) {
-    res.status(400).json({ error: "Telefone/CPF, Tipo de Ocorrência e Descrição são obrigatórios." });
+  if (!description || !incidentType) {
+    res.status(400).json({ error: "Tipo de Ocorrência e Descrição são obrigatórios." });
     return;
   }
 
-  const clean = String(phoneOrCpf).replace(/\D/g, "");
+  const clientIp = req.ip || req.socket.remoteAddress || "unknown";
+  const rateLimitKey = `claim_submit:${clientIp}`;
+  const rate = checkRateLimit(rateLimitKey, 10, 15 * 60 * 1000);
+  if (!rate.allowed) {
+    res.status(429).json({ error: "Limite de tentativas excedido. Tente novamente mais tarde." });
+    return;
+  }
 
-  // Localiza o segurado por telefone ou CPF
-  const insured = await prisma.insured.findFirst({
+  // 1. Identifica a corretora
+  const brokerage = await prisma.brokerage.findFirst({
     where: {
       OR: [
-        { phone: { contains: clean.slice(-8) } },
-        { cpf: { contains: clean.length >= 8 ? clean : "undefined" } },
+        brokerageSlug ? { slug: String(brokerageSlug).trim() } : { id: "undefined" },
+        brokerageId ? { id: String(brokerageId).trim() } : { id: "undefined" },
       ],
-    },
-    include: {
-      brokerage: true,
-      policies: {
-        where: { status: "ACTIVE" },
-        orderBy: { endDate: "desc" },
-      },
     },
   });
 
-  if (!insured) {
-    res.status(404).json({ error: "Segurado não localizado no cadastro da corretora." });
+  if (!brokerage) {
+    res.status(400).json({ error: "Corretora não identificada. Utilize o link oficial da sua corretora." });
     return;
   }
 
-  // Localiza apólice correspondente
-  let policy = policyNumber
-    ? insured.policies.find((p) => p.policyNumber.includes(policyNumber))
-    : insured.policies[0];
+  let verifiedInsuredId: string;
+  let verifiedPolicyId: string;
 
-  if (!policy && insured.policies.length > 0) {
-    policy = insured.policies[0];
+  // 2. Fluxo com verificação OTP (Recomendado / Seguro)
+  if (verificationToken && verificationCode) {
+    try {
+      const payload = verifyOtpChallengeToken(verificationToken, String(verificationCode), "CLAIM_INTAKE_VERIFY");
+      if (payload.brokerageId !== brokerage.id || !payload.insuredId || !payload.policyId) {
+        res.status(403).json({ error: "Código de verificação pertence a outra sessão ou corretora." });
+        return;
+      }
+      verifiedInsuredId = payload.insuredId;
+      verifiedPolicyId = payload.policyId;
+    } catch (err: any) {
+      res.status(401).json({ error: err.message || "Código de confirmação inválido." });
+      return;
+    }
+  } else {
+    // 3. Fallback: Conferência estrita combinada de Apólice + CPF/Telefone
+    if (!policyNumber || !phoneOrCpf) {
+      res.status(400).json({
+        error: "Para abrir o sinistro, informe o código de verificação recebido no WhatsApp ou forneça Apólice e CPF/Telefone completos.",
+      });
+      return;
+    }
+
+    const clean = String(phoneOrCpf).replace(/\D/g, "");
+    const policy = await prisma.policy.findFirst({
+      where: {
+        brokerageId: brokerage.id,
+        policyNumber: String(policyNumber).trim(),
+        status: "ACTIVE",
+      },
+      include: { insured: true },
+    });
+
+    if (!policy) {
+      res.status(404).json({ error: "Apólice ativa não encontrada nesta corretora com este número." });
+      return;
+    }
+
+    const cleanInsuredPhone = policy.insured.phone.replace(/\D/g, "");
+    const cleanInsuredCpf = policy.insured.cpf ? policy.insured.cpf.replace(/\D/g, "") : "";
+
+    const matchesCpf = clean.length === 11 && cleanInsuredCpf === clean;
+    const matchesPhone = clean.length >= 10 && (cleanInsuredPhone === clean || cleanInsuredPhone.endsWith(clean));
+
+    if (!matchesCpf && !matchesPhone) {
+      res.status(401).json({ error: "O CPF ou Telefone informado não confere com o titular cadastrado da apólice." });
+      return;
+    }
+
+    verifiedInsuredId = policy.insured.id;
+    verifiedPolicyId = policy.id;
   }
+
+  const policy = await prisma.policy.findUnique({
+    where: { id: verifiedPolicyId },
+    include: { insured: true, brokerage: true },
+  });
 
   if (!policy) {
-    res.status(400).json({ error: "Nenhuma apólice ativa encontrada para vincular este sinistro." });
+    res.status(404).json({ error: "Apólice não localizada." });
     return;
   }
 
+  // Cria o sinistro no banco
   const claim = await prisma.claim.create({
     data: {
-      brokerageId: insured.brokerageId,
-      insuredId: insured.id,
-      policyId: policy.id,
+      brokerageId: brokerage.id,
+      insuredId: verifiedInsuredId,
+      policyId: verifiedPolicyId,
       incidentType,
       incidentDate: incidentDate ? new Date(incidentDate) : new Date(),
       incidentLocation: incidentLocation || undefined,
@@ -208,17 +364,33 @@ claimsRouter.post("/online-intake", async (req: Request, res: Response) => {
     },
   });
 
+  // Notifica o corretor via WhatsApp se configurado alertPhone
+  if (brokerage.alertPhone && brokerage.whatsappPhoneNumberId && brokerage.whatsappAccessTokenEncrypted) {
+    const alertPhone = brokerage.alertPhone;
+    const phoneNumberId = brokerage.whatsappPhoneNumberId;
+    try {
+      const token = decryptSensitive(brokerage.whatsappAccessTokenEncrypted);
+      if (token) {
+        const alertMsg = `🚨 *NOVO SINISTRO REGISTRADO — ${brokerage.name}*\n\nProtocolo: SIN-${claim.id.slice(-6).toUpperCase()}\nSegurado: ${policy.insured.name}\nApólice: ${policy.policyNumber}\nTipo: ${incidentType}\nDescrição: ${description}\n\nAcesse o painel para iniciar o atendimento!`;
+        await sendWhatsAppTextMessage(alertPhone, alertMsg, phoneNumberId, token);
+      }
+    } catch (err) {
+      console.error("[Alerta Sinistro Corretor Error]:", err);
+    }
+  }
+
   const protocol = `SIN-${new Date().getFullYear()}-${claim.id.slice(-6).toUpperCase()}`;
+  const assistancePhone = resolveAssistance24hPhone(policy.assistance24hPhone, policy.insurerName, brokerage.phone);
 
   res.status(201).json({
     success: true,
     protocol,
     claimId: claim.id,
-    message: "Aviso de sinistro registrado com sucesso! Nosso corretor já foi notificado.",
-    insuredName: insured.name,
+    message: "Aviso de sinistro registrado e verificado com sucesso! Nossa equipe foi notificada.",
+    insuredName: policy.insured.name,
     policyNumber: policy.policyNumber,
     insurerName: policy.insurerName,
-    assistance24hPhone: policy.assistance24hPhone || "0800 727 0800",
+    assistance24hPhone: assistancePhone,
   });
 });
 

@@ -48,8 +48,8 @@ brokeragesRouter.get("/settings", requireAuth, async (req: Request, res: Respons
   });
 });
 
-// Salva credenciais da Meta WhatsApp Cloud API (Apenas OWNER)
-brokeragesRouter.put("/settings/whatsapp", requireAuth, requireRoles(["OWNER"]), async (req: Request, res: Response) => {
+// Salva credenciais da Meta WhatsApp Cloud API (OWNER ou BROKER)
+brokeragesRouter.put("/settings/whatsapp", requireAuth, requireRoles(["OWNER", "BROKER"]), async (req: Request, res: Response) => {
   const data = metaConfigSchema.parse(req.body);
 
   const encryptedToken = encryptSensitive(data.whatsappAccessToken);

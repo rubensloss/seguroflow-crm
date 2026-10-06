@@ -55,4 +55,87 @@ describe("SeguroFlow — Regras de Negócio e Segurança", () => {
     const hoursElapsed30 = (now - entry30hAgo.getTime()) / (1000 * 60 * 60);
     assert.equal(hoursElapsed30 > slaHours, true);
   });
+
+  test("Resolução de Assistência 24h sem fallback incorreto de outra seguradora", () => {
+    const { resolveAssistance24hPhone } = require("../services/insurerDirectory");
+
+    // 1. Apólice com assistência cadastrada explicitamente
+    assert.equal(resolveAssistance24hPhone("0800 111 2222", "Allianz", "552799998888"), "0800 111 2222");
+
+    // 2. Apólice sem assistência cadastrada, mas de seguradora reconhecida (Allianz)
+    assert.equal(resolveAssistance24hPhone(null, "Allianz Seguros", "552799998888"), "0800 013 0700");
+
+    // 3. Porto Seguro reconhecida
+    assert.equal(resolveAssistance24hPhone("", "Porto Seguro", "552799998888"), "0800 727 0800");
+
+    // 4. Seguradora desconhecida/não cadastrada: JAMAIS retorna número da Porto! Retorna fallback da corretora
+    const fallbackResult = resolveAssistance24hPhone(null, "Seguradora Regional XPTO", "(27) 98814-0076");
+    assert.equal(fallbackResult, "Ligue para a sua corretora: (27) 98814-0076");
+    assert.notEqual(fallbackResult.includes("0800 727 0800"), true);
+  });
+
+  test("Geração e validação de código OTP com token de desafio seguro (LGPD)", () => {
+    const {
+      generateOtpCode,
+      createOtpChallengeToken,
+      verifyOtpChallengeToken,
+    } = require("../services/otpService");
+
+    const otp = generateOtpCode(6);
+    assert.match(otp, /^\d{6}$/);
+
+    const token = createOtpChallengeToken({
+      brokerageId: "brk_test_1",
+      insuredId: "ins_test_1",
+      target: "5527999998888",
+      scope: "CLIENT_PORTAL_AUTH",
+      otp,
+    });
+
+    // Código correto deve validar e decodificar com sucesso
+    const decoded = verifyOtpChallengeToken(token, otp, "CLIENT_PORTAL_AUTH");
+    assert.equal(decoded.brokerageId, "brk_test_1");
+    assert.equal(decoded.insuredId, "ins_test_1");
+
+    // Código incorreto deve lançar erro
+    assert.throws(() => {
+      verifyOtpChallengeToken(token, "000000", "CLIENT_PORTAL_AUTH");
+    }, /Código de verificação incorreto/);
+
+    // Escopo diferente deve falhar
+    assert.throws(() => {
+      verifyOtpChallengeToken(token, otp, "CLAIM_INTAKE_VERIFY");
+    }, /Escopo de autenticação inválido/);
+  });
+
+  test("Cálculo de Data e Hora estritamente no fuso America/Sao_Paulo (Evita disparo às 21h UTC)", () => {
+    const { getSaoPauloDateAndHour } = require("../services/scheduler");
+
+    // Simula 21:00 em Brasília = 00:00 UTC do dia seguinte
+    const utcMidnightDate = new Date("2026-10-15T00:30:00.000Z");
+    const sp = getSaoPauloDateAndHour(utcMidnightDate);
+
+    // Em Brasília (UTC-3), 00:30 UTC do dia 15 ainda é 21:30 do dia 14!
+    assert.equal(sp.dateStr, "2026-10-14");
+    assert.equal(sp.hour, 21);
+    assert.equal(sp.minute, 30);
+
+    // O scheduler exige hour === 9, logo 21h NUNCA dispara!
+    assert.notEqual(sp.hour, 9);
+  });
+
+  test("Limitador de taxa (Rate Limiter) bloqueia após limite de tentativas", () => {
+    const { checkRateLimit } = require("../security/rateLimit");
+    const testKey = `test_rate_limit_${Date.now()}`;
+
+    // 3 tentativas permitidas em 1 minuto
+    assert.equal(checkRateLimit(testKey, 3, 60000).allowed, true);
+    assert.equal(checkRateLimit(testKey, 3, 60000).allowed, true);
+    assert.equal(checkRateLimit(testKey, 3, 60000).allowed, true);
+
+    // 4ª tentativa deve ser bloqueada
+    const fourth = checkRateLimit(testKey, 3, 60000);
+    assert.equal(fourth.allowed, false);
+    assert.equal(fourth.remaining, 0);
+  });
 });

@@ -2,7 +2,10 @@ import Anthropic from "@anthropic-ai/sdk";
 import { DocumentType } from "@prisma/client";
 import { env } from "../config/env";
 
-const anthropic = env.ANTHROPIC_API_KEY ? new Anthropic({ apiKey: env.ANTHROPIC_API_KEY }) : null;
+function getAnthropicClient(): Anthropic | null {
+  const apiKey = process.env.ANTHROPIC_API_KEY || env.ANTHROPIC_API_KEY;
+  return apiKey ? new Anthropic({ apiKey }) : null;
+}
 
 export interface ExtractedInstallment {
   installmentNumber: number;
@@ -30,6 +33,7 @@ export async function extractDocumentWithAi(
   docTypeHint?: DocumentType
 ): Promise<ExtractedDocumentData> {
   const base64 = fileBuffer.toString("base64");
+  const anthropic = getAnthropicClient();
 
   if (!anthropic) {
     console.log("[Document OCR Mock] Sem ANTHROPIC_API_KEY — retornando extração simulada estruturada");
