@@ -613,7 +613,7 @@
         const res = await fetch(`${API_BASE}/api/auth/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ brokerageName, name, email, password }),
+          body: JSON.stringify({ brokerageName, ownerName: name, email, password }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Erro no cadastro');
