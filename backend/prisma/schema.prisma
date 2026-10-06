@@ -1,0 +1,427 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum UserRole {
+  OWNER
+  BROKER
+  ATTENDANT
+}
+
+enum InsuranceBranch {
+  AUTO
+  RESIDENCIAL
+  VIDA
+  SAUDE
+  EMPRESARIAL
+  RURAL
+  OUTROS
+}
+
+enum PolicyStatus {
+  ACTIVE
+  EXPIRING
+  RENEWED
+  CANCELLED
+}
+
+enum InstallmentStatus {
+  PENDING
+  SENT_D7
+  SENT_D0
+  SENT_D2
+  PAID
+  OVERDUE
+  CLAIMED_PAID
+}
+
+enum ClaimStatus {
+  OPEN
+  DOCS_COLLECTED
+  FORWARDED_TO_INSURER
+  IN_ANALYSIS
+  APPROVED
+  REJECTED
+  CLOSED
+}
+
+enum PipelineStage {
+  NOVO
+  COTACAO
+  PROPOSTA
+  EMISSAO
+  POS_VENDA
+}
+
+enum RenewalWindow {
+  DAYS_60
+  DAYS_30
+  DAYS_15
+}
+
+enum RenewalStatus {
+  PENDING
+  CONTACTED
+  IN_NEGOTIATION
+  RENEWED
+  LOST
+}
+
+enum DocumentType {
+  CNH
+  CRLV
+  APOLICE
+}
+
+enum ConversationStatus {
+  AI_CONTROLLED
+  HUMAN_CONTROLLED
+  CLOSED
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+// =============================================================================
+// MULTI-TENANT & CORRETORA
+// =============================================================================
+
+model Brokerage {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  cnpj      String?
+  phone     String?
+  email     String?
+  active    Boolean  @default(true)
+
+  // Integração Meta WhatsApp Cloud API Oficial (Isolada por Corretora)
+  whatsappPhoneNumberId       String?  @unique
+  whatsappBusinessAccountId   String?
+  whatsappAccessTokenEncrypted String? // Criptografado AES-256-GCM
+  whatsappAppSecretEncrypted   String? // Criptografado AES-256-GCM
+  whatsappVerifyToken          String?
+
+  // Configurações do Agente de IA
+  agentEnabled   Boolean  @default(true)
+  agentTone      String   @default("PROFISSIONAL_CORDIAL")
+  alertPhone     String?  // WhatsApp do corretor para notificações urgentes de sinistro/transbordo
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relações Multi-tenant
+  users          User[]
+  insureds       Insured[]
+  policies       Policy[]
+  installments   Installment[]
+  claims         Claim[]
+  pipelineCards  PipelineCard[]
+  renewals       RenewalTask[]
+  documents      DocumentRecord[]
+  conversations  Conversation[]
+  auditLogs      AuditLog[]
+
+  @@map("brokerages")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  brokerageId  String
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         UserRole  @default(BROKER)
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  brokerage    Brokerage @relation(fields: [brokerageId], references: [id], onDelete: Cascade)
+  assignedClaims Claim[]
+  assignedCards  PipelineCard[]
+  assignedRenewals RenewalTask[]
+  auditLogs    AuditLog[]
+
+  @@index([brokerageId])
+  @@map("users")
+}
+
+// =============================================================================
+// SEGURADOS & APÓLICES
+// =============================================================================
+
+model Insured {
+  id          String    @id @default(cuid())
+  brokerageId String
+  name        String
+  cpf         String?
+  phone       String    // Formato E.164 (ex: 5527999998888)
+  email       String?
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  brokerage   Brokerage @relation(fields: [brokerageId], references: [id], onDelete: Cascade)
+  policies    Policy[]
+  claims      Claim[]
+  pipelineCards PipelineCard[]
+  documents   DocumentRecord[]
+  conversations Conversation[]
+
+  @@index([brokerageId])
+  @@index([phone])
+  @@index([cpf])
+  @@map("insureds")
+}
+
+model Policy {
+  id                 String          @id @default(cuid())
+  brokerageId        String
+  insuredId          String
+  policyNumber       String
+  insurerName        String          // Ex: Porto Seguro, Allianz, Bradesco Seguros
+  branch             InsuranceBranch @default(AUTO)
+  assistance24hPhone String?         // Telefone 0800 / WhatsApp da assistência 24h da seguradora
+  startDate          DateTime
+  endDate            DateTime
+  premiumAmount      Decimal         @db.Decimal(12, 2)
+  status             PolicyStatus    @default(ACTIVE)
+  itemDescription    String?         // Ex: "Corolla Cross 2024 - Placa ABC1D23"
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  brokerage    Brokerage       @relation(fields: [brokerageId], references: [id], onDelete: Cascade)
+  insured      Insured         @relation(fields: [insuredId], references: [id], onDelete: Cascade)
+  installments Installment[]
+  claims       Claim[]
+  renewals     RenewalTask[]
+
+  @@index([brokerageId])
+  @@index([insuredId])
+  @@index([policyNumber])
+  @@index([endDate])
+  @@map("policies")
+}
+
+// =============================================================================
+// RÉGUA DE COBRANÇA PREVENTIVA (D-7, D-0, D+2)
+// O dinheiro vai para a seguradora, nunca para a corretora ou Creative Always.
+// =============================================================================
+
+model Installment {
+  id                String            @id @default(cuid())
+  brokerageId       String
+  policyId          String
+  installmentNumber Int
+  dueDate           DateTime
+  amount            Decimal           @db.Decimal(12, 2)
+  paymentCode       String?           // Pix Copia e Cola ou Código de Barras emitido pela SEGURADORA
+  pdfBoletoUrl      String?           // Link do boleto PDF emitido pela SEGURADORA
+  status            InstallmentStatus @default(PENDING)
+  paidAt            DateTime?
+  claimedPaidAt     DateTime?         // Data em que o segurado avisou "já paguei"
+  claimedPaidNote   String?
+
+  sentD7At          DateTime?
+  sentD0At          DateTime?
+  sentD2At          DateTime?
+
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  brokerage Brokerage @relation(fields: [brokerageId], references: [id], onDelete: Cascade)
+  policy    Policy    @relation(fields: [policyId], references: [id], onDelete: Cascade)
+
+  @@index([brokerageId])
+  @@index([policyId])
+  @@index([dueDate])
+  @@index([status])
+  @@map("installments")
+}
+
+// =============================================================================
+// CENTRAL DE SINISTROS (Módulo 1)
+// =============================================================================
+
+model Claim {
+  id                   String      @id @default(cuid())
+  brokerageId          String
+  insuredId            String
+  policyId             String
+  incidentType         String      // Ex: "Colisão", "Furto/Roubo", "Alagamento", "Vidros"
+  incidentDate         DateTime?
+  incidentLocation     String?
+  description          String
+  status               ClaimStatus @default(OPEN)
+  policeReportUrl      String?     // Link/path do B.O.
+  photos               Json?       // Lista de URLs/IDs de fotos coletadas
+  assistanceNotifiedAt DateTime?
+  brokerNotifiedAt     DateTime?
+  assignedUserId       String?
+
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+
+  brokerage    Brokerage @relation(fields: [brokerageId], references: [id], onDelete: Cascade)
+  insured      Insured   @relation(fields: [insuredId], references: [id], onDelete: Cascade)
+  policy       Policy    @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  assignedUser User?     @relation(fields: [assignedUserId], references: [id], onDelete: SetNull)
+
+  @@index([brokerageId])
+  @@index([status])
+  @@map("claims")
+}
+
+// =============================================================================
+// FUNIL DE VENDAS E ATENDIMENTO (Módulo 3)
+// =============================================================================
+
+model PipelineCard {
+  id             String        @id @default(cuid())
+  brokerageId    String
+  insuredId      String?
+  title          String        // Ex: "Renovação Auto - João Silva" ou "Cotação Frota"
+  value          Decimal?      @db.Decimal(12, 2)
+  stage          PipelineStage @default(NOVO)
+  stageEnteredAt DateTime      @default(now())
+  slaHours       Int           @default(24) // SLA em horas para alerta de estorno
+  source         String?       // WhatsApp, Indicação, Google, Site
+  notes          String?
+  assignedUserId String?
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  brokerage    Brokerage @relation(fields: [brokerageId], references: [id], onDelete: Cascade)
+  insured      Insured?  @relation(fields: [insuredId], references: [id], onDelete: SetNull)
+  assignedUser User?     @relation(fields: [assignedUserId], references: [id], onDelete: SetNull)
+
+  @@index([brokerageId])
+  @@index([stage])
+  @@map("pipeline_cards")
+}
+
+// =============================================================================
+// RENOVAÇÕES (Módulo 4: 60, 30 e 15 dias)
+// =============================================================================
+
+model RenewalTask {
+  id             String        @id @default(cuid())
+  brokerageId    String
+  policyId       String
+  alertWindow    RenewalWindow
+  status         RenewalStatus @default(PENDING)
+  lostReason     String?       // "Preço", "Vendeu o bem", "Fechou com banco", etc.
+  assignedUserId String?
+  lastContactAt  DateTime?
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  brokerage    Brokerage @relation(fields: [brokerageId], references: [id], onDelete: Cascade)
+  policy       Policy    @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  assignedUser User?     @relation(fields: [assignedUserId], references: [id], onDelete: SetNull)
+
+  @@index([brokerageId])
+  @@index([policyId])
+  @@index([status])
+  @@map("renewal_tasks")
+}
+
+// =============================================================================
+// LEITURA DE DOCUMENTOS POR IA (Módulo 5: CNH, CRLV, Apólices)
+// =============================================================================
+
+model DocumentRecord {
+  id            String       @id @default(cuid())
+  brokerageId   String
+  insuredId     String?
+  docType       DocumentType
+  fileName      String
+  fileUrl       String
+  extractedData Json         // Campos estruturados extraídos via Vision AI
+  validated     Boolean      @default(false)
+
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  brokerage Brokerage @relation(fields: [brokerageId], references: [id], onDelete: Cascade)
+  insured   Insured?  @relation(fields: [insuredId], references: [id], onDelete: SetNull)
+
+  @@index([brokerageId])
+  @@map("document_records")
+}
+
+// =============================================================================
+// CONVERSAS & MENSAGENS (Atendimento WhatsApp Cloud API)
+// =============================================================================
+
+model Conversation {
+  id          String             @id @default(cuid())
+  brokerageId String
+  insuredId   String?
+  phone       String
+  status      ConversationStatus @default(AI_CONTROLLED)
+  humanReason String?
+
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  brokerage Brokerage @relation(fields: [brokerageId], references: [id], onDelete: Cascade)
+  insured   Insured?  @relation(fields: [insuredId], references: [id], onDelete: SetNull)
+  messages  Message[]
+
+  @@index([brokerageId])
+  @@index([phone])
+  @@map("conversations")
+}
+
+model Message {
+  id             String           @id @default(cuid())
+  conversationId String
+  direction      MessageDirection
+  text           String
+  mediaUrl       String?
+  mediaType      String?          // image, audio, document
+  externalId     String?          // wamid da Meta
+  sentAt         DateTime         @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@map("messages")
+}
+
+// =============================================================================
+// LGPD & LOGS DE AUDITORIA
+// =============================================================================
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  brokerageId String
+  userId      String?
+  action      String   // Ex: "VIEW_INSURED", "EXPORT_PORTFOLIO", "UPDATE_META_CREDENTIALS", "DELETE_INSURED"
+  resource    String   // Ex: "Insured:cl123..."
+  details     Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  brokerage Brokerage @relation(fields: [brokerageId], references: [id], onDelete: Cascade)
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([brokerageId])
+  @@index([action])
+  @@map("audit_logs")
+}
