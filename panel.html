@@ -178,6 +178,10 @@
             <i data-lucide="settings" class="w-4 h-4 text-emerald-400"></i>
             <span>WhatsApp Oficial & Meta</span>
           </button>
+          <button onclick="switchTab('calls')" id="btn-tab-calls" class="nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-all text-left">
+            <i data-lucide="phone-call" class="w-4 h-4 text-emerald-400"></i>
+            <span>Ligações & Telefonia</span>
+          </button>
         </div>
 
         <!-- Corretora Pill -->
@@ -889,6 +893,72 @@
           </div>
         </div>
 
+        <!-- TAB: LIGAÇÕES TRANSCRITAS & TELEFONIA -->
+        <div id="tab-calls" class="tab-pane hidden space-y-6">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <h1 class="text-xl font-bold text-white">Central de Telefonia & Gravações</h1>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">WHISPER + CLAUDE 4.5</span>
+              </div>
+              <p class="text-xs text-slate-400 font-mono">Chamadas oficiais, gravação com aviso legal e extração inteligente sem dados fictícios</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="openTelephonySettingsModal()" class="px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 rounded-lg flex items-center gap-1.5 transition-colors">
+                <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
+                <span>Configurar Telefonia</span>
+              </button>
+              <button onclick="openUploadCallModal()" class="px-3 py-1.5 text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg flex items-center gap-1.5 transition-colors shadow-lg shadow-emerald-500/20">
+                <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                <span>Subir Áudio de Ligação</span>
+              </button>
+              <button onclick="loadCallsData()" class="p-1.5 text-slate-400 hover:text-white bg-slate-800 border border-white/10 rounded-lg">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI Cards Telefonia -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-slate-900 border border-white/10 rounded-xl p-4 space-y-1">
+              <div class="text-[11px] font-mono text-slate-400 uppercase">Chamadas no Mês</div>
+              <div id="call-metric-total" class="text-2xl font-bold text-white">0</div>
+              <div class="text-[10px] text-slate-500 font-mono">Processadas com IA</div>
+            </div>
+            <div class="bg-slate-900 border border-white/10 rounded-xl p-4 space-y-1">
+              <div class="text-[11px] font-mono text-slate-400 uppercase">Custo Estimado</div>
+              <div id="call-metric-cost" class="text-2xl font-bold text-emerald-400">R$ 0,00</div>
+              <div class="text-[10px] text-emerald-500 font-mono">Telefonia + Whisper + IA</div>
+            </div>
+            <div class="bg-slate-900 border border-white/10 rounded-xl p-4 space-y-1">
+              <div class="text-[11px] font-mono text-slate-400 uppercase">Rascunhos Pendentes</div>
+              <div id="call-metric-drafts" class="text-2xl font-bold text-amber-400">0</div>
+              <div class="text-[10px] text-amber-500 font-mono">Aguardando confirmação</div>
+            </div>
+            <div class="bg-slate-900 border border-white/10 rounded-xl p-4 space-y-1">
+              <div class="text-[11px] font-mono text-slate-400 uppercase">Chamadas Perdidas</div>
+              <div id="call-metric-missed" class="text-2xl font-bold text-rose-400">0</div>
+              <div class="text-[10px] text-rose-500 font-mono">Alerta WhatsApp enviado</div>
+            </div>
+          </div>
+
+          <!-- Webhook Info Box -->
+          <div class="bg-slate-900/60 border border-white/10 rounded-2xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-xs font-mono">
+            <div>
+              <span class="text-slate-400 block text-[11px]">URL DO WEBHOOK DE TELEFONIA (TWILIO / ZENVIA):</span>
+              <span id="telephony-webhook-display" class="text-sky-400 font-bold select-all">Carregando...</span>
+            </div>
+            <span class="px-2.5 py-1 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded-lg text-[10px]">Aviso Legal Obrigatório Tocado Automaticamente</span>
+          </div>
+
+          <!-- Lista de Ligações -->
+          <div class="space-y-4" id="calls-list-container">
+            <div class="p-8 text-center text-slate-500 font-mono text-xs bg-slate-900/40 rounded-2xl border border-white/5">
+              Nenhuma ligação gravada no momento.
+            </div>
+          </div>
+        </div>
+
       </main>
     </div>
   </div>
@@ -1028,6 +1098,140 @@
           <button onclick="closeModal('modal-installment')" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg">Cancelar</button>
           <button onclick="handleSubmitSaveInstallmentCode()" class="flex-1 py-2 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-lg">Atualizar Parcela</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: UPLOAD MANUAL DE GRAVAÇÃO DE LIGAÇÃO -->
+  <div id="modal-upload-call" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-md p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <h3 class="font-bold text-white text-sm flex items-center gap-2">
+          <i data-lucide="upload-cloud" class="w-4 h-4 text-emerald-400"></i>
+          <span>Subir Gravação de Ligação</span>
+        </h3>
+        <button onclick="closeModal('modal-upload-call')" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+      <form onsubmit="handleUploadCallSubmit(event)" class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-300 font-mono mb-1">Arquivo de Áudio (.mp3, .wav, .m4a)</label>
+          <input type="file" id="call-upload-file" accept="audio/*,.mp3,.wav,.m4a,.ogg" required class="w-full text-slate-300 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-white hover:file:bg-slate-700">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-slate-300 font-mono mb-1">Telefone do Cliente</label>
+            <input type="tel" id="call-upload-phone" placeholder="5527999887766" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
+          </div>
+          <div>
+            <label class="block text-slate-300 font-mono mb-1">Duração Aprox. (seg)</label>
+            <input type="number" id="call-upload-duration" value="120" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
+          </div>
+        </div>
+
+        <div class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl space-y-1.5">
+          <label class="flex items-start gap-2 cursor-pointer">
+            <input type="checkbox" id="call-upload-consent" required class="w-4 h-4 mt-0.5 rounded text-amber-500 bg-slate-950 border-white/10">
+            <span class="text-[11px] text-amber-200">
+              <strong>Consentimento Legal Obrigatório:</strong> Declaro que o cliente foi devidamente informado sobre a gravação desta chamada, em estrita conformidade com a LGPD e Marco Civil da Internet.
+            </span>
+          </label>
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeModal('modal-upload-call')" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg">Cancelar</button>
+          <button type="submit" id="btn-submit-upload-call" class="flex-1 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg flex items-center justify-center gap-1.5">
+            <span>Processar com IA</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CONFIGURAÇÃO DE TELEFONIA DA CORRETORA -->
+  <div id="modal-telephony-settings" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-lg p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <h3 class="font-bold text-white text-sm flex items-center gap-2">
+          <i data-lucide="sliders" class="w-4 h-4 text-sky-400"></i>
+          <span>Configuração da Telefonia Oficial</span>
+        </h3>
+        <button onclick="closeModal('modal-telephony-settings')" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+      <form onsubmit="handleSaveTelephonySettingsSubmit(event)" class="space-y-3 text-xs">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-slate-300 font-mono mb-1">Provedor de Telefonia</label>
+            <select id="tel-cfg-provider" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white">
+              <option value="TWILIO">Twilio Voice Oficial</option>
+              <option value="ZENVIA">Zenvia Voz BR</option>
+              <option value="TOTALVOICE">TotalVoice / Z-API</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-300 font-mono mb-1">Número Comercial (DID/0800)</label>
+            <input type="text" id="tel-cfg-number" placeholder="+552730001234" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-mono mb-1">Celular do Corretor para Repasse Imediato</label>
+          <input type="tel" id="tel-cfg-forward" placeholder="+5527988140076" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
+          <p class="text-[10px] text-slate-500 mt-0.5">O sistema toca no seu celular normalmente enquanto grava a chamada em segundo plano.</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-slate-300 font-mono mb-1">Account SID</label>
+            <input type="password" id="tel-cfg-sid" placeholder="ACxxxxxxxxxxxxxx" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
+          </div>
+          <div>
+            <label class="block text-slate-300 font-mono mb-1">Auth Token</label>
+            <input type="password" id="tel-cfg-token" placeholder="••••••••••••••••" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-mono mb-1">Aviso Legal de Gravação Tocado ao Cliente</label>
+          <input type="text" id="tel-cfg-notice" value="Esta ligação é gravada para agilizar o seu atendimento." class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white">
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeModal('modal-telephony-settings')" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg">Cancelar</button>
+          <button type="submit" id="btn-save-tel-settings" class="flex-1 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-lg">Salvar Telefonia</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: VISUALIZAR TRANSCRIÇÃO INTEGRAL -->
+  <div id="modal-call-transcription" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-2xl p-6 space-y-4 max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div>
+          <h3 id="transcription-modal-title" class="font-bold text-white text-sm">Transcrição Completa da Chamada</h3>
+          <p id="transcription-modal-subtitle" class="text-xs text-slate-400 font-mono"></p>
+        </div>
+        <button onclick="closeModal('modal-call-transcription')" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto space-y-4 text-xs">
+        <div id="transcription-audio-box" class="p-3 bg-slate-950 rounded-xl border border-white/5">
+          <!-- Audio player injetado -->
+        </div>
+
+        <div>
+          <h4 class="font-mono text-[11px] text-slate-400 uppercase font-semibold mb-1">Resumo Executivo (IA):</h4>
+          <p id="transcription-modal-summary" class="p-3 bg-sky-500/10 border border-sky-500/20 text-sky-200 rounded-xl leading-relaxed"></p>
+        </div>
+
+        <div>
+          <h4 class="font-mono text-[11px] text-slate-400 uppercase font-semibold mb-1">Transcrição Integral (Whisper):</h4>
+          <div id="transcription-modal-body" class="p-4 bg-slate-950 rounded-xl border border-white/5 text-slate-300 font-mono leading-relaxed whitespace-pre-wrap select-text"></div>
+        </div>
+      </div>
+
+      <div class="border-t border-white/10 pt-3 flex justify-end">
+        <button onclick="closeModal('modal-call-transcription')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold">Fechar</button>
       </div>
     </div>
   </div>
@@ -1194,6 +1398,7 @@
       if (tabName === 'claims') loadClaimsData();
       if (tabName === 'inbox') loadInboxData();
       if (tabName === 'settings-whatsapp') loadWhatsAppSettings();
+      if (tabName === 'calls') loadCallsData();
     }
 
     // Carregamento de Dashboard
@@ -2144,6 +2349,312 @@
         loadWhatsAppSettings();
       } catch (err) {
         alert('Erro ao salvar: ' + err.message);
+      }
+    }
+
+    // =========================================================================
+    // MÓDULO DE LIGAÇÕES TRANSCRITAS & TELEFONIA OFICIAL (RODADA 5)
+    // =========================================================================
+
+    let currentCallsList = [];
+
+    async function loadCallsData() {
+      const container = document.getElementById('calls-list-container');
+      container.innerHTML = '<div class="p-8 text-center text-slate-500 font-mono text-xs">Carregando ligações gravadas...</div>';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/calls`, {
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+
+        if (!res.ok) throw new Error('Não foi possível carregar as chamadas');
+
+        const data = await res.json();
+        currentCallsList = data.calls || [];
+
+        // Atualiza métricas
+        const m = data.metrics || {};
+        document.getElementById('call-metric-total').innerText = m.monthTotalCalls || 0;
+        document.getElementById('call-metric-cost').innerText = Number(m.monthEstimatedCostBrl || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        document.getElementById('call-metric-drafts').innerText = m.pendingDraftsCount || 0;
+        document.getElementById('call-metric-missed').innerText = m.missedCallsCount || 0;
+
+        // Atualiza webhook URL
+        const slug = currentBrokerage?.slug || 'sua-corretora';
+        document.getElementById('telephony-webhook-display').innerText = `${API_BASE}/api/telephony/${slug}/webhook`;
+
+        if (currentCallsList.length === 0) {
+          container.innerHTML = `
+            <div class="p-12 text-center text-slate-500 font-mono text-xs bg-slate-900/40 rounded-2xl border border-white/5 space-y-3">
+              <i data-lucide="phone-off" class="w-8 h-8 mx-auto text-slate-600"></i>
+              <p>Nenhuma ligação registrada até o momento.</p>
+              <p class="text-[11px] text-slate-600">Você pode subir gravações manualmente ou configurar o webhook do provedor oficial.</p>
+            </div>
+          `;
+          lucide.createIcons();
+          return;
+        }
+
+        container.innerHTML = currentCallsList.map(call => {
+          const isPending = call.draftStatus === 'PENDING';
+          const isMissed = call.status === 'NO_ANSWER';
+          const data = call.extractedData || {};
+
+          let statusBadge = isMissed
+            ? `<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-500/10 text-rose-400 border border-rose-500/20 font-bold">PERDIDA</span>`
+            : `<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">ATENDIDA (${call.durationSeconds}s)</span>`;
+
+          let intentBadge = call.intent
+            ? `<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-sky-500/10 text-sky-400 border border-sky-500/20 font-bold uppercase">${call.intent}</span>`
+            : `<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-400 font-bold">OUTRO</span>`;
+
+          const audioPlayer = call.recordingUrl
+            ? `<audio controls src="${call.recordingUrl}" class="h-8 w-full max-w-xs mt-2"></audio>`
+            : `<span class="text-[10px] font-mono text-slate-500">Áudio arquivado (${call.recordingFile || 'remoto'})</span>`;
+
+          const clientName = call.insured ? call.insured.name : call.fromPhone;
+
+          return `
+            <div class="bg-slate-900 border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-all shadow-xl space-y-4">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/5 pb-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl ${isMissed ? 'bg-rose-500/10 text-rose-400' : 'bg-emerald-500/10 text-emerald-400'} flex items-center justify-center font-bold">
+                    <i data-lucide="${isMissed ? 'phone-missed' : 'phone-incoming'}" class="w-5 h-5"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                      <span>${clientName}</span>
+                      ${intentBadge}
+                    </h3>
+                    <p class="text-xs text-slate-400 font-mono">De: ${call.fromPhone} · Em: ${new Date(call.createdAt).toLocaleString('pt-BR')}</p>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  ${statusBadge}
+                  <span class="text-[11px] font-mono text-slate-400">Custo: R$ ${Number(call.estimatedCost || 0).toFixed(2).replace('.', ',')}</span>
+                </div>
+              </div>
+
+              <!-- Resumo Executivo e Áudio -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="md:col-span-2 space-y-2">
+                  <div class="p-3 bg-slate-950/80 rounded-xl border border-white/5 text-xs text-slate-200">
+                    <span class="text-[10px] font-mono text-sky-400 block uppercase font-bold mb-1">Resumo da Chamada (Claude 4.5):</span>
+                    ${call.summary || 'Sem resumo disponível.'}
+                  </div>
+
+                  <!-- Badges de Dados Extraídos (Sem dados fictícios) -->
+                  <div class="flex flex-wrap gap-2 text-[11px] font-mono">
+                    ${data.plate ? `<span class="px-2 py-0.5 rounded bg-slate-800 text-sky-300 border border-sky-500/20">🚗 Placa: <strong>${data.plate}</strong></span>` : ''}
+                    ${data.insurer ? `<span class="px-2 py-0.5 rounded bg-slate-800 text-emerald-300 border border-emerald-500/20">🏢 Seguradora: <strong>${data.insurer}</strong></span>` : ''}
+                    ${data.policyNumber ? `<span class="px-2 py-0.5 rounded bg-slate-800 text-purple-300 border border-purple-500/20">📄 Apólice: <strong>${data.policyNumber}</strong></span>` : ''}
+                    ${data.urgency ? `<span class="px-2 py-0.5 rounded ${data.urgency === 'URGENTE' ? 'bg-rose-500/20 text-rose-300' : 'bg-slate-800 text-slate-300'} border border-white/10">🚨 Urgência: ${data.urgency}</span>` : ''}
+                  </div>
+                </div>
+
+                <!-- Player e Ações -->
+                <div class="flex flex-col justify-between border-t md:border-t-0 md:border-l border-white/5 pt-3 md:pt-0 md:pl-4 space-y-3">
+                  <div>
+                    <span class="text-[10px] font-mono text-slate-500 block uppercase">Gravação:</span>
+                    ${audioPlayer}
+                  </div>
+
+                  <div class="space-y-2">
+                    <button onclick="openTranscriptionModal('${call.id}')" class="w-full py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-mono border border-white/10 flex items-center justify-center gap-1.5 transition-colors">
+                      <i data-lucide="file-text" class="w-3.5 h-3.5 text-sky-400"></i>
+                      <span>Ver Transcrição Integral</span>
+                    </button>
+
+                    ${isPending ? `
+                      <div class="flex gap-2">
+                        <button onclick="handleConfirmCall('${call.id}', 'CREATE_CLAIM')" class="flex-1 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg text-xs font-bold transition-all">
+                          Criar Sinistro
+                        </button>
+                        <button onclick="handleConfirmCall('${call.id}', 'CREATE_CARD')" class="flex-1 py-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 rounded-lg text-xs font-bold transition-all">
+                          Criar Cotação
+                        </button>
+                        <button onclick="handleConfirmCall('${call.id}', 'DISCARD')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 rounded-lg text-xs transition-colors" title="Descartar">
+                          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                        </button>
+                      </div>
+                    ` : `
+                      <span class="text-[10px] font-mono text-emerald-400 block text-center font-bold">✓ Rascunho Processado</span>
+                    `}
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        lucide.createIcons();
+      } catch (err) {
+        container.innerHTML = `<div class="p-8 text-center text-rose-400 font-mono text-xs">Erro ao carregar ligações: ${err.message}</div>`;
+      }
+    }
+
+    function openUploadCallModal() {
+      document.getElementById('modal-upload-call').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    async function handleUploadCallSubmit(e) {
+      e.preventDefault();
+      const fileInput = document.getElementById('call-upload-file');
+      const phone = document.getElementById('call-upload-phone').value.trim();
+      const duration = document.getElementById('call-upload-duration').value;
+      const consent = document.getElementById('call-upload-consent').checked;
+      const btn = document.getElementById('btn-submit-upload-call');
+
+      if (!fileInput.files || fileInput.files.length === 0) {
+        alert('Selecione um arquivo de áudio para enviar.');
+        return;
+      }
+
+      if (!consent) {
+        alert('Você precisa confirmar o consentimento legal do cliente.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = 'Processando com Whisper & Claude...';
+
+      const formData = new FormData();
+      formData.append('audio', fileInput.files[0]);
+      formData.append('fromPhone', phone);
+      formData.append('durationSeconds', duration);
+      formData.append('consentConfirmed', 'true');
+
+      try {
+        const res = await fetch(`${API_BASE}/api/calls/upload`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${currentToken}`
+          },
+          body: formData
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro ao subir gravação');
+
+        alert('✅ Áudio processado com sucesso! Transcrição e inteligência geradas.');
+        closeModal('modal-upload-call');
+        loadCallsData();
+      } catch (err) {
+        alert('Erro: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Processar com IA';
+      }
+    }
+
+    async function openTelephonySettingsModal() {
+      try {
+        const res = await fetch(`${API_BASE}/api/brokerages/settings/telephony`, {
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          document.getElementById('tel-cfg-provider').value = data.telephonyProvider || 'TWILIO';
+          document.getElementById('tel-cfg-number').value = data.telephonyNumber || '';
+          document.getElementById('tel-cfg-forward').value = data.telephonyForwardPhone || '';
+          document.getElementById('tel-cfg-notice').value = data.telephonyRecordingNotice || 'Esta ligação é gravada para agilizar o seu atendimento.';
+        }
+
+        document.getElementById('modal-telephony-settings').classList.remove('hidden');
+        lucide.createIcons();
+      } catch (err) {
+        alert('Erro ao carregar configurações de telefonia: ' + err.message);
+      }
+    }
+
+    async function handleSaveTelephonySettingsSubmit(e) {
+      e.preventDefault();
+      const telephonyProvider = document.getElementById('tel-cfg-provider').value;
+      const telephonyNumber = document.getElementById('tel-cfg-number').value.trim();
+      const telephonyForwardPhone = document.getElementById('tel-cfg-forward').value.trim();
+      const telephonyAccountSid = document.getElementById('tel-cfg-sid').value.trim();
+      const telephonyAuthToken = document.getElementById('tel-cfg-token').value.trim();
+      const telephonyRecordingNotice = document.getElementById('tel-cfg-notice').value.trim();
+      const btn = document.getElementById('btn-save-tel-settings');
+
+      btn.disabled = true;
+      btn.innerText = 'Salvando...';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/brokerages/settings/telephony`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({
+            telephonyProvider,
+            telephonyNumber,
+            telephonyForwardPhone,
+            telephonyAccountSid: telephonyAccountSid || undefined,
+            telephonyAuthToken: telephonyAuthToken || undefined,
+            telephonyRecordingNotice
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro ao salvar telefonia');
+
+        alert('✅ Configurações de Telefonia salvas com sucesso (criptografadas via AES-256-GCM)!');
+        closeModal('modal-telephony-settings');
+        loadCallsData();
+      } catch (err) {
+        alert('Erro: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Salvar Telefonia';
+      }
+    }
+
+    async function openTranscriptionModal(callId) {
+      const call = currentCallsList.find(c => c.id === callId);
+      if (!call) return;
+
+      document.getElementById('transcription-modal-title').innerText = `Ligação: ${call.insured ? call.insured.name : call.fromPhone}`;
+      document.getElementById('transcription-modal-subtitle').innerText = `Data: ${new Date(call.createdAt).toLocaleString('pt-BR')} · Duração: ${call.durationSeconds}s`;
+      document.getElementById('transcription-modal-summary').innerText = call.summary || 'Sem resumo.';
+      document.getElementById('transcription-modal-body').innerText = call.transcription || '[Sem transcrição gerada]';
+
+      const audioBox = document.getElementById('transcription-audio-box');
+      if (call.recordingUrl) {
+        audioBox.innerHTML = `<audio controls src="${call.recordingUrl}" class="w-full h-8"></audio>`;
+        audioBox.classList.remove('hidden');
+      } else {
+        audioBox.classList.add('hidden');
+      }
+
+      document.getElementById('modal-call-transcription').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    async function handleConfirmCall(callId, action) {
+      if (!confirm(`Deseja executar a ação "${action}" para esta ligação?`)) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/calls/${callId}/confirm`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({ action })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro ao processar chamada');
+
+        alert('✅ ' + data.message);
+        loadCallsData();
+      } catch (err) {
+        alert('Erro: ' + err.message);
       }
     }
   </script>

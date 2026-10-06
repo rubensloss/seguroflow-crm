@@ -138,4 +138,82 @@ describe("SeguroFlow — Regras de Negócio e Segurança", () => {
     assert.equal(fourth.allowed, false);
     assert.equal(fourth.remaining, 0);
   });
+
+  test("Leitura de Documentos (OCR) rejeita sem chave de IA e NUNCA inventa dados fictícios", async () => {
+    const { extractDocumentWithAi } = require("../services/documentOcr");
+
+    // Sem chave configurada, deve lançar erro explícito em vez de devolver Carlos Eduardo/Maria Fernanda
+    await assert.rejects(
+      async () => {
+        await extractDocumentWithAi(Buffer.from("dummy-image-content"), "image/jpeg", "CNH");
+      },
+      /Não foi possível ler o documento/
+    );
+  });
+
+  test("Validação de assinatura do Webhook de Telefonia Oficial (Twilio HMAC-SHA1)", () => {
+    const { validateTwilioWebhookSignature } = require("../services/telephony");
+    const authToken = "auth_token_corretora_xyz987";
+    const url = "https://backend-production-a35b.up.railway.app/api/telephony/prime-seguros/webhook";
+    const params: Record<string, string> = {
+      CallSid: "CA123456789",
+      From: "+5527999887766",
+      To: "+552730001234",
+    };
+
+    // Gera assinatura válida
+    const sortedKeys = Object.keys(params).sort();
+    let data = url;
+    for (const key of sortedKeys) {
+      data += `${key}${params[key]}`;
+    }
+    const hmac = crypto.createHmac("sha1", authToken).update(data, "utf-8");
+    const validSignature = hmac.digest("base64");
+
+    // 1. Assinatura válida deve ser aceita
+    assert.equal(validateTwilioWebhookSignature(authToken, url, params, validSignature), true);
+
+    // 2. Assinatura inválida/forjada deve ser rejeitada
+    assert.equal(validateTwilioWebhookSignature(authToken, url, params, "invalid_signature_base64"), false);
+
+    // 3. Token de outra corretora deve ser rejeitado
+    assert.equal(validateTwilioWebhookSignature("outro_auth_token", url, params, validSignature), false);
+  });
+
+  test("Transcrição e extração de chamada sem placa gera campo vazio (null), nunca inventado", async () => {
+    const { extractCallIntelligence } = require("../services/telephony");
+
+    // Conversa onde o cliente NÃO mencionou a placa do carro
+    const conversation = "Olá, meu carro quebrou no meio da pista aqui na Enseada do Suá. Preciso de um guincho urgente porque está travando o trânsito.";
+    const result = await extractCallIntelligence(conversation);
+
+    // Regra estrita: NUNCA inventar placa
+    assert.equal(result.plate, null);
+    assert.equal(result.policyNumber, null);
+  });
+
+  test("Estimativa de custo de ligação calcula de forma transparente por duração", () => {
+    const { estimateCallCost } = require("../services/telephony");
+
+    // Ligação de 60 segundos (1 minuto)
+    const cost1Min = estimateCallCost(60);
+    assert.ok(cost1Min > 0.40 && cost1Min < 0.60, `Custo esperado para 1 min ~R$ 0.46, obtido: ${cost1Min}`);
+
+    // Ligação de 3 minutos
+    const cost3Min = estimateCallCost(180);
+    assert.ok(cost3Min > cost1Min, "Custo de 3 min deve ser maior que 1 min");
+  });
+
+  test("Resolução de assistência 24h prioriza mapa customizado da corretora", () => {
+    const { resolveAssistance24hPhone } = require("../services/insurerDirectory");
+
+    const customBrokerageMap = {
+      "Allianz": "0800 999 8888 (Central VIP)",
+    };
+
+    // Deve retornar o número personalizado confirmado pela corretora
+    const customResult = resolveAssistance24hPhone(null, "Allianz", "552799998888", customBrokerageMap);
+    assert.equal(customResult, "0800 999 8888 (Central VIP)");
+  });
 });
+

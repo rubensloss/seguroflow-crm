@@ -59,6 +59,23 @@ export function getSchedulerStatus() {
 export function startInternalScheduler() {
   console.log("⏰ [Scheduler SeguroFlow] Iniciando serviço de agendamento automático diário (Fuso: America/Sao_Paulo)...");
 
+  // Carrega imediatamente a data da última execução registrada no banco de dados
+  prisma.auditLog
+    .findFirst({
+      where: { action: "DAILY_SWEEP_EXECUTED" },
+      orderBy: { createdAt: "desc" },
+      select: { resource: true },
+    })
+    .then((lastLog) => {
+      if (lastLog?.resource?.startsWith("Scheduler:")) {
+        lastExecutedDateStr = lastLog.resource.replace("Scheduler:", "");
+        console.log(`ℹ️ [Scheduler SeguroFlow] Última execução registrada no banco: ${lastExecutedDateStr}`);
+      }
+    })
+    .catch((err) => {
+      console.warn("Não foi possível carregar última execução do scheduler do banco:", err?.message);
+    });
+
   // Checa a cada 5 minutos
   const CHECK_INTERVAL_MS = 5 * 60 * 1000;
 

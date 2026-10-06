@@ -26,12 +26,22 @@ documentsRouter.post(
     const docTypeHint = req.body.docType as DocumentType | undefined;
     const insuredId = req.body.insuredId as string | undefined;
 
-    const extraction = await extractDocumentWithAi(
-      req.file.buffer,
-      req.file.mimetype,
-      docTypeHint
-    );
+    let extraction;
+    try {
+      extraction = await extractDocumentWithAi(
+        req.file.buffer,
+        req.file.mimetype,
+        docTypeHint
+      );
+    } catch (err: any) {
+      res.status(422).json({
+        error: "Não foi possível ler o documento. Tente de novo ou preencha manualmente.",
+        details: err?.message || "Falha na leitura inteligente",
+      });
+      return;
+    }
 
+    // Salva SEMPRE com validated: false até o corretor conferir no painel
     const docRecord = await prisma.documentRecord.create({
       data: {
         brokerageId: req.user!.brokerageId,
@@ -40,16 +50,16 @@ documentsRouter.post(
         fileName: req.file.originalname,
         fileUrl: `upload:${Date.now()}-${req.file.originalname}`,
         extractedData: JSON.parse(JSON.stringify(extraction.data)),
-        validated: true,
+        validated: false,
       },
     });
 
     await recordAuditLog({
       brokerageId: req.user!.brokerageId,
       userId: req.user!.userId,
-      action: "OCR_DOCUMENT",
+      action: "OCR_DOCUMENT_UPLOADED",
       resource: `DocumentRecord:${docRecord.id}`,
-      details: { docType: extraction.documentType, fileName: req.file.originalname },
+      details: { docType: extraction.documentType, fileName: req.file.originalname, validated: false },
       req,
     });
 
@@ -59,10 +69,51 @@ documentsRouter.post(
       documentType: extraction.documentType,
       confidence: extraction.confidence,
       extractedData: extraction.data,
+      installments: extraction.installments || [],
       multicalculoCsvRow: extraction.multicalculoCsvRow,
+      validated: false,
+      message: "Documento lido com sucesso pela IA. Confirme os dados antes de gerar parcelas ou apólices.",
     });
   }
 );
+
+// Validação e confirmação dos dados extraídos pelo corretor
+documentsRouter.patch("/:id/validate", requireAuth, async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { extractedData, validated } = req.body;
+
+  const doc = await prisma.documentRecord.findFirst({
+    where: { id, brokerageId: req.user!.brokerageId },
+  });
+
+  if (!doc) {
+    res.status(404).json({ error: "Documento não encontrado" });
+    return;
+  }
+
+  const updated = await prisma.documentRecord.update({
+    where: { id },
+    data: {
+      extractedData: extractedData ? JSON.parse(JSON.stringify(extractedData)) : undefined,
+      validated: validated !== undefined ? Boolean(validated) : true,
+    },
+  });
+
+  await recordAuditLog({
+    brokerageId: req.user!.brokerageId,
+    userId: req.user!.userId,
+    action: "VALIDATE_DOCUMENT_DATA",
+    resource: `DocumentRecord:${id}`,
+    details: { validated: updated.validated },
+    req,
+  });
+
+  res.json({
+    success: true,
+    message: "Dados do documento confirmados pelo corretor.",
+    document: updated,
+  });
+});
 
 // Listagem de documentos analisados
 documentsRouter.get("/", requireAuth, async (req: Request, res: Response) => {

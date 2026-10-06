@@ -5,6 +5,7 @@ import { requireAuth, requireRoles } from "../security/auth";
 import { encryptSensitive, decryptSensitive } from "../security/crypto";
 import { testWhatsAppConnection } from "../services/whatsappCloud";
 import { recordAuditLog } from "../services/auditLog";
+import { OFFICIAL_INSURERS } from "../services/insurerDirectory";
 
 export const brokeragesRouter = Router();
 
@@ -108,4 +109,117 @@ brokeragesRouter.post("/settings/whatsapp/test", requireAuth, async (req: Reques
 
   const result = await testWhatsAppConnection(phoneNumberId, token);
   res.json(result);
+});
+
+// Obtém lista de seguradoras com sugestões oficiais e números confirmados pela corretora
+brokeragesRouter.get("/settings/insurers", requireAuth, async (req: Request, res: Response) => {
+  const brokerage = await prisma.brokerage.findUnique({
+    where: { id: req.user!.brokerageId },
+    select: { confirmedInsurers: true, phone: true },
+  });
+
+  res.json({
+    suggestions: OFFICIAL_INSURERS,
+    confirmedInsurers: brokerage?.confirmedInsurers || {},
+    brokerageFallbackPhone: brokerage?.phone || null,
+  });
+});
+
+// Atualiza tabela de seguradoras confirmadas da corretora
+brokeragesRouter.put("/settings/insurers", requireAuth, requireRoles(["OWNER", "BROKER"]), async (req: Request, res: Response) => {
+  const { confirmedInsurers } = req.body;
+
+  if (typeof confirmedInsurers !== "object" || confirmedInsurers === null) {
+    res.status(400).json({ error: "Formato inválido para confirmedInsurers" });
+    return;
+  }
+
+  await prisma.brokerage.update({
+    where: { id: req.user!.brokerageId },
+    data: {
+      confirmedInsurers: JSON.parse(JSON.stringify(confirmedInsurers)),
+    },
+  });
+
+  await recordAuditLog({
+    brokerageId: req.user!.brokerageId,
+    userId: req.user!.userId,
+    action: "UPDATE_CONFIRMED_INSURERS",
+    resource: `Brokerage:${req.user!.brokerageId}`,
+    details: { confirmedInsurers },
+    req,
+  });
+
+  res.json({
+    success: true,
+    message: "Tabela de seguradoras e assistência 24h confirmada com sucesso.",
+  });
+});
+
+// Configurações de Telefonia Oficial da Corretora
+brokeragesRouter.get("/settings/telephony", requireAuth, async (req: Request, res: Response) => {
+  const brokerage = await prisma.brokerage.findUnique({
+    where: { id: req.user!.brokerageId },
+    select: {
+      telephonyProvider: true,
+      telephonyNumber: true,
+      telephonyForwardPhone: true,
+      telephonyRecordingNotice: true,
+      telephonyAccountSidEncrypted: true,
+      telephonyAuthTokenEncrypted: true,
+    },
+  });
+
+  res.json({
+    telephonyProvider: brokerage?.telephonyProvider || "TWILIO",
+    telephonyNumber: brokerage?.telephonyNumber || "",
+    telephonyForwardPhone: brokerage?.telephonyForwardPhone || "",
+    telephonyRecordingNotice: brokerage?.telephonyRecordingNotice || "Esta ligação é gravada para agilizar o seu atendimento.",
+    hasAccountSid: Boolean(brokerage?.telephonyAccountSidEncrypted),
+    hasAuthToken: Boolean(brokerage?.telephonyAuthTokenEncrypted),
+  });
+});
+
+// Atualiza credenciais de Telefonia da Corretora
+brokeragesRouter.put("/settings/telephony", requireAuth, requireRoles(["OWNER", "BROKER"]), async (req: Request, res: Response) => {
+  const {
+    telephonyProvider,
+    telephonyNumber,
+    telephonyForwardPhone,
+    telephonyAccountSid,
+    telephonyAuthToken,
+    telephonyRecordingNotice,
+  } = req.body;
+
+  const dataToUpdate: any = {
+    telephonyProvider: telephonyProvider || "TWILIO",
+    telephonyNumber,
+    telephonyForwardPhone,
+    telephonyRecordingNotice: telephonyRecordingNotice || "Esta ligação é gravada para agilizar o seu atendimento.",
+  };
+
+  if (telephonyAccountSid) {
+    dataToUpdate.telephonyAccountSidEncrypted = encryptSensitive(telephonyAccountSid);
+  }
+  if (telephonyAuthToken) {
+    dataToUpdate.telephonyAuthTokenEncrypted = encryptSensitive(telephonyAuthToken);
+  }
+
+  await prisma.brokerage.update({
+    where: { id: req.user!.brokerageId },
+    data: dataToUpdate,
+  });
+
+  await recordAuditLog({
+    brokerageId: req.user!.brokerageId,
+    userId: req.user!.userId,
+    action: "UPDATE_TELEPHONY_CREDENTIALS",
+    resource: `Brokerage:${req.user!.brokerageId}`,
+    req,
+  });
+
+  res.json({
+    success: true,
+    message: "Configurações de telefonia salvas com sucesso (criptografadas via AES-256-GCM).",
+  });
 });

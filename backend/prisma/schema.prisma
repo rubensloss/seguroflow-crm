@@ -94,6 +94,33 @@ enum MessageDirection {
   OUTBOUND
 }
 
+enum CallDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum CallStatus {
+  COMPLETED
+  NO_ANSWER
+  BUSY
+  FAILED
+}
+
+enum CallDraftStatus {
+  PENDING
+  CONFIRMED
+  DISCARDED
+}
+
+enum CallIntentType {
+  SINISTRO
+  COTACAO
+  RENOVACAO
+  DUVIDA
+  COBRANCA
+  OUTRO
+}
+
 // =============================================================================
 // MULTI-TENANT & CORRETORA
 // =============================================================================
@@ -119,6 +146,15 @@ model Brokerage {
   agentTone      String   @default("PROFISSIONAL_CORDIAL")
   alertPhone     String?  // WhatsApp do corretor para notificações urgentes de sinistro/transbordo
 
+  // Telefonia Oficial & Gravação de Ligações (Isolada por Corretora)
+  telephonyProvider            String?  // TWILIO, ZENVIA, TOTALVOICE, CUSTOM
+  telephonyNumber              String?  // Número oficial contratado (DID/0800)
+  telephonyForwardPhone        String?  // Celular/ramal do corretor para repasse
+  telephonyAccountSidEncrypted String?  // Criptografado AES-256-GCM
+  telephonyAuthTokenEncrypted  String?  // Criptografado AES-256-GCM
+  telephonyRecordingNotice     String?  @default("Esta ligação é gravada para agilizar o seu atendimento.")
+  confirmedInsurers            Json?    // Telefones 24h confirmados pela corretora
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -132,6 +168,7 @@ model Brokerage {
   renewals       RenewalTask[]
   documents      DocumentRecord[]
   conversations  Conversation[]
+  calls          CallRecord[]
   auditLogs      AuditLog[]
 
   @@map("brokerages")
@@ -180,6 +217,7 @@ model Insured {
   pipelineCards PipelineCard[]
   documents   DocumentRecord[]
   conversations Conversation[]
+  calls       CallRecord[]
 
   @@index([brokerageId])
   @@index([phone])
@@ -437,3 +475,41 @@ model AuditLog {
   @@index([action])
   @@map("audit_logs")
 }
+
+// =============================================================================
+// LIGAÇÕES TELEFÔNICAS & GRAVAÇÕES TRANSCRITAS (Telefonia Oficial / PABX)
+// =============================================================================
+
+model CallRecord {
+  id              String          @id @default(cuid())
+  brokerageId     String
+  insuredId       String?
+  fromPhone       String          // Telefone de quem ligou
+  toPhone         String          // Número da corretora
+  forwardedTo     String?         // Celular/ramal que atendeu
+  direction       CallDirection   @default(INBOUND)
+  status          CallStatus      @default(COMPLETED)
+  durationSeconds Int             @default(0)
+  recordingUrl    String?         // URL do áudio no provedor de telefonia
+  recordingFile   String?         // Nome do arquivo se enviado via upload manual
+  transcription   String?         @db.Text // Transcrição integral gerada via Whisper
+  summary         String?         @db.Text // Resumo executivo de 2 linhas pela IA
+  intent          CallIntentType? // Intenção classificada pela IA (SINISTRO, COTACAO, RENOVACAO, etc.)
+  extractedData   Json?           // Dados estruturados { insurer, policyNumber, plate, location, urgency, nextSteps }
+  draftStatus     CallDraftStatus @default(PENDING) // PENDING -> CONFIRMED -> DISCARDED
+  estimatedCost   Decimal?        @db.Decimal(10, 4) // Custo estimado (entrada, repasse, gravação, transcrição, IA)
+  createdClaimId  String?         // ID do sinistro gerado a partir desta ligação
+  createdCardId   String?         // ID do card de pipeline gerado a partir desta ligação
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  brokerage Brokerage @relation(fields: [brokerageId], references: [id], onDelete: Cascade)
+  insured   Insured?  @relation(fields: [insuredId], references: [id], onDelete: SetNull)
+
+  @@index([brokerageId])
+  @@index([fromPhone])
+  @@index([draftStatus])
+  @@map("call_records")
+}
+
