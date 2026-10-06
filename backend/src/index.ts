@@ -18,6 +18,11 @@ import { documentsRouter } from "./routes/documents";
 import { importRouter } from "./routes/import";
 import { dashboardRouter } from "./routes/dashboard";
 import { privacyRouter } from "./routes/privacy";
+import { conversationsRouter } from "./routes/conversations";
+import { financesRouter } from "./routes/finances";
+import { clientPortalRouter } from "./routes/clientPortal";
+import { cronRouter } from "./routes/cron";
+import { startInternalScheduler } from "./services/scheduler";
 
 const app = express();
 
@@ -76,6 +81,10 @@ app.use("/api/documents", documentsRouter);
 app.use("/api/import", importRouter);
 app.use("/api/dashboard", dashboardRouter);
 app.use("/api/privacy", privacyRouter);
+app.use("/api/conversations", conversationsRouter);
+app.use("/api/finances", financesRouter);
+app.use("/api/client-portal", clientPortalRouter);
+app.use("/api/cron", cronRouter);
 
 // Tratamento de Erros Global
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -97,6 +106,9 @@ const server = app.listen(env.PORT, () => {
   console.log(`🏢 Uma solução Creative Always (https://creativealways.com.br/solucoes/)`);
   console.log(`📡 Webhook Meta: http://localhost:${env.PORT}/api/webhooks/whatsapp`);
   console.log(`=======================================================`);
+  
+  // Inicia o motor autônomo de agendamento diário (Régua Preventiva & Renovações)
+  startInternalScheduler();
 });
 
 // Encerramento Gracioso

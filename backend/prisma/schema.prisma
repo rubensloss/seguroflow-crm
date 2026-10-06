@@ -23,6 +23,7 @@ enum InsuranceBranch {
   VIDA
   SAUDE
   EMPRESARIAL
+  TRANSPORTE
   RURAL
   OUTROS
 }
@@ -151,6 +152,7 @@ model User {
   assignedClaims Claim[]
   assignedCards  PipelineCard[]
   assignedRenewals RenewalTask[]
+  assignedConversations Conversation[]
   auditLogs    AuditLog[]
 
   @@index([brokerageId])
@@ -196,6 +198,8 @@ model Policy {
   startDate          DateTime
   endDate            DateTime
   premiumAmount      Decimal         @db.Decimal(12, 2)
+  commissionPercentage Decimal?      @db.Decimal(5, 2) // % negociado com a seguradora (ex: 15.00%)
+  commissionAmount   Decimal?        @db.Decimal(12, 2) // Valor monetário estimado de comissão
   status             PolicyStatus    @default(ACTIVE)
   itemDescription    String?         // Ex: "Corolla Cross 2024 - Placa ABC1D23"
   createdAt          DateTime        @default(now())
@@ -266,6 +270,10 @@ model Claim {
   status               ClaimStatus @default(OPEN)
   policeReportUrl      String?     // Link/path do B.O.
   photos               Json?       // Lista de URLs/IDs de fotos coletadas
+  franchiseAmount      Decimal?    @db.Decimal(12, 2) // Valor da Franquia
+  indemnityAmount      Decimal?    @db.Decimal(12, 2) // Valor pago de Indenização
+  workshopName         String?     // Nome da Oficina / Reguladora credenciada
+  cargoManifestNumber  String?     // CT-e / MDF-e / Manifesto (Transporte de Cargas)
   assistanceNotifiedAt DateTime?
   brokerNotifiedAt     DateTime?
   assignedUserId       String?
@@ -374,16 +382,20 @@ model Conversation {
   phone       String
   status      ConversationStatus @default(AI_CONTROLLED)
   humanReason String?
+  assignedUserId String?
+  unreadCount Int                @default(0)
 
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
 
-  brokerage Brokerage @relation(fields: [brokerageId], references: [id], onDelete: Cascade)
-  insured   Insured?  @relation(fields: [insuredId], references: [id], onDelete: SetNull)
-  messages  Message[]
+  brokerage    Brokerage @relation(fields: [brokerageId], references: [id], onDelete: Cascade)
+  insured      Insured?  @relation(fields: [insuredId], references: [id], onDelete: SetNull)
+  assignedUser User?     @relation(fields: [assignedUserId], references: [id], onDelete: SetNull)
+  messages     Message[]
 
   @@index([brokerageId])
   @@index([phone])
+  @@index([assignedUserId])
   @@map("conversations")
 }
 

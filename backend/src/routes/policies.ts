@@ -128,3 +128,126 @@ policiesRouter.post("/", requireAuth, async (req: Request, res: Response) => {
 
   res.status(201).json(result);
 });
+
+// Criação automática de Apólice + Parcelas a partir do OCR de Proposta (Sem digitação manual!)
+policiesRouter.post("/from-proposal-ocr", requireAuth, async (req: Request, res: Response) => {
+  const brokerageId = req.user!.brokerageId;
+  const {
+    insurerName,
+    policyNumber,
+    branch = InsuranceBranch.AUTO,
+    insuredName,
+    insuredCpf,
+    insuredPhone,
+    insuredEmail,
+    startDate,
+    endDate,
+    premiumAmount,
+    commissionPercentage = 15,
+    assistance24hPhone,
+    itemDescription,
+    installments,
+  } = req.body;
+
+  if (!insurerName || !insuredName || !insuredPhone || !premiumAmount) {
+    res.status(400).json({ error: "Dados mínimos da proposta ausentes (Seguradora, Nome, Telefone ou Prêmio)" });
+    return;
+  }
+
+  const premNum = Number(premiumAmount);
+  const commPct = Number(commissionPercentage) || 15;
+  const commAmount = (premNum * commPct) / 100;
+
+  const result = await prisma.$transaction(async (tx) => {
+    // 1. Localiza ou cria Segurado
+    let insured = await tx.insured.findFirst({
+      where: {
+        brokerageId,
+        OR: [
+          insuredCpf ? { cpf: insuredCpf } : { phone: insuredPhone },
+          { phone: insuredPhone },
+        ],
+      },
+    });
+
+    if (!insured) {
+      insured = await tx.insured.create({
+        data: {
+          brokerageId,
+          name: insuredName,
+          phone: insuredPhone,
+          cpf: insuredCpf || undefined,
+          email: insuredEmail || undefined,
+        },
+      });
+    }
+
+    // 2. Cria Apólice
+    const start = startDate ? new Date(startDate) : new Date();
+    const end = endDate ? new Date(endDate) : new Date(start.getTime() + 365 * 24 * 60 * 60 * 1000);
+
+    const policy = await tx.policy.create({
+      data: {
+        brokerageId,
+        insuredId: insured.id,
+        policyNumber: policyNumber || `PROP-${Date.now().toString().slice(-6)}`,
+        insurerName,
+        branch: branch as InsuranceBranch,
+        startDate: start,
+        endDate: end,
+        premiumAmount: premNum,
+        commissionPercentage: commPct,
+        commissionAmount: commAmount,
+        assistance24hPhone: assistance24hPhone || "0800 727 0800",
+        itemDescription: itemDescription || "Item segurado",
+        status: "ACTIVE",
+      },
+    });
+
+    // 3. Cria as parcelas extraídas com as datas exatas
+    const installmentsToInsert = [];
+    if (Array.isArray(installments) && installments.length > 0) {
+      for (const inst of installments) {
+        installmentsToInsert.push({
+          brokerageId,
+          policyId: policy.id,
+          installmentNumber: Number(inst.installmentNumber) || 1,
+          dueDate: new Date(inst.dueDate),
+          amount: Number(inst.amount) || premNum / installments.length,
+          paymentCode: inst.paymentCode || undefined,
+          status: "PENDING" as const,
+        });
+      }
+    } else {
+      // Fallback: 1 parcela única
+      installmentsToInsert.push({
+        brokerageId,
+        policyId: policy.id,
+        installmentNumber: 1,
+        dueDate: new Date(start.getTime() + 5 * 24 * 60 * 60 * 1000),
+        amount: premNum,
+        status: "PENDING" as const,
+      });
+    }
+
+    await tx.installment.createMany({ data: installmentsToInsert });
+
+    return { policy, insured, installmentsCount: installmentsToInsert.length };
+  });
+
+  await recordAuditLog({
+    brokerageId,
+    userId: req.user!.userId,
+    action: "CREATE_POLICY_FROM_PROPOSAL_OCR",
+    resource: `Policy:${result.policy.id}`,
+    req,
+  });
+
+  res.status(201).json({
+    success: true,
+    message: `Apólice e ${result.installmentsCount} parcelas geradas com sucesso sem digitação manual!`,
+    policy: result.policy,
+    insured: result.insured,
+  });
+});
+

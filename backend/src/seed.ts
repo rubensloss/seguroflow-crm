@@ -3,8 +3,15 @@ import { hashPassword } from "./security/auth";
 import { encryptSensitive } from "./security/crypto";
 import { InsuranceBranch, PipelineStage, RenewalWindow } from "@prisma/client";
 
+import crypto from "crypto";
+
 async function main() {
-  console.log("🌱 Iniciando seed do SeguroFlow...");
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_PROD_SEED !== "true") {
+    console.error("⛔ SEGURANÇA: Execução de seed bloqueada em ambiente de PRODUÇÃO!");
+    process.exit(1);
+  }
+
+  console.log("🌱 Iniciando seed seguro do SeguroFlow...");
 
   // 1. Cria ou atualiza Corretora Piloto
   const slug = "seguroflow-prime";
@@ -31,7 +38,8 @@ async function main() {
   }
 
   // 2. Cria Usuário Dono (Owner)
-  const passwordHash = await hashPassword("seguroflow2026");
+  const initialPassword = process.env.SEED_ADMIN_PASSWORD || "dev_seguroflow_" + crypto.randomBytes(4).toString("hex");
+  const passwordHash = await hashPassword(initialPassword);
   const ownerEmail = "rubens@seguroflow.com.br";
 
   let user = await prisma.user.findUnique({ where: { email: ownerEmail } });

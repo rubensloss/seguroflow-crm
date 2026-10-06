@@ -76,12 +76,17 @@ renewalsRouter.patch("/:id", requireAuth, async (req: Request, res: Response) =>
   res.json(updated);
 });
 
-// Varredura de renovações
-renewalsRouter.post("/scan", requireAuth, async (_req: Request, res: Response) => {
-  const result = await runRenewalsScan();
+// Varredura manual de renovações — ISOLADA por corretora
+renewalsRouter.post("/scan", requireAuth, async (req: Request, res: Response) => {
+  if (req.user!.role !== "OWNER" && req.user!.role !== "BROKER") {
+    res.status(403).json({ error: "Apenas administradores e corretores podem acionar a varredura manual." });
+    return;
+  }
+
+  const result = await runRenewalsScan(req.user!.brokerageId);
   res.json({
     success: true,
-    message: "Varredura de renovações executada com sucesso.",
+    message: "Varredura de renovações executada com sucesso para a sua corretora.",
     result,
   });
 });

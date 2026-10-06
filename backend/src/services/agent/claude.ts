@@ -53,7 +53,7 @@ export async function runAgentTurn(params: AgentTurnParams): Promise<string> {
 
   try {
     let response = await anthropic.messages.create({
-      model: "claude-3-5-sonnet-20241022",
+      model: env.ANTHROPIC_MODEL,
       max_tokens: 1024,
       system,
       messages,
@@ -85,7 +85,7 @@ export async function runAgentTurn(params: AgentTurnParams): Promise<string> {
       });
 
       response = await anthropic.messages.create({
-        model: "claude-3-5-sonnet-20241022",
+        model: env.ANTHROPIC_MODEL,
         max_tokens: 1024,
         system,
         messages,

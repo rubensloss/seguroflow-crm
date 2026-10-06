@@ -61,16 +61,28 @@ whatsappCloudWebhookRouter.post("/", async (req: Request, res: Response) => {
           continue;
         }
 
-        // Validação da assinatura X-Hub-Signature-256 COM O APP SECRET DO CLIENTE
-        if (brokerage.whatsappAppSecretEncrypted && rawBody) {
-          const appSecret = decryptSensitive(brokerage.whatsappAppSecretEncrypted);
-          if (appSecret) {
-            const isValid = verifyTenantWhatsAppSignature(rawBody, signature, appSecret);
-            if (!isValid) {
-              console.warn(`[Webhook Meta] Assinatura X-Hub-Signature-256 inválida para a corretora ${brokerage.slug}`);
-              continue;
-            }
-          }
+        // Validação MANDATÓRIA da assinatura X-Hub-Signature-256 COM O APP SECRET DA CORRETORA
+        // Conforme item 8 da auditoria: se a corretora não tiver app secret cadastrado ou a assinatura for inválida, RECUSA o processamento.
+        if (!brokerage.whatsappAppSecretEncrypted) {
+          console.warn(`[Webhook Meta] Corretora ${brokerage.slug} não possui WhatsApp App Secret cadastrado. Mensagem recusada por segurança.`);
+          continue;
+        }
+
+        if (!rawBody || !signature) {
+          console.warn(`[Webhook Meta] Assinatura X-Hub-Signature-256 ou payload ausente para a corretora ${brokerage.slug}. Mensagem recusada.`);
+          continue;
+        }
+
+        const appSecret = decryptSensitive(brokerage.whatsappAppSecretEncrypted);
+        if (!appSecret) {
+          console.error(`[Webhook Meta] Falha ao descriptografar App Secret da corretora ${brokerage.slug}.`);
+          continue;
+        }
+
+        const isValid = verifyTenantWhatsAppSignature(rawBody, signature, appSecret);
+        if (!isValid) {
+          console.warn(`[Webhook Meta] Assinatura X-Hub-Signature-256 INVÁLIDA para a corretora ${brokerage.slug}. Requisição descartada.`);
+          continue;
         }
 
         const accessToken = decryptSensitive(brokerage.whatsappAccessTokenEncrypted);

@@ -85,12 +85,17 @@ installmentsRouter.post("/:id/mark-paid", requireAuth, async (req: Request, res:
   res.json({ success: true, installment: updated });
 });
 
-// Disparo manual/agendado da régua preventiva (D-7, D-0, D+2)
-installmentsRouter.post("/run-cadence", requireAuth, async (_req: Request, res: Response) => {
-  const result = await runBillingCadenceScan();
+// Disparo manual da régua preventiva (D-7, D-0, D+2) — ISOLADO por corretora
+installmentsRouter.post("/run-cadence", requireAuth, async (req: Request, res: Response) => {
+  if (req.user!.role !== "OWNER" && req.user!.role !== "BROKER") {
+    res.status(403).json({ error: "Apenas administradores e corretores podem acionar a régua manual." });
+    return;
+  }
+
+  const result = await runBillingCadenceScan(req.user!.brokerageId);
   res.json({
     success: true,
-    message: "Varredura da régua de cobrança preventiva executada com sucesso.",
+    message: "Varredura da régua de cobrança preventiva executada com sucesso para a sua corretora.",
     result,
   });
 });

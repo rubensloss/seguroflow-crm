@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full bg-slate-900 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SeguroFlow • Painel Operacional Conectado em Produção</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              500: '#0284c7',
+              600: '#0369a1',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="h-full flex flex-col font-sans bg-slate-950 text-slate-100 antialiased selection:bg-sky-500 selection:text-white">
+
+  <!-- TOP PRODUCTION HEADER -->
+  <header class="h-14 border-b border-white/10 bg-slate-900/80 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between shrink-0 z-30">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-sky-500 flex items-center justify-center font-black text-black text-base shadow-lg shadow-sky-500/20">
+        SF
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="font-extrabold text-sm tracking-tight text-white">SeguroFlow</span>
+          <span class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">API CONECTADA</span>
+        </div>
+        <p class="text-[10px] text-slate-400 font-mono hidden sm:block">Motor de IA, Régua Preventiva e Gestão de Sinistros</p>
+      </div>
+    </div>
+
+    <!-- API Status & User Controls -->
+    <div class="flex items-center gap-3">
+      <div id="backend-status-indicator" class="flex items-center gap-1.5 text-xs font-mono text-slate-400 bg-slate-800/60 px-2.5 py-1 rounded-full border border-white/5">
+        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse" id="status-dot"></span>
+        <span id="status-text" class="text-[11px]">Conectando...</span>
+      </div>
+
+      <div id="auth-user-bar" class="hidden flex items-center gap-2">
+        <span id="user-display-email" class="text-xs text-slate-300 font-mono hidden sm:inline"></span>
+        <button onclick="handleLogout()" class="px-2.5 py-1 text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-md border border-rose-500/30 font-medium transition-all">
+          Sair
+        </button>
+      </div>
+
+      <a href="app.html" class="text-xs text-slate-400 hover:text-white px-2.5 py-1 rounded-md border border-white/10 hover:border-white/20 transition-all font-mono">
+        Ver Protótipo Demo
+      </a>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- LOGIN SCREEN (RENDERED WHEN NOT AUTHENTICATED) -->
+    <div id="login-screen" class="flex-1 flex items-center justify-center p-4">
+      <div class="w-full max-w-md bg-slate-900 border border-white/10 rounded-2xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+        <div class="absolute -top-24 -right-24 w-48 h-48 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        
+        <div class="text-center mb-6">
+          <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20 mb-3">
+            <i data-lucide="shield-check" class="w-6 h-6"></i>
+          </div>
+          <h2 class="text-xl font-bold text-white tracking-tight">Acesso ao Painel SeguroFlow</h2>
+          <p class="text-xs text-slate-400 mt-1">Conectado ao PostgreSQL em produção via JWT</p>
+        </div>
+
+        <form id="login-form" onsubmit="handleLoginSubmit(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-mono text-slate-300 mb-1">E-mail do Corretor</label>
+            <input type="email" id="login-email" required placeholder="corretor@suacorretora.com.br"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-white/10 text-sm text-white focus:outline-none focus:border-sky-500 transition-colors">
+          </div>
+          <div>
+            <label class="block text-xs font-mono text-slate-300 mb-1">Senha</label>
+            <input type="password" id="login-password" required placeholder="••••••••"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-white/10 text-sm text-white focus:outline-none focus:border-sky-500 transition-colors">
+          </div>
+
+          <div id="login-error-msg" class="hidden text-xs text-rose-400 bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-lg"></div>
+
+          <button type="submit" id="login-submit-btn"
+            class="w-full py-3 bg-sky-500 hover:bg-sky-400 text-black font-bold text-sm rounded-xl transition-all shadow-lg shadow-sky-500/20 flex items-center justify-center gap-2">
+            <span>Entrar no Painel</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+
+          <div class="pt-3 border-t border-white/5 text-center">
+            <button type="button" onclick="fillQuickDemoAccount()" class="text-xs text-sky-400 hover:text-sky-300 font-mono underline">
+              Preencher dados de acesso ou criar nova corretora
+            </button>
+          </div>
+        </form>
+
+        <!-- Form de Registro Rápido (Alternar) -->
+        <div id="register-box" class="hidden mt-4 pt-4 border-t border-white/10 text-xs">
+          <h3 class="font-bold text-white mb-2">Cadastrar Nova Corretora</h3>
+          <div class="space-y-2">
+            <input type="text" id="reg-corp-name" placeholder="Nome da Corretora" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white text-xs">
+            <input type="text" id="reg-name" placeholder="Seu Nome Completo" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white text-xs">
+            <input type="email" id="reg-email" placeholder="E-mail de Trabalho" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white text-xs">
+            <input type="password" id="reg-pass" placeholder="Senha Forte" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white text-xs">
+            <button onclick="handleRegisterSubmit()" class="w-full py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-bold rounded-lg transition-all">
+              Criar Conta e Corretora
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AUTHENTICATED APP SCREEN -->
+    <div id="app-screen" class="hidden flex-1 flex overflow-hidden">
+
+      <!-- NAVIGATION SIDEBAR -->
+      <aside class="w-64 bg-slate-900 border-r border-white/10 flex flex-col justify-between shrink-0 p-3">
+        <div class="space-y-1">
+          <div class="px-3 py-2 text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold">Módulos Operacionais</div>
+          <button onclick="switchTab('dashboard')" id="btn-tab-dashboard" class="nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-white bg-sky-500/10 text-sky-400 border border-sky-500/20 transition-all text-left">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+            <span>Dashboard & KPIs</span>
+          </button>
+          <button onclick="switchTab('proposals')" id="btn-tab-proposals" class="nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-all text-left">
+            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-emerald-400"></i>
+            <span>Propostas & Parcelas OCR</span>
+          </button>
+          <button onclick="switchTab('finances')" id="btn-tab-finances" class="nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-all text-left">
+            <i data-lucide="circle-dollar-sign" class="w-4 h-4 text-amber-400"></i>
+            <span>Comissões & Risco Estorno</span>
+          </button>
+          <button onclick="switchTab('claims')" id="btn-tab-claims" class="nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-all text-left">
+            <i data-lucide="car" class="w-4 h-4 text-rose-400"></i>
+            <span>Sinistros & Transporte</span>
+          </button>
+          <button onclick="switchTab('inbox')" id="btn-tab-inbox" class="nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-all text-left">
+            <i data-lucide="message-square" class="w-4 h-4 text-sky-400"></i>
+            <span>WhatsApp da Equipe</span>
+          </button>
+          <button onclick="switchTab('cadence')" id="btn-tab-cadence" class="nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-all text-left">
+            <i data-lucide="calendar-clock" class="w-4 h-4 text-purple-400"></i>
+            <span>Régua D-7 & Renovações</span>
+          </button>
+        </div>
+
+        <!-- Corretora Pill -->
+        <div class="p-3 bg-slate-800/60 rounded-xl border border-white/5 space-y-1">
+          <div class="text-[10px] text-slate-400 font-mono">CORRETORA ATIVA</div>
+          <div id="brokerage-name-tag" class="text-xs font-bold text-white truncate">Carregando...</div>
+          <div class="flex items-center gap-1.5 text-[10px] text-emerald-400 font-mono">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span>Meta API v21.0 Oficial</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- CONTENT PANELS -->
+      <main class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+
+        <!-- TAB 1: DASHBOARD & KPIS -->
+        <div id="tab-dashboard" class="tab-pane space-y-6">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <h1 class="text-xl font-bold text-white">Indicadores de Produção</h1>
+              <p class="text-xs text-slate-400 font-mono">Dados consolidados diretamente do PostgreSQL em produção</p>
+            </div>
+            <button onclick="loadDashboardData()" class="px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 rounded-lg flex items-center gap-1.5 transition-colors">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              <span>Atualizar Dados</span>
+            </button>
+          </div>
+
+          <!-- KPI Cards Grid -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-slate-900 border border-white/10 rounded-xl p-4 space-y-1">
+              <div class="text-[11px] font-mono text-slate-400 uppercase">Segurados Cadastrados</div>
+              <div id="kpi-insureds" class="text-2xl font-bold text-white">--</div>
+              <div class="text-[10px] text-slate-500 font-mono">Carteira ativa</div>
+            </div>
+            <div class="bg-slate-900 border border-white/10 rounded-xl p-4 space-y-1">
+              <div class="text-[11px] font-mono text-slate-400 uppercase">Apólices em Vigor</div>
+              <div id="kpi-policies" class="text-2xl font-bold text-sky-400">--</div>
+              <div class="text-[10px] text-sky-500 font-mono">Vigência garantida</div>
+            </div>
+            <div class="bg-slate-900 border border-white/10 rounded-xl p-4 space-y-1">
+              <div class="text-[11px] font-mono text-slate-400 uppercase">Parcelas na Régua D-7</div>
+              <div id="kpi-installments" class="text-2xl font-bold text-amber-400">--</div>
+              <div class="text-[10px] text-amber-500 font-mono">Monitoramento de Pix</div>
+            </div>
+            <div class="bg-slate-900 border border-white/10 rounded-xl p-4 space-y-1">
+              <div class="text-[11px] font-mono text-slate-400 uppercase">Sinistros em Regulação</div>
+              <div id="kpi-claims" class="text-2xl font-bold text-rose-400">--</div>
+              <div class="text-[10px] text-rose-500 font-mono">Atendimento prioritário</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: PROPOSTAS & PARCELAMENTO OCR AUTOMÁTICO -->
+        <div id="tab-proposals" class="tab-pane hidden space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-xl font-bold text-white">Cadastro Inteligente de Proposta</h2>
+              <p class="text-xs text-slate-400 font-mono">Geração automática de parcelas e datas de vencimento sem digitação manual</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Formulário de Importação Rápida -->
+            <div class="bg-slate-900 border border-white/10 rounded-2xl p-5 space-y-4">
+              <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                <span class="text-xs font-mono font-bold text-sky-400 uppercase">Importar Dados da Proposta</span>
+                <span class="text-[11px] text-slate-400">IA Parser</span>
+              </div>
+
+              <div class="space-y-3 text-xs">
+                <div>
+                  <label class="block text-slate-300 font-mono mb-1">Seguradora</label>
+                  <select id="prop-insurer" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white">
+                    <option value="Porto Seguro">Porto Seguro</option>
+                    <option value="Allianz Seguros">Allianz Seguros</option>
+                    <option value="Bradesco Seguros">Bradesco Seguros</option>
+                    <option value="Tokio Marine">Tokio Marine</option>
+                    <option value="HDI Seguros">HDI Seguros</option>
+                    <option value="Azul Seguros">Azul Seguros</option>
+                    <option value="Sompo Seguros">Sompo (Transporte / Cargas)</option>
+                  </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-slate-300 font-mono mb-1">Ramo</label>
+                    <select id="prop-branch" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white">
+                      <option value="AUTO">Automóvel</option>
+                      <option value="TRANSPORTE">Transporte de Carga (RCTR-C)</option>
+                      <option value="RESIDENCIAL">Residencial</option>
+                      <option value="VIDA">Vida</option>
+                      <option value="EMPRESARIAL">Empresarial</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-slate-300 font-mono mb-1">Prêmio Total (R$)</label>
+                    <input type="number" id="prop-premium" value="3450" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-slate-300 font-mono mb-1">Nome do Segurado</label>
+                    <input type="text" id="prop-name" value="Marcos Vinicius Rezende" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white">
+                  </div>
+                  <div>
+                    <label class="block text-slate-300 font-mono mb-1">WhatsApp (com DDD)</label>
+                    <input type="text" id="prop-phone" value="5527999887766" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-slate-300 font-mono mb-1">Quantidade de Parcelas & Vencimento Inicial</label>
+                  <div class="grid grid-cols-2 gap-2">
+                    <select id="prop-installments-count" onchange="generateProposalInstallmentsPreview()" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
+                      <option value="1">1x (À vista / Parcela Única)</option>
+                      <option value="2">2x</option>
+                      <option value="3">3x</option>
+                      <option value="4" selected>4x sem juros</option>
+                      <option value="6">6x</option>
+                      <option value="10">10x</option>
+                      <option value="12">12x</option>
+                    </select>
+                    <input type="date" id="prop-first-due" onchange="generateProposalInstallmentsPreview()" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
+                  </div>
+                </div>
+
+                <button onclick="handleSaveProposalWithInstallments()" class="w-full py-2.5 bg-sky-500 hover:bg-sky-400 text-black font-bold rounded-xl transition-all flex items-center justify-center gap-2">
+                  <i data-lucide="check" class="w-4 h-4"></i>
+                  <span>Cadastrar Apólice & Gerar Parcelas no Banco</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Preview do Cronograma de Parcelas Gerado -->
+            <div class="bg-slate-900 border border-white/10 rounded-2xl p-5 space-y-4 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                  <span class="text-xs font-mono font-bold text-emerald-400 uppercase">Grade de Parcelamento Automática</span>
+                  <span class="text-[10px] text-slate-400 font-mono">Datas calculadas pela IA</span>
+                </div>
+                <div id="installments-preview-list" class="space-y-2 mt-4">
+                  <!-- Gerado dinamicamente -->
+                </div>
+              </div>
+
+              <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-xs font-mono">
+                ✨ <strong>Zero Digitação Manual:</strong> Todas as parcelas acima serão criadas automaticamente no PostgreSQL e já sincronizadas na régua de cobrança preventiva D-7.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: COMISSÕES & RISCO DE ESTORNO -->
+        <div id="tab-finances" class="tab-pane hidden space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-xl font-bold text-white">Módulo Financeiro & Blindagem de Comissões</h2>
+              <p class="text-xs text-slate-400 font-mono">Monitoramento de estorno por inadimplência e projeção de receita</p>
+            </div>
+            <button onclick="loadFinancesData()" class="px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 rounded-lg">Atualizar</button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-slate-900 border border-white/10 rounded-xl p-4">
+              <div class="text-[11px] font-mono text-slate-400">CARTEIRA TOTAL SOB GESTÃO</div>
+              <div id="fin-total-premium" class="text-2xl font-bold text-white mt-1">R$ 0,00</div>
+              <div class="text-[10px] text-slate-500 font-mono">Prêmio líquido acumulado</div>
+            </div>
+            <div class="bg-slate-900 border border-white/10 rounded-xl p-4">
+              <div class="text-[11px] font-mono text-slate-400">COMISSÃO PREVISTA CARTEIRA</div>
+              <div id="fin-total-commission" class="text-2xl font-bold text-emerald-400 mt-1">R$ 0,00</div>
+              <div class="text-[10px] text-emerald-500 font-mono">Receita estimada (~15%)</div>
+            </div>
+            <div class="bg-slate-900 border border-rose-500/30 bg-rose-500/5 rounded-xl p-4">
+              <div class="text-[11px] font-mono text-rose-400 font-bold">COMISSÃO EM RISCO DE ESTORNO</div>
+              <div id="fin-risk-commission" class="text-2xl font-bold text-rose-400 mt-1">R$ 0,00</div>
+              <div class="text-[10px] text-rose-300 font-mono">Parcelas com atraso > 2 dias</div>
+            </div>
+          </div>
+
+          <!-- Tabela de Alerta de Risco de Estorno -->
+          <div class="bg-slate-900 border border-white/10 rounded-2xl p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+              <span class="text-xs font-mono font-bold text-rose-400 uppercase">Alertas de Apólices com Risco de Cancelamento</span>
+              <span class="text-[11px] text-slate-400">Ação imediata necessária</span>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead>
+                  <tr class="border-b border-white/10 font-mono text-slate-400">
+                    <th class="py-2">Segurado</th>
+                    <th>Seguradora</th>
+                    <th>Apólice</th>
+                    <th>Comissão em Risco</th>
+                    <th>Atraso</th>
+                    <th class="text-right">Ação</th>
+                  </tr>
+                </thead>
+                <tbody id="clawback-risk-table-body">
+                  <tr><td colspan="6" class="py-4 text-center text-slate-500">Nenhum risco de estorno no momento. Sua carteira está protegida!</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: SINISTROS & TRANSPORTE -->
+        <div id="tab-claims" class="tab-pane hidden space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-xl font-bold text-white">Esteira de Sinistros & Transporte de Cargas</h2>
+              <p class="text-xs text-slate-400 font-mono">Abertura de sinistro online, suporte a RCTR-C e BI de Sinistralidade</p>
+            </div>
+            <button onclick="loadClaimsData()" class="px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 rounded-lg">Atualizar</button>
+          </div>
+
+          <!-- Métricas de Sinistralidade BI -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div class="bg-slate-900 border border-white/10 rounded-xl p-3.5">
+              <div class="text-[10px] font-mono text-slate-400">TOTAL SINISTROS</div>
+              <div id="claim-bi-total" class="text-xl font-bold text-white">0</div>
+            </div>
+            <div class="bg-slate-900 border border-white/10 rounded-xl p-3.5">
+              <div class="text-[10px] font-mono text-slate-400">EM REGULAÇÃO</div>
+              <div id="claim-bi-open" class="text-xl font-bold text-amber-400">0</div>
+            </div>
+            <div class="bg-slate-900 border border-white/10 rounded-xl p-3.5">
+              <div class="text-[10px] font-mono text-slate-400">INDENIZAÇÕES PAGAS</div>
+              <div id="claim-bi-indemnity" class="text-xl font-bold text-emerald-400">R$ 0,00</div>
+            </div>
+            <div class="bg-slate-900 border border-white/10 rounded-xl p-3.5">
+              <div class="text-[10px] font-mono text-slate-400">SINISTRALIDADE ESTIMADA</div>
+              <div id="claim-bi-ratio" class="text-xl font-bold text-sky-400">0%</div>
+            </div>
+          </div>
+
+          <!-- Lista de Sinistros Recentes -->
+          <div class="bg-slate-900 border border-white/10 rounded-2xl p-5 space-y-3">
+            <h3 class="text-xs font-mono font-bold text-slate-300 uppercase">Sinistros em Andamento</h3>
+            <div id="claims-list-container" class="space-y-2">
+              <div class="py-4 text-center text-slate-500 text-xs">Carregando sinistros...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 5: WHATSAPP MULTI-ATENDENTE DA EQUIPE -->
+        <div id="tab-inbox" class="tab-pane hidden space-y-6">
+          <div>
+            <h2 class="text-xl font-bold text-white">Caixa de Entrada Unificada (WhatsApp da Equipe)</h2>
+            <p class="text-xs text-slate-400 font-mono">Múltiplos atendentes no mesmo WhatsApp oficial sem deixar mensagem passar batido</p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[550px] bg-slate-900 border border-white/10 rounded-2xl overflow-hidden">
+            <!-- Fila de Conversas -->
+            <div class="border-r border-white/10 flex flex-col">
+              <div class="p-3 border-b border-white/10 bg-slate-950/40">
+                <input type="text" placeholder="Filtrar por telefone ou nome..." class="w-full px-3 py-1.5 bg-slate-800 border border-white/10 rounded-lg text-xs text-white">
+              </div>
+              <div id="inbox-conversation-list" class="flex-1 overflow-y-auto divide-y divide-white/5">
+                <div class="p-4 text-center text-slate-500 text-xs">Carregando conversas do WhatsApp...</div>
+              </div>
+            </div>
+
+            <!-- Chat & Resposta Manual -->
+            <div class="lg:col-span-2 flex flex-col justify-between bg-slate-950/20">
+              <div id="chat-header" class="p-3.5 border-b border-white/10 flex items-center justify-between">
+                <div>
+                  <div id="chat-insured-name" class="font-bold text-sm text-white">Selecione uma conversa</div>
+                  <div id="chat-insured-phone" class="text-[11px] font-mono text-slate-400">Aguardando seleção</div>
+                </div>
+                <div id="chat-status-badge" class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-400">--</div>
+              </div>
+
+              <div id="chat-messages-container" class="flex-1 overflow-y-auto p-4 space-y-2.5">
+                <div class="text-center text-slate-500 text-xs mt-12">Selecione uma conversa ao lado para visualizar o histórico de mensagens e responder.</div>
+              </div>
+
+              <!-- Input de Envio -->
+              <div class="p-3 border-t border-white/10 bg-slate-900/60 flex items-center gap-2">
+                <input type="text" id="chat-reply-input" placeholder="Digite sua resposta oficial via WhatsApp..."
+                  class="flex-1 px-3.5 py-2 bg-slate-800 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-sky-500">
+                <button onclick="handleSendReply()" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs rounded-xl transition-all flex items-center gap-1.5">
+                  <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                  <span>Enviar</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 6: RÉGUA DE COBRANÇA & RENOVAÇÕES -->
+        <div id="tab-cadence" class="tab-pane hidden space-y-6">
+          <div>
+            <h2 class="text-xl font-bold text-white">Régua Preventiva & Motor de Renovações</h2>
+            <p class="text-xs text-slate-400 font-mono">Disparos oficiais Meta (D-7, D-0, D+2) e alertas de renovação (60, 30 e 15 dias)</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-slate-900 border border-white/10 rounded-2xl p-5 space-y-3">
+              <h3 class="text-sm font-bold text-white">Disparo Manual da Régua de Cobrança</h3>
+              <p class="text-xs text-slate-400">Varre exclusivamente as faturas da <strong>sua corretora</strong> no banco PostgreSQL e dispara templates Meta autorizados.</p>
+              <button onclick="triggerRunCadenceManual()" class="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs rounded-xl flex items-center gap-2">
+                <i data-lucide="zap" class="w-4 h-4"></i>
+                <span>Executar Varredura da Minha Corretora</span>
+              </button>
+              <div id="cadence-manual-result" class="text-xs font-mono text-slate-300"></div>
+            </div>
+
+            <div class="bg-slate-900 border border-white/10 rounded-2xl p-5 space-y-3">
+              <h3 class="text-sm font-bold text-white">Disparo Manual de Renovações Ativas</h3>
+              <p class="text-xs text-slate-400">Localiza apólices a 60, 30 e 15 dias do vencimento para a sua corretora e cria tarefas no CRM.</p>
+              <button onclick="triggerRunRenewalsManual()" class="px-4 py-2 bg-purple-500 hover:bg-purple-400 text-white font-bold text-xs rounded-xl flex items-center gap-2">
+                <i data-lucide="bell" class="w-4 h-4"></i>
+                <span>Varredura de Renovações da Corretora</span>
+              </button>
+              <div id="renewals-manual-result" class="text-xs font-mono text-slate-300"></div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- CLIENT-SIDE CONTROLLER SCRIPT -->
+  <script>
+    const API_BASE = window.location.origin.includes('localhost') 
+      ? 'http://localhost:8080' 
+      : 'https://backend-production-a35b.up.railway.app';
+
+    let currentToken = localStorage.getItem('sf_token') || '';
+    let currentBrokerage = null;
+    let currentSelectedConversationId = null;
+
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', async () => {
+      lucide.createIcons();
+      setDefaultFirstDueDate();
+      generateProposalInstallmentsPreview();
+      await checkBackendHealth();
+
+      if (currentToken) {
+        showAppScreen();
+      } else {
+        showLoginScreen();
+      }
+    });
+
+    function setDefaultFirstDueDate() {
+      const d = new Date();
+      d.setDate(d.getDate() + 5);
+      document.getElementById('prop-first-due').value = d.toISOString().split('T')[0];
+    }
+
+    async function checkBackendHealth() {
+      const dot = document.getElementById('status-dot');
+      const text = document.getElementById('status-text');
+      try {
+        const res = await fetch(`${API_BASE}/health`);
+        const data = await res.json();
+        if (data.status === 'ok') {
+          dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+          text.innerText = 'Postgres Online';
+        }
+      } catch (err) {
+        dot.className = 'w-2 h-2 rounded-full bg-rose-400';
+        text.innerText = 'API Offline';
+      }
+    }
+
+    function showLoginScreen() {
+      document.getElementById('login-screen').classList.remove('hidden');
+      document.getElementById('app-screen').classList.add('hidden');
+      document.getElementById('auth-user-bar').classList.add('hidden');
+    }
+
+    function showAppScreen() {
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('app-screen').classList.remove('hidden');
+      document.getElementById('auth-user-bar').classList.remove('hidden');
+      
+      const email = localStorage.getItem('sf_email') || 'corretor@seguroflow.com.br';
+      document.getElementById('user-display-email').innerText = email;
+
+      loadDashboardData();
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('sf_token');
+      localStorage.removeItem('sf_email');
+      currentToken = '';
+      showLoginScreen();
+    }
+
+    async function handleLoginSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      const errorMsg = document.getElementById('login-error-msg');
+      const btn = document.getElementById('login-submit-btn');
+
+      btn.disabled = true;
+      btn.innerText = 'Autenticando...';
+      errorMsg.classList.add('hidden');
+
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || 'Credenciais inválidas');
+        }
+
+        currentToken = data.token;
+        localStorage.setItem('sf_token', data.token);
+        localStorage.setItem('sf_email', data.user.email);
+        currentBrokerage = data.brokerage;
+
+        showAppScreen();
+      } catch (err) {
+        errorMsg.innerText = err.message;
+        errorMsg.classList.remove('hidden');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Entrar no Painel';
+      }
+    }
+
+    function fillQuickDemoAccount() {
+      document.getElementById('register-box').classList.toggle('hidden');
+    }
+
+    async function handleRegisterSubmit() {
+      const brokerageName = document.getElementById('reg-corp-name').value;
+      const name = document.getElementById('reg-name').value;
+      const email = document.getElementById('reg-email').value;
+      const password = document.getElementById('reg-pass').value;
+
+      if (!brokerageName || !name || !email || !password) {
+        alert('Preencha todos os campos para cadastrar');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ brokerageName, name, email, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro no cadastro');
+
+        currentToken = data.token;
+        localStorage.setItem('sf_token', data.token);
+        localStorage.setItem('sf_email', data.user.email);
+        alert('Corretora cadastrada com sucesso!');
+        showAppScreen();
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.nav-tab').forEach(el => {
+        el.className = 'nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-all text-left';
+      });
+
+      const pane = document.getElementById(`tab-${tabName}`);
+      const btn = document.getElementById(`btn-tab-${tabName}`);
+      if (pane) pane.classList.remove('hidden');
+      if (btn) btn.className = 'nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-white bg-sky-500/10 text-sky-400 border border-sky-500/20 transition-all text-left';
+
+      lucide.createIcons();
+
+      if (tabName === 'dashboard') loadDashboardData();
+      if (tabName === 'finances') loadFinancesData();
+      if (tabName === 'claims') loadClaimsData();
+      if (tabName === 'inbox') loadInboxData();
+    }
+
+    // Carregamento de Dashboard
+    async function loadDashboardData() {
+      try {
+        const res = await fetch(`${API_BASE}/api/dashboard/kpis`, {
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        const data = await res.json();
+        if (res.ok) {
+          document.getElementById('kpi-insureds').innerText = data.totalInsureds || 0;
+          document.getElementById('kpi-policies').innerText = data.activePolicies || 0;
+          document.getElementById('kpi-installments').innerText = data.pendingInstallments || 0;
+          document.getElementById('kpi-claims').innerText = data.openClaims || 0;
+          document.getElementById('brokerage-name-tag').innerText = data.brokerageName || 'Minha Corretora';
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // Geração dinâmica de parcelas no formulário de Propostas
+    function generateProposalInstallmentsPreview() {
+      const count = parseInt(document.getElementById('prop-installments-count').value);
+      const premium = parseFloat(document.getElementById('prop-premium').value) || 0;
+      const firstDueStr = document.getElementById('prop-first-due').value;
+      const container = document.getElementById('installments-preview-list');
+
+      container.innerHTML = '';
+      const part = (premium / count).toFixed(2);
+      const baseDate = new Date(firstDueStr || Date.now());
+
+      for (let i = 1; i <= count; i++) {
+        const d = new Date(baseDate);
+        d.setMonth(d.getMonth() + (i - 1));
+        const dateStr = d.toLocaleDateString('pt-BR');
+
+        const item = document.createElement('div');
+        item.className = 'p-2.5 bg-slate-800/80 border border-white/5 rounded-xl flex items-center justify-between text-xs';
+        item.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="w-5 h-5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 flex items-center justify-center font-mono text-[10px] font-bold">${i}</span>
+            <span class="text-white font-medium">Parcela ${i} de ${count}</span>
+          </div>
+          <div class="flex items-center gap-3 font-mono">
+            <span class="text-slate-400">Vencimento: <strong class="text-slate-200">${dateStr}</strong></span>
+            <span class="text-emerald-400 font-bold">R$ ${Number(part).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+          </div>
+        `;
+        container.appendChild(item);
+      }
+    }
+
+    // Cadastro de proposta com grade de parcelamento
+    async function handleSaveProposalWithInstallments() {
+      const insurerName = document.getElementById('prop-insurer').value;
+      const branch = document.getElementById('prop-branch').value;
+      const premiumAmount = parseFloat(document.getElementById('prop-premium').value);
+      const insuredName = document.getElementById('prop-name').value;
+      const insuredPhone = document.getElementById('prop-phone').value;
+      const count = parseInt(document.getElementById('prop-installments-count').value);
+      const firstDueStr = document.getElementById('prop-first-due').value;
+
+      const installments = [];
+      const part = (premiumAmount / count).toFixed(2);
+      const baseDate = new Date(firstDueStr || Date.now());
+
+      for (let i = 1; i <= count; i++) {
+        const d = new Date(baseDate);
+        d.setMonth(d.getMonth() + (i - 1));
+        installments.push({
+          installmentNumber: i,
+          dueDate: d.toISOString().split('T')[0],
+          amount: Number(part),
+          paymentMethod: 'BOLETO',
+        });
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/policies/from-proposal-ocr`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`,
+          },
+          body: JSON.stringify({
+            insurerName,
+            branch,
+            premiumAmount,
+            insuredName,
+            insuredPhone,
+            installments,
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro ao criar apólice');
+
+        alert(`✅ Sucesso! Apólice criada com ${data.policy.installmentsCount || installments.length} parcelas salvas no banco de dados sem digitação manual.`);
+        switchTab('dashboard');
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    // Carregamento de Finanças & Alerta de Estorno
+    async function loadFinancesData() {
+      try {
+        const res = await fetch(`${API_BASE}/api/finances/overview`, {
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        const data = await res.json();
+        if (res.ok) {
+          document.getElementById('fin-total-premium').innerText = Number(data.summary.totalPremiumPortfolio || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+          document.getElementById('fin-total-commission').innerText = Number(data.summary.totalEstimatedCommission || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+          document.getElementById('fin-risk-commission').innerText = Number(data.summary.totalCommissionAtRisk || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+          const tbody = document.getElementById('clawback-risk-table-body');
+          tbody.innerHTML = '';
+          if (data.clawbackRiskList && data.clawbackRiskList.length > 0) {
+            data.clawbackRiskList.forEach(item => {
+              const tr = document.createElement('tr');
+              tr.className = 'border-b border-white/5 hover:bg-slate-800/40';
+              tr.innerHTML = `
+                <td class="py-2.5 font-bold text-white">${item.insuredName}<br><span class="text-slate-400 font-mono text-[10px]">${item.insuredPhone}</span></td>
+                <td>${item.insurerName}</td>
+                <td class="font-mono text-slate-300">${item.policyNumber}</td>
+                <td class="font-mono font-bold text-rose-400">R$ ${item.commissionAtRisk}</td>
+                <td class="text-amber-400">${item.overdueInstallmentsCount} parcela(s)</td>
+                <td class="text-right">
+                  <a href="https://wa.me/${item.insuredPhone.replace(/\D/g, '')}" target="_blank" class="px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded border border-emerald-500/30 text-[11px] font-mono">
+                    Cobrar no WhatsApp
+                  </a>
+                </td>
+              `;
+              tbody.appendChild(tr);
+            });
+          } else {
+            tbody.innerHTML = `<tr><td colspan="6" class="py-4 text-center text-slate-500">Nenhum risco de estorno encontrado. Parabéns!</td></tr>`;
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // Carregamento de Sinistros
+    async function loadClaimsData() {
+      try {
+        const [claimsRes, biRes] = await Promise.all([
+          fetch(`${API_BASE}/api/claims`, { headers: { Authorization: `Bearer ${currentToken}` } }),
+          fetch(`${API_BASE}/api/claims/analytics/bi`, { headers: { Authorization: `Bearer ${currentToken}` } })
+        ]);
+        const claims = await claimsRes.json();
+        const bi = await biRes.json();
+
+        if (bi.overview) {
+          document.getElementById('claim-bi-total').innerText = bi.overview.totalClaims;
+          document.getElementById('claim-bi-open').innerText = bi.overview.openClaims;
+          document.getElementById('claim-bi-indemnity').innerText = Number(bi.overview.totalIndemnityPaid || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+          document.getElementById('claim-bi-ratio').innerText = `${bi.overview.estimatedLossRatioPercent}%`;
+        }
+
+        const container = document.getElementById('claims-list-container');
+        container.innerHTML = '';
+        if (Array.isArray(claims) && claims.length > 0) {
+          claims.forEach(c => {
+            const item = document.createElement('div');
+            item.className = 'p-3 bg-slate-800/60 border border-white/5 rounded-xl flex items-center justify-between text-xs';
+            item.innerHTML = `
+              <div>
+                <div class="font-bold text-white">${c.incidentType} • ${c.insured?.name || 'Segurado'}</div>
+                <div class="text-slate-400 text-[11px]">${c.description}</div>
+              </div>
+              <div class="text-right font-mono">
+                <span class="px-2 py-0.5 rounded text-[10px] ${c.status === 'OPEN' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400'}">${c.status}</span>
+                <div class="text-slate-500 text-[10px] mt-1">${new Date(c.createdAt).toLocaleDateString('pt-BR')}</div>
+              </div>
+            `;
+            container.appendChild(item);
+          });
+        } else {
+          container.innerHTML = `<div class="py-4 text-center text-slate-500 text-xs">Nenhum sinistro registrado até o momento.</div>`;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    // Carregamento do WhatsApp da Equipe
+    async function loadInboxData() {
+      try {
+        const res = await fetch(`${API_BASE}/api/conversations`, {
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        const data = await res.json();
+        const list = document.getElementById('inbox-conversation-list');
+        list.innerHTML = '';
+
+        if (data.conversations && data.conversations.length > 0) {
+          data.conversations.forEach(c => {
+            const div = document.createElement('div');
+            div.className = 'p-3 hover:bg-slate-800/60 cursor-pointer transition-colors';
+            div.onclick = () => selectConversation(c.id, c.insured?.name || c.phone, c.phone, c.status);
+            div.innerHTML = `
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-xs text-white">${c.insured?.name || c.phone}</span>
+                <span class="text-[10px] text-slate-500 font-mono">${new Date(c.updatedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+              </div>
+              <p class="text-[11px] text-slate-400 truncate mt-0.5">${c.lastMessage?.text || 'Sem mensagens'}</p>
+              <div class="flex items-center gap-1.5 mt-1.5">
+                <span class="px-1.5 py-0.2 rounded text-[9px] font-mono ${c.status === 'AI_CONTROLLED' ? 'bg-sky-500/10 text-sky-400' : 'bg-emerald-500/10 text-emerald-400'}">${c.status}</span>
+              </div>
+            `;
+            list.appendChild(div);
+          });
+        } else {
+          list.innerHTML = `<div class="p-4 text-center text-slate-500 text-xs">Nenhuma conversa recebida no momento.</div>`;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function selectConversation(id, name, phone, status) {
+      currentSelectedConversationId = id;
+      document.getElementById('chat-insured-name').innerText = name;
+      document.getElementById('chat-insured-phone').innerText = phone;
+      document.getElementById('chat-status-badge').innerText = status;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/conversations/${id}/messages`, {
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        const conv = await res.json();
+        const container = document.getElementById('chat-messages-container');
+        container.innerHTML = '';
+
+        if (conv.messages && conv.messages.length > 0) {
+          conv.messages.forEach(m => {
+            const isOut = m.direction === 'OUTBOUND';
+            const msgEl = document.createElement('div');
+            msgEl.className = `flex ${isOut ? 'justify-end' : 'justify-start'}`;
+            msgEl.innerHTML = `
+              <div class="max-w-[75%] p-2.5 rounded-2xl text-xs ${isOut ? 'bg-sky-600 text-white rounded-tr-none' : 'bg-slate-800 text-slate-200 rounded-tl-none'}">
+                <p>${m.text}</p>
+                <div class="text-[9px] text-white/50 text-right mt-1 font-mono">${new Date(m.sentAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
+              </div>
+            `;
+            container.appendChild(msgEl);
+          });
+          container.scrollTop = container.scrollHeight;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function handleSendReply() {
+      const input = document.getElementById('chat-reply-input');
+      const text = input.value.trim();
+      if (!text || !currentSelectedConversationId) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/conversations/${currentSelectedConversationId}/reply`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`,
+          },
+          body: JSON.stringify({ text }),
+        });
+        if (res.ok) {
+          input.value = '';
+          const name = document.getElementById('chat-insured-name').innerText;
+          const phone = document.getElementById('chat-insured-phone').innerText;
+          selectConversation(currentSelectedConversationId, name, phone, 'HUMAN_CONTROLLED');
+        }
+      } catch (e) {
+        alert('Erro ao enviar mensagem: ' + e.message);
+      }
+    }
+
+    // Execuções da régua
+    async function triggerRunCadenceManual() {
+      const resEl = document.getElementById('cadence-manual-result');
+      resEl.innerText = 'Processando régua da corretora...';
+      try {
+        const res = await fetch(`${API_BASE}/api/installments/run-cadence`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        const data = await res.json();
+        resEl.innerText = `✅ Sucesso: ${data.message} (D-7: ${data.result?.d7Count || 0}, D-0: ${data.result?.d0Count || 0}, D+2: ${data.result?.d2Count || 0})`;
+      } catch (e) {
+        resEl.innerText = '❌ Erro ao executar: ' + e.message;
+      }
+    }
+
+    async function triggerRunRenewalsManual() {
+      const resEl = document.getElementById('renewals-manual-result');
+      resEl.innerText = 'Processando varredura de renovações da corretora...';
+      try {
+        const res = await fetch(`${API_BASE}/api/renewals/scan`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        const data = await res.json();
+        resEl.innerText = `✅ Sucesso: ${data.message} (60d: ${data.result?.created60 || 0}, 30d: ${data.result?.created30 || 0}, 15d: ${data.result?.created15 || 0})`;
+      } catch (e) {
+        resEl.innerText = '❌ Erro ao executar: ' + e.message;
+      }
+    }
+  </script>
+</body>
+</html>

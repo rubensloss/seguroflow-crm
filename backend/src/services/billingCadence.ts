@@ -1,12 +1,22 @@
 import { prisma } from "../config/prisma";
-import { sendWhatsAppTextMessage, sendWhatsAppTemplateMessage } from "./whatsappCloud";
+import {
+  sendWhatsAppTextMessage,
+  sendWhatsAppTemplateMessage,
+  TemplateComponent,
+} from "./whatsappCloud";
 import { decryptSensitive } from "../security/crypto";
 
 /**
  * Motor da Régua de Cobrança Preventiva (D-7, D-0, D+2)
  * Dispara automaticamente lembretes com código Pix / boleto da SEGURADORA.
+ *
+ * Em conformidade com as regras da Meta WhatsApp Cloud API:
+ * Disparos fora da janela de 24h utilizam TEMPLATES oficiais aprovados
+ * (cobranca_d7, cobranca_d0, cobranca_d2) com parâmetros dinâmicos.
+ *
+ * @param targetBrokerageId Opcional. Se informado, isola a execução exclusivamente para esta corretora.
  */
-export async function runBillingCadenceScan(): Promise<{
+export async function runBillingCadenceScan(targetBrokerageId?: string): Promise<{
   d7Count: number;
   d0Count: number;
   d2Count: number;
@@ -27,9 +37,12 @@ export async function runBillingCadenceScan(): Promise<{
   let d0Count = 0;
   let d2Count = 0;
 
+  const baseWhere = targetBrokerageId ? { brokerageId: targetBrokerageId } : {};
+
   // 1. Disparos D-7 (Vencimento em exatamente 7 dias)
   const installmentsD7 = await prisma.installment.findMany({
     where: {
+      ...baseWhere,
       status: "PENDING",
       sentD7At: null,
       dueDate: {
@@ -56,6 +69,7 @@ export async function runBillingCadenceScan(): Promise<{
   // 2. Disparos D-0 (Vencimento hoje)
   const installmentsD0 = await prisma.installment.findMany({
     where: {
+      ...baseWhere,
       status: { in: ["PENDING", "SENT_D7"] },
       sentD0At: null,
       dueDate: {
@@ -82,6 +96,7 @@ export async function runBillingCadenceScan(): Promise<{
   // 3. Disparos D+2 (Atraso de 2 dias após vencimento)
   const installmentsD2 = await prisma.installment.findMany({
     where: {
+      ...baseWhere,
       status: { in: ["PENDING", "SENT_D7", "SENT_D0"] },
       sentD2At: null,
       dueDate: {
@@ -131,26 +146,70 @@ async function dispatchInstallmentAlert(
     style: "currency",
     currency: "BRL",
   });
+  const paymentCode = installment.paymentCode || "Consulte o boleto enviado";
 
-  let message = "";
+  // Mapeamento de template oficial Meta por fase
+  const templateNameMap: Record<string, string> = {
+    "D-7": "cobranca_d7",
+    "D-0": "cobranca_d0",
+    "D+2": "cobranca_d2",
+  };
+  const templateName = templateNameMap[phase];
+
+  // Componentes estruturados para o template Meta
+  const components: TemplateComponent[] = [
+    {
+      type: "body",
+      parameters: [
+        { type: "text", text: insured.name },
+        { type: "text", text: policy.insurerName },
+        { type: "text", text: dueFormatted },
+        { type: "text", text: valorFormatted },
+        { type: "text", text: paymentCode },
+      ],
+    },
+  ];
+
+  // 1ª Tentativa: Envio via Template Oficial Aprovado (obrigatório fora da janela de 24h)
+  try {
+    const msgId = await sendWhatsAppTemplateMessage(
+      insured.phone,
+      templateName,
+      "pt_BR",
+      components,
+      brokerage.whatsappPhoneNumberId,
+      token
+    );
+    if (msgId) {
+      return true;
+    }
+  } catch (templateErr) {
+    console.warn(
+      `[BillingCadence] Template "${templateName}" falhou para ${insured.phone}. Tentando fallback de texto... Detalhes:`,
+      templateErr instanceof Error ? templateErr.message : templateErr
+    );
+  }
+
+  // Fallback: Envio via texto livre caso a conversa esteja dentro da janela de 24h
+  let fallbackMessage = "";
   if (phase === "D-7") {
-    message = `Olá, *${insured.name}*! Tudo bem?\n\nPassando para lembrar que a parcela ${installment.installmentNumber} do seu seguro (*${policy.insurerName}*) vence em *${dueFormatted}* no valor de *${valorFormatted}*.\n\nCódigo para pagamento:\n\`${installment.paymentCode || "Consulte o boleto enviado"}\`\n\nQualquer dúvida, estamos à disposição!`;
+    fallbackMessage = `Olá, *${insured.name}*! Tudo bem?\n\nPassando para lembrar que a parcela ${installment.installmentNumber} do seu seguro (*${policy.insurerName}*) vence em *${dueFormatted}* no valor de *${valorFormatted}*.\n\nCódigo para pagamento:\n\`${paymentCode}\`\n\nQualquer dúvida, estamos à disposição!`;
   } else if (phase === "D-0") {
-    message = `Olá, *${insured.name}*!\n\nLembramos que sua parcela do seguro (*${policy.insurerName}*) vence *HOJE (${dueFormatted})* no valor de *${valorFormatted}*.\n\nCódigo de pagamento:\n\`${installment.paymentCode || "Consulte seu boleto"}\`\n\nCaso já tenha efetuado o pagamento, por favor desconsidere!`;
+    fallbackMessage = `Olá, *${insured.name}*!\n\nLembramos que sua parcela do seguro (*${policy.insurerName}*) vence *HOJE (${dueFormatted})* no valor de *${valorFormatted}*.\n\nCódigo de pagamento:\n\`${paymentCode}\`\n\nCaso já tenha efetuado o pagamento, por favor desconsidere!`;
   } else {
-    message = `Atenção, *${insured.name}*!\n\nConstatamos que a parcela do seu seguro (*${policy.insurerName}*) com vencimento em ${dueFormatted} ainda não consta compensada. Para evitar a suspensão da cobertura da sua apólice, regularize seu pagamento:\n\nCódigo:\n\`${installment.paymentCode || "Consulte a corretora"}\``;
+    fallbackMessage = `Atenção, *${insured.name}*!\n\nConstatamos que a parcela do seu seguro (*${policy.insurerName}*) com vencimento em ${dueFormatted} ainda não consta compensada. Para evitar a suspensão da cobertura da sua apólice, regularize seu pagamento:\n\nCódigo:\n\`${paymentCode}\``;
   }
 
   try {
     await sendWhatsAppTextMessage(
       insured.phone,
-      message,
+      fallbackMessage,
       brokerage.whatsappPhoneNumberId,
       token
     );
     return true;
-  } catch (error) {
-    console.error(`Erro ao enviar alerta ${phase} para ${insured.phone}:`, error);
+  } catch (textErr) {
+    console.error(`[BillingCadence] Erro definitivo ao enviar alerta ${phase} para ${insured.phone}:`, textErr);
     return false;
   }
 }
