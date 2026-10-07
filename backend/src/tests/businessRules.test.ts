@@ -678,4 +678,57 @@ describe("SeguroFlow — Regras de Negócio e Segurança", () => {
     assert.equal(subBranchMap["RCTR-C"].renewed, 1);
     assert.equal(subBranchMap["Auto individual"].renewed, 1);
   });
+
+  test("Ausência de chave de IA (sem ANTHROPIC_API_KEY): NUNCA executa ferramentas fictícias e transfere para humano", async () => {
+    const { runAgentTurnDetailed } = require("../services/agent/claude");
+    const oldKey = process.env.ANTHROPIC_API_KEY;
+    delete process.env.ANTHROPIC_API_KEY;
+
+    try {
+      // Mensagem que antes abriria um sinistro fictício no modo mock por conter 'sinistro'
+      const userMsg = "Tive um sinistro agora na rodovia e preciso de socorro";
+      const result = await runAgentTurnDetailed({
+        brokerageName: "Corretora Teste",
+        brokerageId: "brk_inexistente_fallback_test",
+        phone: "5527999990000",
+        messageHistory: [],
+        userMessage: userMsg,
+        isSimulation: false,
+      });
+
+      // 1. Não pode inventar resposta simulada nem fingir que abriu sinistro
+      assert.ok(!result.reply.includes("Já abri um chamado de sinistro prioritário"));
+      assert.ok(!result.reply.includes("notifiquei o corretor responsável"));
+
+      // 2. Deve responder a mensagem fixa e honesta
+      assert.match(
+        result.reply,
+        /Recebemos sua mensagem\. Um atendente da Corretora Teste vai te responder em instantes\. Em caso de acidente, ligue /
+      );
+
+      // 3. Nenhuma ferramenta executada
+      assert.deepEqual(result.simulatedDispatches, []);
+    } finally {
+      if (oldKey) process.env.ANTHROPIC_API_KEY = oldKey;
+    }
+  });
+
+  test("Falha ou erro na API da Anthropic: aciona fallback transparente com status HUMAN_CONTROLLED e card no CRM", async () => {
+    const { handleAiUnavailableFallback } = require("../services/agent/claude");
+
+    const reply = await handleAiUnavailableFallback({
+      brokerageId: "brk_inexistente_fallback_test",
+      brokerageName: "Aliança Seguros Corretora",
+      phone: "5527999991234",
+      userMessage: "Quero saber o valor da renovação",
+      reason: "erro ou limite de crédito na API Anthropic",
+    });
+
+    assert.equal(
+      reply.startsWith("Recebemos sua mensagem. Um atendente da Aliança Seguros Corretora vai te responder em instantes."),
+      true
+    );
+    assert.ok(reply.includes("Em caso de acidente, ligue"));
+  });
 });
+
