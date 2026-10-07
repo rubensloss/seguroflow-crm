@@ -225,6 +225,11 @@ policiesRouter.post("/from-proposal-ocr", requireAuth, async (req: Request, res:
     const start = startDate ? new Date(startDate) : new Date();
     const end = endDate ? new Date(endDate) : new Date(start.getTime() + 365 * 24 * 60 * 60 * 1000);
 
+    const brk = await tx.brokerage.findUnique({
+      where: { id: brokerageId },
+      select: { phone: true, confirmedInsurers: true },
+    });
+
     const policy = await tx.policy.create({
       data: {
         brokerageId,
@@ -237,7 +242,7 @@ policiesRouter.post("/from-proposal-ocr", requireAuth, async (req: Request, res:
         premiumAmount: premNum,
         commissionPercentage: commPct,
         commissionAmount: commAmount,
-        assistance24hPhone: resolveAssistance24hPhone(assistance24hPhone, insurerName),
+        assistance24hPhone: resolveAssistance24hPhone(assistance24hPhone, insurerName, brk?.phone, brk?.confirmedInsurers as any),
         itemDescription: itemDescription || "Item segurado",
         status: "ACTIVE",
       },

@@ -16,6 +16,7 @@ const envSchema = z.object({
   GEMINI_API_KEY: z.string().optional().default(""),
   WHATSAPP_GRAPH_API_VERSION: z.string().default("v21.0"),
   CORS_ORIGIN: z.string().default("*"),
+  PUBLIC_BASE_URL: z.string().optional().default(""),
 });
 
 export const env = envSchema.parse(process.env);

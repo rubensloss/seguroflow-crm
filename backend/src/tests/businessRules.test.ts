@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import crypto from "crypto";
 import { encryptSensitive, decryptSensitive } from "../security/crypto";
 import { verifyTenantWhatsAppSignature } from "../services/whatsappCloud";
+import { escapeXml, parseTelephonyQueue, getWebhookFullUrl } from "../routes/telephony";
 
 describe("SeguroFlow — Regras de Negócio e Segurança", () => {
   test("Criptografia AES-256-GCM cifra e decifra tokens da Meta com autenticação", () => {
@@ -56,22 +57,38 @@ describe("SeguroFlow — Regras de Negócio e Segurança", () => {
     assert.equal(hoursElapsed30 > slaHours, true);
   });
 
-  test("Resolução de Assistência 24h sem fallback incorreto de outra seguradora", () => {
+  test("Resolução de Assistência 24h: NUNCA exibe números de seguradora não confirmados pela corretora", () => {
     const { resolveAssistance24hPhone } = require("../services/insurerDirectory");
 
-    // 1. Apólice com assistência cadastrada explicitamente
+    // 1. Apólice com assistência cadastrada explicitamente tem prioridade total
     assert.equal(resolveAssistance24hPhone("0800 111 2222", "Allianz", "552799998888"), "0800 111 2222");
 
-    // 2. Apólice sem assistência cadastrada, mas de seguradora reconhecida (Allianz)
-    assert.equal(resolveAssistance24hPhone(null, "Allianz Seguros", "552799998888"), "0800 013 0700");
+    // 2. Apólice sem assistência cadastrada e sem confirmação da corretora:
+    // NUNCA retorna número do diretório geral! Retorna estritamente o telefone da corretora.
+    assert.equal(
+      resolveAssistance24hPhone(null, "HDI Seguros", "552799998888"),
+      "Ligue para a sua corretora: 552799998888"
+    );
+    assert.equal(
+      resolveAssistance24hPhone("", "Porto Seguro", "552799998888"),
+      "Ligue para a sua corretora: 552799998888"
+    );
 
-    // 3. Porto Seguro reconhecida
-    assert.equal(resolveAssistance24hPhone("", "Porto Seguro", "552799998888"), "0800 727 0800");
+    // 3. Apólice com seguradora confirmada expressamente pela corretora no painel
+    const confirmedMap = {
+      "HDI Seguros": "0800 434 4340",
+      "SulAmérica": "4090-1012",
+    };
+    assert.equal(
+      resolveAssistance24hPhone(null, "HDI Seguros", "552799998888", confirmedMap),
+      "0800 434 4340"
+    );
 
-    // 4. Seguradora desconhecida/não cadastrada: JAMAIS retorna número da Porto! Retorna fallback da corretora
-    const fallbackResult = resolveAssistance24hPhone(null, "Seguradora Regional XPTO", "(27) 98814-0076");
-    assert.equal(fallbackResult, "Ligue para a sua corretora: (27) 98814-0076");
-    assert.notEqual(fallbackResult.includes("0800 727 0800"), true);
+    // 4. Sem telefone da corretora e sem apólice: mensagem amigável sem inventar número
+    assert.equal(
+      resolveAssistance24hPhone(null, "Seguradora Qualquer", null, null),
+      "Consulte sua corretora para acionar a assistência 24h"
+    );
   });
 
   test("Geração e validação de código OTP com token de desafio seguro (LGPD)", () => {
@@ -151,33 +168,88 @@ describe("SeguroFlow — Regras de Negócio e Segurança", () => {
     );
   });
 
-  test("Validação de assinatura do Webhook de Telefonia Oficial (Twilio HMAC-SHA1)", () => {
+  test("Validação de assinatura do Webhook de Telefonia Oficial (Twilio HMAC-SHA1 com HTTPS)", () => {
     const { validateTwilioWebhookSignature } = require("../services/telephony");
     const authToken = "auth_token_corretora_xyz987";
-    const url = "https://backend-production-a35b.up.railway.app/api/telephony/prime-seguros/webhook";
+    const httpsUrl = "https://backend-production-a35b.up.railway.app/api/telephony/prime-seguros/webhook";
     const params: Record<string, string> = {
       CallSid: "CA123456789",
       From: "+5527999887766",
       To: "+552730001234",
     };
 
-    // Gera assinatura válida
+    // Gera assinatura válida sobre URL HTTPS
     const sortedKeys = Object.keys(params).sort();
-    let data = url;
+    let data = httpsUrl;
     for (const key of sortedKeys) {
       data += `${key}${params[key]}`;
     }
     const hmac = crypto.createHmac("sha1", authToken).update(data, "utf-8");
     const validSignature = hmac.digest("base64");
 
-    // 1. Assinatura válida deve ser aceita
-    assert.equal(validateTwilioWebhookSignature(authToken, url, params, validSignature), true);
+    // 1. Assinatura válida sobre URL HTTPS deve ser aceita
+    assert.equal(validateTwilioWebhookSignature(authToken, httpsUrl, params, validSignature), true);
 
-    // 2. Assinatura inválida/forjada deve ser rejeitada
-    assert.equal(validateTwilioWebhookSignature(authToken, url, params, "invalid_signature_base64"), false);
+    // 2. Assinatura com URL HTTP divergente da HTTPS assinada deve falhar
+    const httpUrl = "http://backend-production-a35b.up.railway.app/api/telephony/prime-seguros/webhook";
+    assert.equal(validateTwilioWebhookSignature(authToken, httpUrl, params, validSignature), false);
 
-    // 3. Token de outra corretora deve ser rejeitado
-    assert.equal(validateTwilioWebhookSignature("outro_auth_token", url, params, validSignature), false);
+    // 3. Assinatura inválida/forjada deve ser rejeitada
+    assert.equal(validateTwilioWebhookSignature(authToken, httpsUrl, params, "invalid_signature_base64"), false);
+
+    // 4. Token de outra corretora deve ser rejeitado
+    assert.equal(validateTwilioWebhookSignature("outro_auth_token", httpsUrl, params, validSignature), false);
+  });
+
+  test("Sanitização e Escape de XML (TwiML) para evitar quebra de parser no Twilio", () => {
+    const maliciousOrSpecial = 'Atendimento & Sinistros <Urgente> "24 Horas" \'Oficial\'';
+    const escaped = escapeXml(maliciousOrSpecial);
+
+    assert.equal(escaped, "Atendimento &amp; Sinistros &lt;Urgente&gt; &quot;24 Horas&quot; &apos;Oficial&apos;");
+    assert.ok(!escaped.includes("<Urgente>"));
+    assert.ok(!escaped.includes("& "));
+  });
+
+  test("Fila sequencial de atendentes na telefonia e ausência de fallback para celular pessoal", () => {
+    // 1. Corretora com lista em telephonyQueue
+    const q1 = parseTelephonyQueue({
+      telephonyQueue: ["+5527999990001", "+5527999990002"],
+      telephonyForwardPhone: "+5527988880000",
+      phone: "+552730001000",
+    });
+    assert.deepEqual(q1, ["+5527999990001", "+5527999990002"]);
+
+    // 2. Corretora com telefones separados por vírgula em telephonyForwardPhone
+    const q2 = parseTelephonyQueue({
+      telephonyForwardPhone: "+5527999991111, +5527999992222",
+      phone: "+552730001000",
+    });
+    assert.deepEqual(q2, ["+5527999991111", "+5527999992222"]);
+
+    // 3. Corretora sem repasse e sem telefone: NUNCA retorna número pessoal hardcoded!
+    const qEmpty = parseTelephonyQueue({
+      telephonyQueue: null,
+      telephonyForwardPhone: null,
+      phone: null,
+    });
+    assert.equal(qEmpty.length, 0);
+    assert.equal(qEmpty.includes("+5527988140076"), false);
+  });
+
+  test("Reconstrução de URL completa para webhook com suporte a X-Forwarded-Proto (Railway)", () => {
+    // Simula requisição recebida via proxy reverso com HTTPS terminado no Railway
+    const mockReq = {
+      protocol: "http",
+      headers: {
+        "x-forwarded-proto": "https",
+        "x-forwarded-host": "backend-production-a35b.up.railway.app",
+      },
+      originalUrl: "/api/telephony/test-corretora/webhook",
+      get: (header: string) => (header === "host" ? "internal-ip:3000" : undefined),
+    } as any;
+
+    const fullUrl = getWebhookFullUrl(mockReq);
+    assert.equal(fullUrl, "https://backend-production-a35b.up.railway.app/api/telephony/test-corretora/webhook");
   });
 
   test("Transcrição e extração de chamada sem placa gera campo vazio (null), nunca inventado", async () => {
@@ -203,17 +275,4 @@ describe("SeguroFlow — Regras de Negócio e Segurança", () => {
     const cost3Min = estimateCallCost(180);
     assert.ok(cost3Min > cost1Min, "Custo de 3 min deve ser maior que 1 min");
   });
-
-  test("Resolução de assistência 24h prioriza mapa customizado da corretora", () => {
-    const { resolveAssistance24hPhone } = require("../services/insurerDirectory");
-
-    const customBrokerageMap = {
-      "Allianz": "0800 999 8888 (Central VIP)",
-    };
-
-    // Deve retornar o número personalizado confirmado pela corretora
-    const customResult = resolveAssistance24hPhone(null, "Allianz", "552799998888", customBrokerageMap);
-    assert.equal(customResult, "0800 999 8888 (Central VIP)");
-  });
 });
-

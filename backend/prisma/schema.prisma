@@ -150,6 +150,7 @@ model Brokerage {
   telephonyProvider            String?  // TWILIO, ZENVIA, TOTALVOICE, CUSTOM
   telephonyNumber              String?  // Número oficial contratado (DID/0800)
   telephonyForwardPhone        String?  // Celular/ramal do corretor para repasse
+  telephonyQueue               Json?    // Fila ordenada de atendentes/telefones da equipe
   telephonyAccountSidEncrypted String?  // Criptografado AES-256-GCM
   telephonyAuthTokenEncrypted  String?  // Criptografado AES-256-GCM
   telephonyRecordingNotice     String?  @default("Esta ligação é gravada para agilizar o seu atendimento.")

@@ -247,7 +247,7 @@ clientPortalRouter.get("/dashboard", requireInsuredAuth, async (req: Request, re
   const insured = await prisma.insured.findFirst({
     where: { id: insuredId, brokerageId },
     include: {
-      brokerage: { select: { name: true, phone: true, email: true } },
+      brokerage: { select: { name: true, phone: true, email: true, confirmedInsurers: true } },
       policies: {
         where: { status: "ACTIVE" },
         include: {
@@ -272,7 +272,7 @@ clientPortalRouter.get("/dashboard", requireInsuredAuth, async (req: Request, re
 
   // Formata cartões virtuais de seguro com número de assistência resolvido corretamente
   const virtualCards = insured.policies.map((pol) => {
-    const phone = resolveAssistance24hPhone(pol.assistance24hPhone, pol.insurerName, insured.brokerage.phone);
+    const phone = resolveAssistance24hPhone(pol.assistance24hPhone, pol.insurerName, insured.brokerage.phone, (insured.brokerage as any).confirmedInsurers);
     const cleanPhone = phone.replace(/\D/g, "");
     return {
       policyId: pol.id,

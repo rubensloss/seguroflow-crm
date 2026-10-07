@@ -164,6 +164,7 @@ brokeragesRouter.get("/settings/telephony", requireAuth, async (req: Request, re
       telephonyProvider: true,
       telephonyNumber: true,
       telephonyForwardPhone: true,
+      telephonyQueue: true,
       telephonyRecordingNotice: true,
       telephonyAccountSidEncrypted: true,
       telephonyAuthTokenEncrypted: true,
@@ -174,6 +175,7 @@ brokeragesRouter.get("/settings/telephony", requireAuth, async (req: Request, re
     telephonyProvider: brokerage?.telephonyProvider || "TWILIO",
     telephonyNumber: brokerage?.telephonyNumber || "",
     telephonyForwardPhone: brokerage?.telephonyForwardPhone || "",
+    telephonyQueue: brokerage?.telephonyQueue || [],
     telephonyRecordingNotice: brokerage?.telephonyRecordingNotice || "Esta ligação é gravada para agilizar o seu atendimento.",
     hasAccountSid: Boolean(brokerage?.telephonyAccountSidEncrypted),
     hasAuthToken: Boolean(brokerage?.telephonyAuthTokenEncrypted),
@@ -186,6 +188,7 @@ brokeragesRouter.put("/settings/telephony", requireAuth, requireRoles(["OWNER", 
     telephonyProvider,
     telephonyNumber,
     telephonyForwardPhone,
+    telephonyQueue,
     telephonyAccountSid,
     telephonyAuthToken,
     telephonyRecordingNotice,
@@ -197,6 +200,10 @@ brokeragesRouter.put("/settings/telephony", requireAuth, requireRoles(["OWNER", 
     telephonyForwardPhone,
     telephonyRecordingNotice: telephonyRecordingNotice || "Esta ligação é gravada para agilizar o seu atendimento.",
   };
+
+  if (telephonyQueue !== undefined) {
+    dataToUpdate.telephonyQueue = Array.isArray(telephonyQueue) ? telephonyQueue : null;
+  }
 
   if (telephonyAccountSid) {
     dataToUpdate.telephonyAccountSidEncrypted = encryptSensitive(telephonyAccountSid);

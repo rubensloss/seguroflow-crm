@@ -380,7 +380,7 @@ claimsRouter.post("/online-intake", async (req: Request, res: Response) => {
   }
 
   const protocol = `SIN-${new Date().getFullYear()}-${claim.id.slice(-6).toUpperCase()}`;
-  const assistancePhone = resolveAssistance24hPhone(policy.assistance24hPhone, policy.insurerName, brokerage.phone);
+  const assistancePhone = resolveAssistance24hPhone(policy.assistance24hPhone, policy.insurerName, brokerage.phone, (brokerage as any).confirmedInsurers);
 
   res.status(201).json({
     success: true,

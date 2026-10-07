@@ -28,6 +28,9 @@ import { startInternalScheduler, getSchedulerStatus } from "./services/scheduler
 
 const app = express();
 
+// Confia no primeiro proxy reverso (Railway / Cloudflare / Nginx) para obter proto HTTPS e IPs reais
+app.set("trust proxy", 1);
+
 // Segurança
 app.use(helmet());
 app.use(

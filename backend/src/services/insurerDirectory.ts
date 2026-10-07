@@ -1,7 +1,8 @@
 /**
- * Diretório Oficial de Assistência 24h e Sinistros das Principais Seguradoras no Brasil.
- * Conferido nos canais oficiais de atendimento em 06/10/2026.
- * Serve como base de sugestão para as corretoras, com validação e confirmação por tenant.
+ * Diretório de Sugestão de Assistência 24h e Sinistros das Seguradoras no Brasil.
+ * Serve como base de SUGESTÃO para as corretoras no painel de configurações.
+ * REGRA ESTRITA: Nenhum número daqui é exibido diretamente ao segurado a menos que
+ * a corretora o confirme expressamente em seu painel (confirmedInsurers).
  */
 
 export interface InsurerInfo {
@@ -12,7 +13,7 @@ export interface InsurerInfo {
   website: string;
   verifiedAt: string;
   sourceUrl: string;
-  status: "SUGGESTION_PENDING_BROKERAGE_CONFIRMATION" | "VERIFIED_OFFICIAL";
+  status: "SUGGESTION_PENDING_BROKERAGE_CONFIRMATION";
 }
 
 export const OFFICIAL_INSURERS: InsurerInfo[] = [
@@ -24,7 +25,7 @@ export const OFFICIAL_INSURERS: InsurerInfo[] = [
     website: "https://www.portoseguro.com.br",
     verifiedAt: "2026-10-06",
     sourceUrl: "https://www.portoseguro.com.br/central-de-ajuda/telefones",
-    status: "VERIFIED_OFFICIAL",
+    status: "SUGGESTION_PENDING_BROKERAGE_CONFIRMATION",
   },
   {
     name: "Azul Seguros",
@@ -34,7 +35,7 @@ export const OFFICIAL_INSURERS: InsurerInfo[] = [
     website: "https://www.azulseguros.com.br",
     verifiedAt: "2026-10-06",
     sourceUrl: "https://www.azulseguros.com.br/telefones-uteis",
-    status: "VERIFIED_OFFICIAL",
+    status: "SUGGESTION_PENDING_BROKERAGE_CONFIRMATION",
   },
   {
     name: "Bradesco Seguros",
@@ -44,7 +45,7 @@ export const OFFICIAL_INSURERS: InsurerInfo[] = [
     website: "https://www.bradescoseguros.com.br",
     verifiedAt: "2026-10-06",
     sourceUrl: "https://www.bradescoseguros.com.br/clientes/atendimento",
-    status: "VERIFIED_OFFICIAL",
+    status: "SUGGESTION_PENDING_BROKERAGE_CONFIRMATION",
   },
   {
     name: "Allianz Seguros",
@@ -54,7 +55,7 @@ export const OFFICIAL_INSURERS: InsurerInfo[] = [
     website: "https://www.allianz.com.br",
     verifiedAt: "2026-10-06",
     sourceUrl: "https://www.allianz.com.br/fale-com-a-allianz",
-    status: "VERIFIED_OFFICIAL",
+    status: "SUGGESTION_PENDING_BROKERAGE_CONFIRMATION",
   },
   {
     name: "Tokio Marine",
@@ -64,27 +65,27 @@ export const OFFICIAL_INSURERS: InsurerInfo[] = [
     website: "https://www.tokiomarine.com.br",
     verifiedAt: "2026-10-06",
     sourceUrl: "https://www.tokiomarine.com.br/atendimento",
-    status: "VERIFIED_OFFICIAL",
+    status: "SUGGESTION_PENDING_BROKERAGE_CONFIRMATION",
   },
   {
     name: "HDI Seguros",
     aliases: ["hdi", "hdi seguros", "yelum"],
-    assistance24hPhone: "0800 770 1608",
+    assistance24hPhone: "0800 434 4340 / 3003-5390",
     whatsappPhone: "551140021661",
     website: "https://www.hdiseguros.com.br",
     verifiedAt: "2026-10-06",
-    sourceUrl: "https://www.hdiseguros.com.br/fale-conosco",
-    status: "VERIFIED_OFFICIAL",
+    sourceUrl: "https://www.hdiseguros.com.br/contato/telefones-uteis",
+    status: "SUGGESTION_PENDING_BROKERAGE_CONFIRMATION",
   },
   {
     name: "SulAmérica",
     aliases: ["sulamerica", "sul américa", "sulamérica seguros"],
-    assistance24hPhone: "0800 725 0505",
+    assistance24hPhone: "4090-1012 / 0800 777 1012 (Auto Allianz) / 0800 725 0505 (Saúde/Vida)",
     whatsappPhone: "551130049740",
     website: "https://www.sulamerica.com.br",
     verifiedAt: "2026-10-06",
     sourceUrl: "https://www.sulamerica.com.br/canais-de-atendimento",
-    status: "VERIFIED_OFFICIAL",
+    status: "SUGGESTION_PENDING_BROKERAGE_CONFIRMATION",
   },
   {
     name: "Mapfre Seguros",
@@ -94,7 +95,7 @@ export const OFFICIAL_INSURERS: InsurerInfo[] = [
     website: "https://www.mapfre.com.br",
     verifiedAt: "2026-10-06",
     sourceUrl: "https://www.mapfre.com.br/fale-conosco",
-    status: "VERIFIED_OFFICIAL",
+    status: "SUGGESTION_PENDING_BROKERAGE_CONFIRMATION",
   },
   {
     name: "Sompo Seguros",
@@ -104,7 +105,7 @@ export const OFFICIAL_INSURERS: InsurerInfo[] = [
     website: "https://www.sompo.com.br",
     verifiedAt: "2026-10-06",
     sourceUrl: "https://www.sompo.com.br/fale-conosco",
-    status: "VERIFIED_OFFICIAL",
+    status: "SUGGESTION_PENDING_BROKERAGE_CONFIRMATION",
   },
   {
     name: "Zurich Seguros",
@@ -114,7 +115,7 @@ export const OFFICIAL_INSURERS: InsurerInfo[] = [
     website: "https://www.zurich.com.br",
     verifiedAt: "2026-10-06",
     sourceUrl: "https://www.zurich.com.br/atendimento",
-    status: "VERIFIED_OFFICIAL",
+    status: "SUGGESTION_PENDING_BROKERAGE_CONFIRMATION",
   },
   {
     name: "Suhai Seguradora",
@@ -124,27 +125,28 @@ export const OFFICIAL_INSURERS: InsurerInfo[] = [
     website: "https://suhaiseguradora.com",
     verifiedAt: "2026-10-06",
     sourceUrl: "https://suhaiseguradora.com/contato",
-    status: "VERIFIED_OFFICIAL",
+    status: "SUGGESTION_PENDING_BROKERAGE_CONFIRMATION",
   },
   {
     name: "Liberty Seguros",
-    aliases: ["liberty", "liberty seguros"],
+    aliases: ["liberty", "liberty seguros", "yelum"],
     assistance24hPhone: "0800 701 4120",
     whatsappPhone: "551132656200",
     website: "https://www.libertyseguros.com.br",
     verifiedAt: "2026-10-06",
     sourceUrl: "https://www.libertyseguros.com.br/atendimento",
-    status: "VERIFIED_OFFICIAL",
+    status: "SUGGESTION_PENDING_BROKERAGE_CONFIRMATION",
   },
 ];
 
 /**
- * Obtém o telefone de assistência 24h seguro para o segurado.
- * Ordem rigorosa de prioridade:
+ * Obtém o telefone de assistência 24h para o segurado.
+ * REGRA ESTRITA DE PRODUÇÃO (Rodada 6):
  * 1. Número cadastrado na apólice do segurado (se existir).
- * 2. Número da seguradora expressamente confirmado pela corretora (confirmedInsurersMap).
- * 3. Se a corretora autorizar ou se for seguradora oficial verificada, retorna o 0800 verificado.
- * 4. Fallback estrito: NUNCA inventa número — retorna contato direto com a corretora.
+ * 2. Tabela de seguradoras confirmada expressamente pela corretora (confirmedInsurersMap).
+ * 3. Fallback estrito: NUNCA exibe número de seguradora não confirmado pelo corretor.
+ *    Retorna contato direto com a corretora.
+ * 4. A lista padrão (OFFICIAL_INSURERS) é APENAS sugestão no painel para o corretor conferir.
  */
 export function resolveAssistance24hPhone(
   policyAssistancePhone?: string | null,
@@ -152,31 +154,22 @@ export function resolveAssistance24hPhone(
   brokeragePhone?: string | null,
   confirmedInsurersMap?: Record<string, string> | null
 ): string {
+  // 1. Número da apólice
   if (policyAssistancePhone && policyAssistancePhone.trim().length > 0) {
     return policyAssistancePhone.trim();
   }
 
-  if (insurerName) {
+  // 2. Confirmação expressa da corretora no painel
+  if (insurerName && confirmedInsurersMap) {
     const cleanInsurer = insurerName.toLowerCase().trim();
-
-    // 1. Confirmação customizada da corretora
-    if (confirmedInsurersMap) {
-      for (const [key, phone] of Object.entries(confirmedInsurersMap)) {
-        if (cleanInsurer.includes(key.toLowerCase()) && phone?.trim()) {
-          return phone.trim();
-        }
+    for (const [key, phone] of Object.entries(confirmedInsurersMap)) {
+      if (cleanInsurer.includes(key.toLowerCase()) && phone && phone.trim().length > 0) {
+        return phone.trim();
       }
-    }
-
-    // 2. Consulta à lista verificada com fontes oficiais
-    const found = OFFICIAL_INSURERS.find(
-      (ins) => ins.name.toLowerCase() === cleanInsurer || ins.aliases.some((a) => cleanInsurer.includes(a))
-    );
-    if (found) {
-      return found.assistance24hPhone;
     }
   }
 
+  // 3. Fallback estrito: NUNCA inventa nem usa número não confirmado pela corretora
   if (brokeragePhone && brokeragePhone.trim().length > 0) {
     return `Ligue para a sua corretora: ${brokeragePhone.trim()}`;
   }
