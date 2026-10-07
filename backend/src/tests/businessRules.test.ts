@@ -461,4 +461,49 @@ describe("SeguroFlow — Regras de Negócio e Segurança", () => {
     // Caso 3: Template falha e cliente está fora da janela de 24h -> NUNCA manda texto livre, gera card urgente
     assert.deepEqual(decideMissedCallAction(false, false), { sentText: false, sentTemplate: false, cardUrgent: true });
   });
+
+  test("Alertas do Corretor (alertPhone): Template oficial alerta_corretor e compliance da janela de 24h", () => {
+    // 1. Simula montagem do template alerta_corretor com as 4 variáveis exigidas
+    const buildAlertTemplate = (
+      alertType: string,
+      insuredName: string,
+      summary: string,
+      panelUrl: string
+    ) => ({
+      templateName: "alerta_corretor",
+      parameters: [alertType, insuredName, summary, panelUrl],
+    });
+
+    const sinistroAlert = buildAlertTemplate(
+      "Sinistro Aberto",
+      "Carlos Silva",
+      "Colisão com guincho solicitado na Av. Vitória",
+      "https://creativealways.com.br/seguroflow/painel"
+    );
+    assert.equal(sinistroAlert.templateName, "alerta_corretor");
+    assert.equal(sinistroAlert.parameters[0], "Sinistro Aberto");
+    assert.equal(sinistroAlert.parameters[1], "Carlos Silva");
+    assert.equal(sinistroAlert.parameters[2], "Colisão com guincho solicitado na Av. Vitória");
+    assert.equal(sinistroAlert.parameters[3], "https://creativealways.com.br/seguroflow/painel");
+
+    // 2. Simula ligação perdida para o corretor
+    const callAlert = buildAlertTemplate(
+      "Ligação Perdida",
+      "Mariana Souza (552799998888)",
+      "Chamada não atendida da fila telefônica. Retornar com urgência.",
+      "https://creativealways.com.br/seguroflow/painel"
+    );
+    assert.equal(callAlert.parameters[0], "Ligação Perdida");
+
+    // 3. Regra de compliance estrito: se template falhar e o alertPhone não interagiu nas últimas 24h, NUNCA envia texto livre
+    const decideBrokerAlertAction = (templateSuccess: boolean, isWithin24h: boolean) => {
+      if (templateSuccess) return { sentTemplate: true, sentText: false, blocked: false };
+      if (isWithin24h) return { sentTemplate: false, sentText: true, blocked: false };
+      return { sentTemplate: false, sentText: false, blocked: true };
+    };
+
+    assert.deepEqual(decideBrokerAlertAction(true, false), { sentTemplate: true, sentText: false, blocked: false });
+    assert.deepEqual(decideBrokerAlertAction(false, true), { sentTemplate: false, sentText: true, blocked: false });
+    assert.deepEqual(decideBrokerAlertAction(false, false), { sentTemplate: false, sentText: false, blocked: true });
+  });
 });

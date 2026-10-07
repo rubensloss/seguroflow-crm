@@ -353,6 +353,19 @@ brokeragesRouter.get("/settings/templates", requireAuth, async (req: Request, re
       ],
       suggestedText: "Olá! Identificamos que você acabou de ligar para a {{1}}. Nossa equipe já registrou seu contato e retornará em breve. Em caso de emergência ou guincho 24h, ligue: {{2}}",
     },
+    {
+      name: "alerta_corretor",
+      category: "UTILITY",
+      description: "Aviso interno prioritário para o celular de plantão/alerta do corretor sobre sinistros e chamadas perdidas.",
+      trigger: "Abertura de Sinistro (Portal/IA) ou Ligação Telefônica Perdida",
+      variables: [
+        { index: 1, name: "Tipo do Alerta", example: "Sinistro Aberto" },
+        { index: 2, name: "Nome do Segurado / Contato", example: "Carlos Silva" },
+        { index: 3, name: "Resumo da Ocorrência", example: "Colisão com guincho solicitado na Av. Vitória" },
+        { index: 4, name: "Link do Painel", example: "https://creativealways.com.br/seguroflow/painel" },
+      ],
+      suggestedText: "⚠️ Alerta Corretora: {{1}} registrado para {{2}}. Resumo: {{3}}. Acesse o painel para gerenciar o atendimento: {{4}}",
+    },
   ];
 
   let metaTemplatesMap: Record<string, { status: string; id?: string }> = {};

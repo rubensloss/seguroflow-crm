@@ -1,6 +1,11 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { prisma } from "../../config/prisma";
-import { sendWhatsAppTextMessage } from "../whatsappCloud";
+import { env } from "../../config/env";
+import {
+  sendWhatsAppTextMessage,
+  sendWhatsAppTemplateMessage,
+  isWithinCustomer24hWindow,
+} from "../whatsappCloud";
 import { decryptSensitive } from "../../security/crypto";
 import { resolveAssistance24hPhone } from "../insurerDirectory";
 
@@ -216,12 +221,46 @@ export async function executeAgentTool(
         include: { policy: true, insured: true, brokerage: true },
       });
 
-      // Notifica o corretor no WhatsApp caso tenha alertPhone configurado
+      // Notifica o corretor no WhatsApp oficial (Template alerta_corretor) se configurado alertPhone
       if (claim.brokerage.alertPhone && claim.brokerage.whatsappPhoneNumberId && claim.brokerage.whatsappAccessTokenEncrypted) {
         const token = decryptSensitive(claim.brokerage.whatsappAccessTokenEncrypted);
         if (token) {
-          const alertMsg = `🚨 *ALERTA DE SINISTRO - SeguroFlow*\n\nSegurado: *${claim.insured.name}*\nTipo: *${claim.incidentType}*\nSeguradora: *${claim.policy.insurerName}*\nTelefone: ${claim.insured.phone}\nRelato: ${claim.description}`;
-          sendWhatsAppTextMessage(claim.brokerage.alertPhone, alertMsg, claim.brokerage.whatsappPhoneNumberId, token).catch(() => {});
+          const alertPhone = claim.brokerage.alertPhone;
+          const phoneNumberId = claim.brokerage.whatsappPhoneNumberId;
+          const panelUrl = `${env.PUBLIC_BASE_URL || "https://creativealways.com.br/seguroflow/painel"}`;
+          const summary = `${claim.incidentType}${claim.incidentLocation ? ` em ${claim.incidentLocation}` : ""}: ${claim.description.slice(0, 80)}`;
+
+          try {
+            const components = [
+              {
+                type: "body" as const,
+                parameters: [
+                  { type: "text" as const, text: "Sinistro Aberto (IA)" },
+                  { type: "text" as const, text: claim.insured.name },
+                  { type: "text" as const, text: summary },
+                  { type: "text" as const, text: panelUrl },
+                ],
+              },
+            ];
+
+            await sendWhatsAppTemplateMessage(
+              alertPhone,
+              "alerta_corretor",
+              "pt_BR",
+              components,
+              phoneNumberId,
+              token
+            );
+          } catch (templateErr) {
+            console.warn("[Agent Tools] Template alerta_corretor falhou para alertPhone. Verificando janela 24h...", templateErr);
+            const inWindow = await isWithinCustomer24hWindow(brokerageId, alertPhone);
+            if (inWindow) {
+              const alertMsg = `🚨 *ALERTA DE SINISTRO - SeguroFlow*\n\nSegurado: *${claim.insured.name}*\nTipo: *${claim.incidentType}*\nSeguradora: *${claim.policy.insurerName}*\nTelefone: ${claim.insured.phone}\nRelato: ${claim.description}\n\nAcesse: ${panelUrl}`;
+              await sendWhatsAppTextMessage(alertPhone, alertMsg, phoneNumberId, token).catch(() => {});
+            } else {
+              console.warn(`[Agent Tools] Celular de alerta (${alertPhone}) fora da janela de 24h. Texto livre bloqueado para evitar rejeição da Meta.`);
+            }
+          }
         }
       }
 

@@ -318,17 +318,50 @@ SeguroFlow · Atendimento Inteligente`;
     console.warn("Não foi possível processar WhatsApp de chamada perdida:", err);
   }
 
-  // 2. Alerta imediato no WhatsApp do corretor se houver alertPhone
+  // 2. Alerta imediato no WhatsApp do corretor (Template alerta_corretor) se houver alertPhone
   if (brokerage.alertPhone && brokerage.whatsappAccessTokenEncrypted && brokerage.whatsappPhoneNumberId) {
     try {
       const token = decryptSensitive(brokerage.whatsappAccessTokenEncrypted);
       if (token) {
-        await sendWhatsAppTextMessage(
-          brokerage.alertPhone,
-          `⚠️ [LIGAÇÃO PERDIDA] O número ${fromPhone}${insured ? ` (${insured.name})` : ""} acabou de ligar para a sua corretora e não foi atendido. Retorne imediatamente!`,
-          brokerage.whatsappPhoneNumberId,
-          token
-        );
+        const callerDisplay = insured ? `${insured.name} (${fromPhone})` : fromPhone;
+        const panelUrl = `${env.PUBLIC_BASE_URL || "https://creativealways.com.br/seguroflow/painel"}`;
+        const summary = `Chamada não atendida da fila telefônica. Retornar com urgência.`;
+
+        try {
+          const components = [
+            {
+              type: "body" as const,
+              parameters: [
+                { type: "text" as const, text: "Ligação Perdida" },
+                { type: "text" as const, text: callerDisplay },
+                { type: "text" as const, text: summary },
+                { type: "text" as const, text: panelUrl },
+              ],
+            },
+          ];
+
+          await sendWhatsAppTemplateMessage(
+            brokerage.alertPhone,
+            "alerta_corretor",
+            "pt_BR",
+            components,
+            brokerage.whatsappPhoneNumberId,
+            token
+          );
+        } catch (templateErr) {
+          console.warn("[Telephony] Template alerta_corretor falhou para alertPhone. Verificando janela 24h...", templateErr);
+          const inWindow = await isWithinCustomer24hWindow(brokerageId, brokerage.alertPhone);
+          if (inWindow) {
+            await sendWhatsAppTextMessage(
+              brokerage.alertPhone,
+              `⚠️ [LIGAÇÃO PERDIDA] O número ${fromPhone}${insured ? ` (${insured.name})` : ""} acabou de ligar para a sua corretora e não foi atendido. Retorne imediatamente!`,
+              brokerage.whatsappPhoneNumberId,
+              token
+            );
+          } else {
+            console.warn(`[Telephony] Celular de alerta (${brokerage.alertPhone}) fora da janela de 24h. Texto livre bloqueado para evitar rejeição da Meta.`);
+          }
+        }
       }
     } catch (e) {
       console.warn("Falha ao notificar alertPhone sobre ligação perdida:", e);

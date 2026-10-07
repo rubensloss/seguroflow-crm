@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { z } from "zod";
 import { ClaimStatus } from "@prisma/client";
 import { prisma } from "../config/prisma";
+import { env } from "../config/env";
 import { requireAuth } from "../security/auth";
 import { recordAuditLog } from "../services/auditLog";
 import { checkRateLimit } from "../security/rateLimit";
@@ -459,15 +460,52 @@ claimsRouter.post("/online-intake", async (req: Request, res: Response) => {
     },
   });
 
-  // Notifica o corretor via WhatsApp se configurado alertPhone
+  // Notifica o corretor via WhatsApp oficial (Template alerta_corretor) se configurado alertPhone
   if (brokerage.alertPhone && brokerage.whatsappPhoneNumberId && brokerage.whatsappAccessTokenEncrypted) {
     const alertPhone = brokerage.alertPhone;
     const phoneNumberId = brokerage.whatsappPhoneNumberId;
     try {
       const token = decryptSensitive(brokerage.whatsappAccessTokenEncrypted);
       if (token) {
-        const alertMsg = `🚨 *NOVO SINISTRO REGISTRADO — ${brokerage.name}*\n\nProtocolo: SIN-${claim.id.slice(-6).toUpperCase()}\nSegurado: ${policy.insured.name}\nApólice: ${policy.policyNumber}\nTipo: ${incidentType}\nDescrição: ${description}\n\nAcesse o painel para iniciar o atendimento!`;
-        await sendWhatsAppTextMessage(alertPhone, alertMsg, phoneNumberId, token);
+        const panelUrl = `${env.PUBLIC_BASE_URL || "https://creativealways.com.br/seguroflow/painel"}`;
+        const summary = `${incidentType}${incidentLocation ? ` em ${incidentLocation}` : ""}: ${description.slice(0, 80)}`;
+
+        let alertSent = false;
+        // 1ª Tentativa: Envio via template oficial "alerta_corretor" (homologado pela Meta)
+        try {
+          const components = [
+            {
+              type: "body" as const,
+              parameters: [
+                { type: "text" as const, text: "Sinistro Aberto" },
+                { type: "text" as const, text: policy.insured.name },
+                { type: "text" as const, text: summary },
+                { type: "text" as const, text: panelUrl },
+              ],
+            },
+          ];
+
+          const msgId = await sendWhatsAppTemplateMessage(
+            alertPhone,
+            "alerta_corretor",
+            "pt_BR",
+            components,
+            phoneNumberId,
+            token
+          );
+          if (msgId) alertSent = true;
+        } catch (templateErr) {
+          console.warn("[Claims] Template alerta_corretor falhou para alertPhone. Verificando janela de 24h...", templateErr);
+          // 2ª Tentativa: Texto livre apenas se corretor estiver na janela de 24h
+          const inWindow = await isWithinCustomer24hWindow(brokerage.id, alertPhone);
+          if (inWindow) {
+            const alertMsg = `🚨 *NOVO SINISTRO REGISTRADO — ${brokerage.name}*\n\nProtocolo: SIN-${claim.id.slice(-6).toUpperCase()}\nSegurado: ${policy.insured.name}\nApólice: ${policy.policyNumber}\nTipo: ${incidentType}\nDescrição: ${description}\n\nAcesse o painel: ${panelUrl}`;
+            await sendWhatsAppTextMessage(alertPhone, alertMsg, phoneNumberId, token);
+            alertSent = true;
+          } else {
+            console.warn(`[Claims] Celular de alerta (${alertPhone}) fora da janela de 24h. Texto livre bloqueado para evitar rejeição da Meta.`);
+          }
+        }
       }
     } catch (err) {
       console.error("[Alerta Sinistro Corretor Error]:", err);
