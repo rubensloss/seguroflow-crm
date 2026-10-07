@@ -501,23 +501,35 @@
           </div>
         `;
       } else {
-        claimsContainer.innerHTML = claims.map(c => `
+        const claimLabels = {
+          OPEN: { text: "Aberto / Em Triagem", color: "bg-sky-500/10 text-sky-400 border-sky-500/20" },
+          DOCS_COLLECTED: { text: "Docs Recebidos", color: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20" },
+          FORWARDED_TO_INSURER: { text: "Enviado à Seguradora", color: "bg-purple-500/10 text-purple-400 border-purple-500/20" },
+          IN_ANALYSIS: { text: "Em Análise", color: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
+          APPROVED: { text: "Aprovado", color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
+          REJECTED: { text: "Recusado", color: "bg-rose-500/10 text-rose-400 border-rose-500/20" },
+          CLOSED: { text: "Encerrado", color: "bg-slate-500/10 text-slate-400 border-slate-500/20" },
+        };
+        claimsContainer.innerHTML = claims.map(c => {
+          const badge = claimLabels[c.status] || { text: c.status, color: "bg-sky-500/10 text-sky-400 border-sky-500/20" };
+          return `
           <div class="bg-slate-900/80 border border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div class="flex items-center gap-2">
                 <span class="text-xs font-mono font-bold text-white">Sinistro #${c.id.slice(-6)}</span>
-                <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-sky-500/10 text-sky-400 border border-sky-500/20 font-bold uppercase">
-                  ${c.status}
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono border font-bold uppercase ${badge.color}">
+                  ${badge.text}
                 </span>
               </div>
               <p class="text-xs text-slate-300 mt-1">${c.description || "Sem descrição"}</p>
-              <p class="text-[10px] text-slate-500 font-mono mt-1">Ocorrido em: ${new Date(c.eventDate).toLocaleDateString('pt-BR')} · Local: ${c.location || "Não informado"}</p>
+              <p class="text-[10px] text-slate-500 font-mono mt-1">Ocorrido em: ${new Date(c.eventDate || c.createdAt).toLocaleDateString('pt-BR')} · Local: ${c.location || "Não informado"}</p>
             </div>
             <div class="shrink-0">
               <span class="text-[11px] text-emerald-400 font-mono font-bold">Equipe acionada</span>
             </div>
           </div>
-        `).join("");
+        `;
+        }).join("");
       }
 
       lucide.createIcons();

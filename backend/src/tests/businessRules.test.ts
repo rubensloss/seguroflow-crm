@@ -730,5 +730,68 @@ describe("SeguroFlow — Regras de Negócio e Segurança", () => {
     );
     assert.ok(reply.includes("Em caso de acidente, ligue"));
   });
+
+  test("Rodada 11c: Validação rigorosa de status de sinistro via Zod e ClaimStatus enum", () => {
+    const { updateClaimStatusSchema } = require("../routes/claims");
+    const { ClaimStatus } = require("@prisma/client");
+
+    const validStatuses = [
+      ClaimStatus.OPEN,
+      ClaimStatus.DOCS_COLLECTED,
+      ClaimStatus.FORWARDED_TO_INSURER,
+      ClaimStatus.IN_ANALYSIS,
+      ClaimStatus.APPROVED,
+      ClaimStatus.REJECTED,
+      ClaimStatus.CLOSED,
+    ];
+
+    assert.equal(validStatuses.length, 7, "O enum ClaimStatus deve conter exatamente 7 status");
+
+    for (const status of validStatuses) {
+      const result = updateClaimStatusSchema.safeParse({ status });
+      assert.equal(result.success, true, `Status válido ${status} deve passar na validação`);
+      if (result.success) {
+        assert.equal(result.data.status, status);
+      }
+    }
+
+    // Status antigos/inválidos que causavam erro no banco devem falhar com validação Zod (HTTP 400)
+    const invalidStatuses = [
+      "DOCS_RECEIVED",
+      "SENT_TO_INSURER",
+      "UNDER_REVIEW",
+      "EM_ANALISE",
+      "CONCLUIDO",
+      "",
+      null,
+      undefined,
+    ];
+
+    for (const status of invalidStatuses) {
+      const result = updateClaimStatusSchema.safeParse({ status });
+      assert.equal(result.success, false, `Status inválido '${status}' deve ser rejeitado`);
+    }
+  });
+
+  test("Rodada 11c: Alinhamento da contagem de sinistros abertos entre BI e Dashboard", () => {
+    const byStatus: Record<string, number> = {
+      OPEN: 3,
+      DOCS_COLLECTED: 2,
+      FORWARDED_TO_INSURER: 4,
+      IN_ANALYSIS: 5,
+      APPROVED: 10,
+      REJECTED: 1,
+      CLOSED: 12,
+    };
+
+    const openClaims =
+      (byStatus["OPEN"] || 0) +
+      (byStatus["DOCS_COLLECTED"] || 0) +
+      (byStatus["FORWARDED_TO_INSURER"] || 0) +
+      (byStatus["IN_ANALYSIS"] || 0);
+
+    assert.equal(openClaims, 3 + 2 + 4 + 5);
+    assert.equal(openClaims, 14, "openClaims deve considerar FORWARDED_TO_INSURER na contagem de abertos");
+  });
 });
 

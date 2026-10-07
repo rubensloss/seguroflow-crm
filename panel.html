@@ -2280,9 +2280,9 @@
                 <span class="text-[10px] text-slate-400">Status:</span>
                 <select onchange="handleChangeClaimStatus('${c.id}', this.value)" class="px-2.5 py-1.5 bg-slate-900 border border-white/10 rounded-lg text-xs text-white">
                   <option value="OPEN" ${c.status === 'OPEN' ? 'selected' : ''}>Aberto (OPEN)</option>
-                  <option value="DOCS_RECEIVED" ${c.status === 'DOCS_RECEIVED' ? 'selected' : ''}>Docs Recebidos (DOCS_RECEIVED)</option>
-                  <option value="SENT_TO_INSURER" ${c.status === 'SENT_TO_INSURER' ? 'selected' : ''}>Enviado à Seguradora (SENT_TO_INSURER)</option>
-                  <option value="UNDER_REVIEW" ${c.status === 'UNDER_REVIEW' ? 'selected' : ''}>Em Análise (UNDER_REVIEW)</option>
+                  <option value="DOCS_COLLECTED" ${c.status === 'DOCS_COLLECTED' ? 'selected' : ''}>Docs Recebidos (DOCS_COLLECTED)</option>
+                  <option value="FORWARDED_TO_INSURER" ${c.status === 'FORWARDED_TO_INSURER' ? 'selected' : ''}>Enviado à Seguradora (FORWARDED_TO_INSURER)</option>
+                  <option value="IN_ANALYSIS" ${c.status === 'IN_ANALYSIS' ? 'selected' : ''}>Em Análise (IN_ANALYSIS)</option>
                   <option value="APPROVED" ${c.status === 'APPROVED' ? 'selected' : ''}>Aprovado (APPROVED)</option>
                   <option value="REJECTED" ${c.status === 'REJECTED' ? 'selected' : ''}>Recusado (REJECTED)</option>
                   <option value="CLOSED" ${c.status === 'CLOSED' ? 'selected' : ''}>Encerrado (CLOSED)</option>

@@ -32,6 +32,14 @@ const claimSchema = z.object({
   policeReportUrl: z.string().optional(),
 });
 
+export const updateClaimStatusSchema = z.object({
+  status: z.nativeEnum(ClaimStatus, {
+    errorMap: () => ({ message: "Status de sinistro inválido. Utilize um status permitido do enum ClaimStatus." }),
+  }),
+  assignedUserId: z.string().optional(),
+  description: z.string().optional(),
+});
+
 // Listagem de sinistros (Módulo 1)
 claimsRouter.get("/", requireAuth, async (req: Request, res: Response) => {
   const { status } = req.query;
@@ -115,7 +123,16 @@ claimsRouter.post("/", requireAuth, async (req: Request, res: Response) => {
 
 // Atualização de status e andamento do sinistro
 claimsRouter.patch("/:id/status", requireAuth, async (req: Request, res: Response) => {
-  const { status, assignedUserId, description } = req.body;
+  const parsed = updateClaimStatusSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({
+      error: "Status de sinistro inválido",
+      details: parsed.error.issues,
+    });
+    return;
+  }
+
+  const { status, assignedUserId, description } = parsed.data;
 
   const claim = await prisma.claim.findFirst({
     where: { id: req.params.id, brokerageId: req.user!.brokerageId },
@@ -128,8 +145,8 @@ claimsRouter.patch("/:id/status", requireAuth, async (req: Request, res: Respons
   }
 
   const oldStatus = claim.status;
-  const newStatus = (status as ClaimStatus) || oldStatus;
-  const statusChanged = status && status !== oldStatus;
+  const newStatus = status;
+  const statusChanged = status !== oldStatus;
 
   let notificationNote = "";
 
@@ -573,7 +590,11 @@ claimsRouter.get("/analytics/bi", requireAuth, async (req: Request, res: Respons
   res.json({
     overview: {
       totalClaims,
-      openClaims: (byStatus["OPEN"] || 0) + (byStatus["DOCS_COLLECTED"] || 0) + (byStatus["IN_ANALYSIS"] || 0),
+      openClaims:
+        (byStatus["OPEN"] || 0) +
+        (byStatus["DOCS_COLLECTED"] || 0) +
+        (byStatus["FORWARDED_TO_INSURER"] || 0) +
+        (byStatus["IN_ANALYSIS"] || 0),
       closedClaims: (byStatus["CLOSED"] || 0) + (byStatus["APPROVED"] || 0),
       totalIndemnityPaid: totalIndemnity,
       totalPremiumPortfolio: totalPremiumEarned,
