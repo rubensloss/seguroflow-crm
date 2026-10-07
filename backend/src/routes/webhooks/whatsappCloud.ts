@@ -93,13 +93,26 @@ whatsappCloudWebhookRouter.post("/", async (req: Request, res: Response) => {
           const fromPhone = message.from;
           if (!fromPhone) continue;
 
-          // Localiza ou vincula Segurado
+          // Localiza ou vincula Segurado (direto ou por contato autorizado como motorista/gestor)
           let insured = await prisma.insured.findFirst({
             where: {
               brokerageId: brokerage.id,
               phone: { contains: fromPhone.slice(-8) },
             },
           });
+
+          if (!insured) {
+            const authContact = await prisma.authorizedContact.findFirst({
+              where: {
+                brokerageId: brokerage.id,
+                phone: { contains: fromPhone.slice(-8) },
+              },
+              include: { insured: true },
+            });
+            if (authContact?.insured) {
+              insured = authContact.insured;
+            }
+          }
 
           // Localiza ou abre conversa
           let conversation = await prisma.conversation.findFirst({

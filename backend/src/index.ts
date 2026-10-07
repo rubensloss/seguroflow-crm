@@ -25,6 +25,7 @@ import { cronRouter } from "./routes/cron";
 import { telephonyRouter } from "./routes/telephony";
 import { callsRouter } from "./routes/calls";
 import { usersRouter } from "./routes/users";
+import { simulatorRouter } from "./routes/simulator";
 import { startInternalScheduler, getSchedulerStatus } from "./services/scheduler";
 
 const app = express();
@@ -121,6 +122,7 @@ app.use("/api/cron", cronRouter);
 app.use("/api/telephony", telephonyRouter);
 app.use("/api/calls", callsRouter);
 app.use("/api/users", usersRouter);
+app.use("/api/simulator", simulatorRouter);
 
 // Tratamento de Erros Global
 app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

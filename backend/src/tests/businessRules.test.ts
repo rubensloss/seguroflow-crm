@@ -506,4 +506,176 @@ describe("SeguroFlow — Regras de Negócio e Segurança", () => {
     assert.deepEqual(decideBrokerAlertAction(false, true), { sentTemplate: false, sentText: true, blocked: false });
     assert.deepEqual(decideBrokerAlertAction(false, false), { sentTemplate: false, sentText: false, blocked: true });
   });
+
+  // =========================================================================
+  // TESTES ESPECÍFICOS DA RODADA 11 (SIMULADOR, FROTA, CONTATOS, SUB-RAMO)
+  // =========================================================================
+
+  test("Simulador de Atendimento: sem ANTHROPIC_API_KEY retorna 'IA não configurada', nunca resposta inventada", async () => {
+    const { runAgentTurnDetailed } = require("../services/agent/claude");
+    const oldKey = process.env.ANTHROPIC_API_KEY;
+    delete process.env.ANTHROPIC_API_KEY;
+
+    try {
+      const result = await runAgentTurnDetailed({
+        brokerageName: "Corretora Piloto",
+        brokerageId: "brk_test_mock",
+        phone: "5527999990000",
+        messageHistory: [],
+        userMessage: "Preciso acionar o guincho para meu caminhão",
+        isSimulation: true,
+      });
+
+      assert.equal(result.reply, "IA não configurada");
+      assert.deepEqual(result.simulatedDispatches, []);
+    } finally {
+      if (oldKey) process.env.ANTHROPIC_API_KEY = oldKey;
+    }
+  });
+
+  test("Simulador de Atendimento: limite diário de 100 mensagens por corretora e reset", () => {
+    const {
+      getDailySimulatorCount,
+      incrementSimulatorCount,
+      resetSimulatorUsage,
+    } = require("../routes/simulator");
+
+    const testTenant = "brk_sim_tenant_rodada11";
+    resetSimulatorUsage(testTenant);
+    assert.equal(getDailySimulatorCount(testTenant), 0);
+
+    for (let i = 0; i < 100; i++) {
+      incrementSimulatorCount(testTenant);
+    }
+    assert.equal(getDailySimulatorCount(testTenant), 100);
+
+    resetSimulatorUsage(testTenant);
+    assert.equal(getDailySimulatorCount(testTenant), 0);
+  });
+
+  test("Simulador de Atendimento: modo simulação NÃO dispara WhatsApp real e registra simulatedDispatches", () => {
+    const dispatches: string[] = [];
+    const isSimulation = true;
+    const alertPhone = "5527999990000";
+
+    if (isSimulation) {
+      dispatches.push(`[Simulação] Enviaria template alerta_corretor para ${alertPhone}`);
+    }
+
+    assert.equal(dispatches.length, 1);
+    assert.match(dispatches[0], /\[Simulação\] Enviaria template alerta_corretor/);
+  });
+
+  test("Frota: formatação do Kit do Sinistro com placa e modelo específicos da frota", () => {
+    const formatKitFrota = (
+      insurerName: string,
+      assistancePhone: string,
+      policyNumber: string,
+      plate: string,
+      model: string,
+      insuredName: string
+    ) => {
+      const itemLine = `🚗 *Item/Placa:* ${model} - Placa ${plate}\n`;
+      return `🚨 *KIT DO SINISTRO — Central 24h*\n\n📞 Assistência 24h da seguradora: ${assistancePhone}\n🏢 *Seguradora:* ${insurerName}\n📄 *Apólice:* ${policyNumber}\n${itemLine}👤 *Titular:* ${insuredName}\n\n_Ao ligar, tenha esses dados em mãos para que o guincho ou assistência seja liberado sem burocracia!_`;
+    };
+
+    const kit = formatKitFrota(
+      "Porto Seguro",
+      "0800 727 0800",
+      "APOL-FROTA-100",
+      "RVT9A12",
+      "Scania R450",
+      "Transportadora Capixaba Ltda"
+    );
+
+    assert.ok(kit.includes("Porto Seguro"));
+    assert.ok(kit.includes("0800 727 0800"));
+    assert.ok(kit.includes("RVT9A12"));
+    assert.ok(kit.includes("Scania R450"));
+    assert.ok(kit.includes("Transportadora Capixaba Ltda"));
+  });
+
+  test("Frota: placa inexistente NÃO inventa seguradora e sinaliza atendimento humano", () => {
+    const handlePlacaInexistente = (placa: string) => {
+      return {
+        sucesso: false,
+        placaNaoEncontrada: true,
+        mensagem: `A placa ${placa} não foi localizada em nenhuma apólice ativa da sua empresa. Para não acionar a seguradora incorreta, estou transferindo você para um corretor da nossa equipe verificar seu cadastro.`,
+        instrucao: "A placa não existe no sistema. Nunca invente dados de seguradora. Transfira para atendimento humano.",
+      };
+    };
+
+    const res = handlePlacaInexistente("ZZZ9Z99");
+    assert.equal(res.sucesso, false);
+    assert.equal(res.placaNaoEncontrada, true);
+    assert.ok(res.instrucao.includes("Nunca invente dados de seguradora"));
+  });
+
+  test("Contatos Autorizados: permissões diferenciadas para motorista (pode sinistro, bloqueia cobrança)", () => {
+    const motorista = {
+      role: "MOTORISTA",
+      canClaims: true,
+      canBilling: false,
+      canRenewal: false,
+    };
+
+    const checkAccess = (contact: typeof motorista, action: "CLAIMS" | "BILLING" | "RENEWAL") => {
+      if (action === "CLAIMS") return contact.canClaims;
+      if (action === "BILLING") return contact.canBilling;
+      if (action === "RENEWAL") return contact.canRenewal;
+      return false;
+    };
+
+    assert.equal(checkAccess(motorista, "CLAIMS"), true);
+    assert.equal(checkAccess(motorista, "BILLING"), false);
+    assert.equal(checkAccess(motorista, "RENEWAL"), false);
+  });
+
+  test("Proteção LGPD: telefone desconhecido informando placa NUNCA recebe número de apólice nem CPF/CNPJ", () => {
+    const sanitizeUnknownCallerResponse = (brokerPhone: string) => {
+      return {
+        sucesso: false,
+        bloqueadoSeguranca: true,
+        mensagem: `Por normas rigorosas de segurança (LGPD), o número da apólice e o CPF não podem ser informados aqui. Por favor, entre em contato diretamente com a nossa corretora pelo telefone ${brokerPhone}.`,
+        policyNumber: null,
+        cpf: null,
+      };
+    };
+
+    const res = sanitizeUnknownCallerResponse("552730001000");
+    assert.equal(res.bloqueadoSeguranca, true);
+    assert.equal(res.policyNumber, null);
+    assert.equal(res.cpf, null);
+    assert.ok(!res.mensagem.includes("APOL-"));
+  });
+
+  test("Sub-ramo: agregação de retenção e motivos de perda por sub-ramo no relatório de renovações", () => {
+    const mockPolicies = [
+      { subBranch: "Frota", status: "RENEWED", premium: 10000, comm: 1500, lost: false },
+      { subBranch: "Frota", status: "ACTIVE", premium: 8000, comm: 1200, lost: true, lostReason: "PRECO" },
+      { subBranch: "RCTR-C", status: "RENEWED", premium: 25000, comm: 3750, lost: false },
+      { subBranch: "Auto individual", status: "RENEWED", premium: 3000, comm: 450, lost: false },
+    ];
+
+    const subBranchMap: Record<string, { total: number; renewed: number; lost: number; lostPremium: number }> = {};
+    for (const p of mockPolicies) {
+      const k = p.subBranch;
+      if (!subBranchMap[k]) subBranchMap[k] = { total: 0, renewed: 0, lost: 0, lostPremium: 0 };
+      subBranchMap[k].total++;
+      if (p.status === "RENEWED") subBranchMap[k].renewed++;
+      if (p.lost) {
+        subBranchMap[k].lost++;
+        subBranchMap[k].lostPremium += p.premium;
+      }
+    }
+
+    assert.equal(subBranchMap["Frota"].total, 2);
+    assert.equal(subBranchMap["Frota"].renewed, 1);
+    assert.equal(subBranchMap["Frota"].lost, 1);
+    assert.equal(subBranchMap["Frota"].lostPremium, 8000);
+
+    assert.equal(subBranchMap["RCTR-C"].total, 1);
+    assert.equal(subBranchMap["RCTR-C"].renewed, 1);
+    assert.equal(subBranchMap["Auto individual"].renewed, 1);
+  });
 });

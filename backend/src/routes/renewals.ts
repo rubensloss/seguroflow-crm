@@ -103,6 +103,19 @@ renewalsRouter.get("/report", requireAuth, async (req: Request, res: Response) =
     }
   > = {};
 
+  const subBranchMap: Record<
+    string,
+    {
+      subBranch: string;
+      totalExpired: number;
+      renewed: number;
+      lost: number;
+      pending: number;
+      lostPremium: number;
+      lostCommission: number;
+    }
+  > = {};
+
   for (const pol of policies) {
     const premium = Number(pol.premiumAmount || 0);
     const comm = pol.commissionAmount != null
@@ -127,6 +140,20 @@ renewalsRouter.get("/report", requireAuth, async (req: Request, res: Response) =
     }
     brokerMap[brokerKey].totalExpired += 1;
 
+    const subBranchKey = pol.subBranch || "Outros";
+    if (!subBranchMap[subBranchKey]) {
+      subBranchMap[subBranchKey] = {
+        subBranch: subBranchKey,
+        totalExpired: 0,
+        renewed: 0,
+        lost: 0,
+        pending: 0,
+        lostPremium: 0,
+        lostCommission: 0,
+      };
+    }
+    subBranchMap[subBranchKey].totalExpired += 1;
+
     const isRenewed = pol.status === "RENEWED" || pol.renewals.some((r) => r.status === "RENEWED");
     const lostTask = pol.renewals.find((r) => r.status === "LOST");
     const isLost = !isRenewed && Boolean(lostTask);
@@ -136,6 +163,7 @@ renewalsRouter.get("/report", requireAuth, async (req: Request, res: Response) =
       retainedPremium += premium;
       retainedCommission += comm;
       brokerMap[brokerKey].renewed += 1;
+      subBranchMap[subBranchKey].renewed += 1;
     } else if (isLost && lostTask) {
       totalLost += 1;
       lostPremium += premium;
@@ -143,6 +171,10 @@ renewalsRouter.get("/report", requireAuth, async (req: Request, res: Response) =
       brokerMap[brokerKey].lost += 1;
       brokerMap[brokerKey].lostPremium += premium;
       brokerMap[brokerKey].lostCommission += comm;
+
+      subBranchMap[subBranchKey].lost += 1;
+      subBranchMap[subBranchKey].lostPremium += premium;
+      subBranchMap[subBranchKey].lostCommission += comm;
 
       const rawReason = (lostTask.lostReason || "OUTRO").trim().toUpperCase();
       if (reasonCounts[rawReason] !== undefined) {
@@ -153,6 +185,7 @@ renewalsRouter.get("/report", requireAuth, async (req: Request, res: Response) =
     } else {
       totalPending += 1;
       brokerMap[brokerKey].pending += 1;
+      subBranchMap[subBranchKey].pending += 1;
     }
   }
 
@@ -183,6 +216,13 @@ renewalsRouter.get("/report", requireAuth, async (req: Request, res: Response) =
     lostCommission: Number(b.lostCommission.toFixed(2)),
   }));
 
+  const bySubBranch = Object.values(subBranchMap).map((sb) => ({
+    ...sb,
+    retentionRate: sb.totalExpired > 0 ? Number(((sb.renewed / sb.totalExpired) * 100).toFixed(1)) : 0,
+    lostPremium: Number(sb.lostPremium.toFixed(2)),
+    lostCommission: Number(sb.lostCommission.toFixed(2)),
+  }));
+
   res.json({
     month: monthParam,
     retentionRate,
@@ -192,6 +232,7 @@ renewalsRouter.get("/report", requireAuth, async (req: Request, res: Response) =
     totalPending,
     lossesByReason,
     byBroker,
+    bySubBranch,
     financialImpact: {
       lostPremium: Number(lostPremium.toFixed(2)),
       lostCommission: Number(lostCommission.toFixed(2)),

@@ -132,6 +132,16 @@
 
       <!-- NAVIGATION SIDEBAR -->
       <aside class="w-64 bg-slate-900 border-r border-white/10 flex flex-col justify-between shrink-0 p-3">
+        <!-- Busca Global por Placa (Frota) -->
+        <div class="px-1 pb-2 border-b border-white/5">
+          <div class="relative">
+            <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5"></i>
+            <input type="text" id="global-plate-search-input" placeholder="Buscar placa (Frota)..."
+              onkeydown="if(event.key==='Enter') executeGlobalPlateSearch()"
+              class="w-full pl-8 pr-2 py-1.5 bg-slate-800/90 border border-white/10 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors">
+          </div>
+        </div>
+
         <div class="space-y-1">
           <div class="px-3 py-2 text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold">Módulos Operacionais</div>
           <button onclick="switchTab('dashboard')" id="btn-tab-dashboard" class="nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-white bg-sky-500/10 text-sky-400 border border-sky-500/20 transition-all text-left">
@@ -185,6 +195,13 @@
           <button onclick="switchTab('team')" id="btn-tab-team" class="nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-all text-left">
             <i data-lucide="users" class="w-4 h-4 text-violet-400"></i>
             <span>Equipe & Carteira</span>
+          </button>
+          <button onclick="switchTab('simulator')" id="btn-tab-simulator" class="nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-all text-left">
+            <i data-lucide="bot" class="w-4 h-4 text-amber-400"></i>
+            <span class="flex items-center justify-between flex-1">
+              <span>Simulador Atendimento</span>
+              <span class="px-1.5 py-0.5 text-[9px] font-mono font-bold bg-amber-500/20 text-amber-300 rounded border border-amber-500/30">IA</span>
+            </span>
           </button>
         </div>
 
@@ -598,6 +615,32 @@
                   </table>
                 </div>
               </div>
+
+              <!-- Retenção & Perdas por Sub-ramo (Rodada 11) -->
+              <div class="bg-slate-950/40 border border-white/5 rounded-xl p-4 space-y-3 col-span-full">
+                <div class="flex items-center justify-between border-b border-white/5 pb-2">
+                  <span class="text-xs font-mono font-bold text-sky-400 uppercase">Retenção & Perdas por Sub-ramo</span>
+                  <span class="text-[10px] text-slate-400 font-mono">Agrupamento oficial por sub-ramo</span>
+                </div>
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="text-[10px] font-mono uppercase text-slate-400 border-b border-white/5">
+                      <tr>
+                        <th class="py-1.5">Sub-ramo</th>
+                        <th class="py-1.5">Vencidas</th>
+                        <th class="py-1.5">Renovadas</th>
+                        <th class="py-1.5">Perdidas</th>
+                        <th class="py-1.5">Prêmio Perdido</th>
+                        <th class="py-1.5">Comissão Perdida</th>
+                        <th class="py-1.5 text-right">Taxa Retenção</th>
+                      </tr>
+                    </thead>
+                    <tbody id="rep-subbranches-table-body">
+                      <tr><td colspan="7" class="py-3 text-center text-slate-500">Sem dados no período.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -758,6 +801,35 @@
 
           <!-- SUBTAB 2: APÓLICES -->
           <div id="subtab-pane-policies" class="hidden space-y-4">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <div class="flex-1 relative">
+                <input type="text" id="policy-search-input" onkeyup="handleSearchPolicies(event)" placeholder="Buscar por Número da Apólice ou Segurado..." class="w-full px-3 py-2 bg-slate-900 border border-white/10 rounded-lg text-white text-xs">
+              </div>
+              <select id="policy-subbranch-filter" onchange="loadPoliciesList()" class="px-3 py-2 bg-slate-900 border border-white/10 rounded-lg text-white text-xs font-mono">
+                <option value="">Todos os Sub-ramos</option>
+                <option value="Auto individual">Auto individual</option>
+                <option value="Frota">Frota</option>
+                <option value="2º risco">2º risco</option>
+                <option value="APP">APP</option>
+                <option value="Casco">Casco</option>
+                <option value="RCTR-C">RCTR-C</option>
+                <option value="RC-DC">RC-DC</option>
+                <option value="RC-V">RC-V</option>
+                <option value="Vida individual">Vida individual</option>
+                <option value="Vida em grupo">Vida em grupo</option>
+                <option value="D&O">D&O</option>
+                <option value="E&O">E&O</option>
+                <option value="Garantia">Garantia</option>
+                <option value="Fiança">Fiança</option>
+                <option value="Property/Patrimonial">Property/Patrimonial</option>
+                <option value="Riscos de engenharia">Riscos de engenharia</option>
+                <option value="Residencial">Residencial</option>
+                <option value="Empresarial">Empresarial</option>
+                <option value="Outros">Outros</option>
+              </select>
+              <button onclick="loadPoliciesList()" class="px-3 py-2 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 rounded-lg">Filtrar</button>
+            </div>
+
             <div class="bg-slate-900 border border-white/10 rounded-xl overflow-hidden">
               <table class="w-full text-left text-xs text-slate-300">
                 <thead class="bg-slate-800/80 text-[10px] font-mono uppercase text-slate-400 border-b border-white/5">
@@ -765,7 +837,7 @@
                     <th class="p-3">Número</th>
                     <th class="p-3">Segurado</th>
                     <th class="p-3">Seguradora</th>
-                    <th class="p-3">Ramo</th>
+                    <th class="p-3">Ramo / Sub-ramo</th>
                     <th class="p-3">Vigência Fim</th>
                     <th class="p-3">Prêmio</th>
                     <th class="p-3">Assistência 24h</th>
@@ -1119,6 +1191,120 @@
                 <tr><td colspan="6" class="p-4 text-center text-slate-500">Carregando membros da equipe...</td></tr>
               </tbody>
             </table>
+          </div>
+        </div>
+
+        <!-- TAB 14: SIMULADOR DE ATENDIMENTO (RODADA 11) -->
+        <div id="tab-simulator" class="tab-pane hidden space-y-4">
+          <!-- Header do Simulador -->
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-900 border border-white/10 rounded-2xl p-4 sm:p-5">
+            <div>
+              <div class="flex items-center gap-2">
+                <h1 class="text-xl font-bold text-white">Simulador de Atendimento (IA)</h1>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/10 text-amber-300 border border-amber-500/20 font-bold">AMBIENTE SEGURO DE TESTE</span>
+              </div>
+              <p class="text-xs text-slate-400 mt-1">
+                Demonstração e treinamento da IA sem envio real para o WhatsApp. Disparos aparecem na tela como avisos de simulação.
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="px-3 py-1.5 bg-slate-950 border border-white/10 rounded-xl text-xs font-mono flex items-center gap-2">
+                <span class="text-slate-400">Mensagens hoje:</span>
+                <span id="sim-usage-badge" class="font-bold text-amber-400">0 / 100</span>
+              </div>
+              <button onclick="clearSimulatorData()" class="px-3 py-1.5 text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded-xl font-bold flex items-center gap-1.5 transition-colors">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                <span>Limpar Simulação</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Seletor de Contexto do Cliente Simulado -->
+          <div class="bg-slate-900 border border-white/10 rounded-2xl p-4 space-y-3">
+            <div class="flex flex-col md:flex-row items-start md:items-end justify-between gap-3">
+              <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
+                <div>
+                  <label class="block text-xs font-mono text-slate-300 mb-1">Simular com qual cliente da carteira?</label>
+                  <select id="sim-select-insured" onchange="handleSimulatorInsuredChange()" class="w-full px-3 py-2 bg-slate-950 border border-white/10 rounded-xl text-xs text-white">
+                    <option value="">[Contato Novo / Não cadastrado na carteira]</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-mono text-slate-300 mb-1">Telefone Simulado (Formato E.164)</label>
+                  <input type="text" id="sim-input-phone" placeholder="5527999990000" value="5527999990000" class="w-full px-3 py-2 bg-slate-950 border border-white/10 rounded-xl text-xs text-white font-mono">
+                </div>
+              </div>
+              <button onclick="resetSimulatorChat()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shrink-0">
+                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                <span>Reiniciar Chat</span>
+              </button>
+            </div>
+            <div id="sim-insured-details-bar" class="hidden text-[11px] font-mono text-slate-400 bg-slate-950/60 p-2.5 rounded-lg border border-white/5 flex flex-wrap gap-4">
+              <!-- Preenchido dinamicamente com apólices, frotas e contatos do segurado -->
+            </div>
+          </div>
+
+          <!-- Janela Estilo WhatsApp Web -->
+          <div class="bg-slate-900 border border-white/10 rounded-2xl overflow-hidden flex flex-col h-[560px] shadow-2xl">
+            <!-- Barra superior WhatsApp -->
+            <div class="bg-slate-950/90 border-b border-white/10 p-3.5 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                  <i data-lucide="bot" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <div class="text-xs font-bold text-white flex items-center gap-1.5">
+                    <span id="sim-bot-title">Atendente Virtual SeguroFlow</span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  </div>
+                  <div id="sim-target-subtitle" class="text-[11px] font-mono text-slate-400 truncate">
+                    Simulando: Contato Novo (5527999990000)
+                  </div>
+                </div>
+              </div>
+              <div class="text-[10px] font-mono text-amber-300 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-full">
+                Modo Simulação • Zero Mensagens Reais
+              </div>
+            </div>
+
+            <!-- Área de Mensagens (Rolagem) -->
+            <div id="sim-messages-container" class="flex-1 overflow-y-auto p-4 space-y-3 bg-[#0b141a]/95">
+              <!-- Mensagem inicial do sistema -->
+              <div class="text-center my-2">
+                <span class="px-3 py-1 rounded-full text-[10px] font-mono bg-slate-800/80 text-slate-400 border border-white/5 inline-block">
+                  Simulador de Atendimento SeguroFlow iniciado. Escreva como se fosse o segurado.
+                </span>
+              </div>
+            </div>
+
+            <!-- Sugestões Rápidas de Teste -->
+            <div class="bg-slate-950/80 border-t border-white/5 px-3 py-2 flex items-center gap-1.5 overflow-x-auto text-[11px]">
+              <span class="text-slate-500 text-[10px] font-mono shrink-0 mr-1">Testes Rápidos:</span>
+              <button onclick="fillSimulatorMessage('Bati o carro na avenida agora, preciso de guincho!')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-white/10 shrink-0 transition-colors">
+                🚨 Acidente com Guincho
+              </button>
+              <button onclick="fillSimulatorMessage('Preciso do Kit de Sinistro para a placa RVT9A12')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-white/10 shrink-0 transition-colors">
+                🚚 Frota (Placa RVT9A12)
+              </button>
+              <button onclick="fillSimulatorMessage('Já fiz o pagamento do boleto de seguro hoje cedo')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-white/10 shrink-0 transition-colors">
+                💳 Aviso de Pagamento
+              </button>
+              <button onclick="fillSimulatorMessage('Quero falar com um corretor humano por favor')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-white/10 shrink-0 transition-colors">
+                👤 Transbordo Humano
+              </button>
+            </div>
+
+            <!-- Barra de Envio de Mensagem -->
+            <div class="bg-slate-950 p-3 border-t border-white/10 flex items-center gap-2">
+              <input type="text" id="sim-message-input" placeholder="Digite sua mensagem como se fosse o segurado..."
+                onkeydown="if(event.key==='Enter') sendSimulatorMessage()"
+                class="flex-1 px-3.5 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+              <button onclick="sendSimulatorMessage()" id="sim-send-btn"
+                class="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors shadow-lg shadow-emerald-500/20 shrink-0">
+                <span>Enviar</span>
+                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1503,6 +1689,222 @@
     </div>
   </div>
 
+  <!-- MODAL: RESULTADOS DA BUSCA GLOBAL POR PLACA (FROTA) -->
+  <div id="modal-global-plate-results" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-3xl p-6 space-y-4 max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div>
+          <h3 class="font-bold text-white text-sm flex items-center gap-2">
+            <i data-lucide="search" class="w-4 h-4 text-amber-400"></i>
+            <span>Localização Global de Veículos na Frota</span>
+          </h3>
+          <p id="global-plate-search-summary" class="text-xs text-slate-400 font-mono mt-0.5">Buscando...</p>
+        </div>
+        <button onclick="closeModal('modal-global-plate-results')" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto space-y-3">
+        <div id="global-plate-results-body" class="space-y-2">
+          <!-- Injetado dinamicamente -->
+        </div>
+      </div>
+
+      <div class="border-t border-white/10 pt-3 flex justify-end">
+        <button onclick="closeModal('modal-global-plate-results')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: GESTÃO DE VEÍCULOS E EQUIPAMENTOS DA APÓLICE (FROTA) -->
+  <div id="modal-policy-fleet-items" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-3xl p-6 space-y-4 max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div>
+          <h3 id="fleet-modal-title" class="font-bold text-white text-sm flex items-center gap-2">
+            <i data-lucide="truck" class="w-4 h-4 text-sky-400"></i>
+            <span>Veículos e Itens da Apólice (Frota)</span>
+          </h3>
+          <p id="fleet-modal-subtitle" class="text-xs text-slate-400 font-mono mt-0.5"></p>
+        </div>
+        <button onclick="closeModal('modal-policy-fleet-items')" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+
+      <input type="hidden" id="fleet-current-policy-id">
+
+      <!-- Formulário de Novo Item / Importação -->
+      <div class="bg-slate-950 p-4 rounded-xl border border-white/5 space-y-3 text-xs">
+        <div class="flex items-center justify-between">
+          <span class="font-bold text-slate-200">+ Adicionar Novo Veículo na Frota</span>
+          <button type="button" onclick="toggleFleetCsvBox()" class="text-xs font-mono text-sky-400 hover:underline flex items-center gap-1">
+            <i data-lucide="upload-cloud" class="w-3 h-3"></i>
+            <span>Importar CSV em Lote</span>
+          </button>
+        </div>
+
+        <form id="fleet-item-form" onsubmit="handleSaveFleetItem(event)" class="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div>
+            <label class="block text-[11px] font-mono text-slate-400 mb-0.5">Placa</label>
+            <input type="text" id="fleet-item-plate" placeholder="ABC1D23" required class="w-full px-2.5 py-1.5 bg-slate-900 border border-white/10 rounded-lg text-white font-mono uppercase text-xs">
+          </div>
+          <div>
+            <label class="block text-[11px] font-mono text-slate-400 mb-0.5">Marca / Modelo</label>
+            <input type="text" id="fleet-item-model" placeholder="Scania R450 / Hilux" class="w-full px-2.5 py-1.5 bg-slate-900 border border-white/10 rounded-lg text-white text-xs">
+          </div>
+          <div>
+            <label class="block text-[11px] font-mono text-slate-400 mb-0.5">Ano</label>
+            <input type="number" id="fleet-item-year" placeholder="2024" class="w-full px-2.5 py-1.5 bg-slate-900 border border-white/10 rounded-lg text-white font-mono text-xs">
+          </div>
+          <div>
+            <label class="block text-[11px] font-mono text-slate-400 mb-0.5">Tipo</label>
+            <select id="fleet-item-type" class="w-full px-2.5 py-1.5 bg-slate-900 border border-white/10 rounded-lg text-white text-xs">
+              <option value="VEICULO">Veículo</option>
+              <option value="CARRETA">Carreta / Semirreboque</option>
+              <option value="EMBARCACAO_CASCO">Embarcação / Casco</option>
+              <option value="OUTRO">Outro Equipamento</option>
+            </select>
+          </div>
+          <div class="col-span-2 md:col-span-3">
+            <label class="block text-[11px] font-mono text-slate-400 mb-0.5">Chassi ou Identificação Livre (Cavalo 04, Carreta 02)</label>
+            <input type="text" id="fleet-item-ident" placeholder="Chassi ou identificação operacional" class="w-full px-2.5 py-1.5 bg-slate-900 border border-white/10 rounded-lg text-white text-xs">
+          </div>
+          <div class="flex items-end">
+            <button type="submit" class="w-full py-1.5 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-lg text-xs transition-colors">
+              Salvar Veículo
+            </button>
+          </div>
+        </form>
+
+        <!-- Box Oculto de Importação CSV -->
+        <div id="fleet-csv-box" class="hidden pt-3 border-t border-white/5 space-y-2">
+          <label class="block text-[11px] font-mono text-slate-400">Cole as linhas em CSV (Placa, Chassi, Modelo, Ano, Identificacao, Tipo):</label>
+          <textarea id="fleet-csv-input" rows="3" placeholder="RVT9A12, 9BWCA..., Scania R450, 2023, Cavalo 01, VEICULO&#10;ABC1D23,, Carreta Randon, 2022, Reboque 02, CARRETA" class="w-full p-2 bg-slate-900 border border-white/10 rounded-lg font-mono text-xs text-white"></textarea>
+          <button type="button" onclick="handleImportFleetCsv()" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg text-xs">
+            Importar Veículos do CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabela de Itens da Frota -->
+      <div class="flex-1 overflow-y-auto">
+        <table class="w-full text-left text-xs text-slate-300">
+          <thead class="bg-slate-800/80 text-[10px] font-mono uppercase text-slate-400 border-b border-white/5">
+            <tr>
+              <th class="p-2.5">Placa</th>
+              <th class="p-2.5">Modelo</th>
+              <th class="p-2.5">Ano</th>
+              <th class="p-2.5">Tipo</th>
+              <th class="p-2.5">Identificação / Chassi</th>
+              <th class="p-2.5">Status</th>
+              <th class="p-2.5 text-right">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="fleet-items-table-body">
+            <!-- Injetado dinamicamente -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CONTATOS AUTORIZADOS DO SEGURADO (MOTORISTAS / GESTORES) -->
+  <div id="modal-insured-contacts" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-3xl p-6 space-y-4 max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div>
+          <h3 id="contacts-modal-title" class="font-bold text-white text-sm flex items-center gap-2">
+            <i data-lucide="user-check" class="w-4 h-4 text-emerald-400"></i>
+            <span>Contatos Autorizados (Motoristas e Gestores de Frota)</span>
+          </h3>
+          <p id="contacts-modal-subtitle" class="text-xs text-slate-400 font-mono mt-0.5"></p>
+        </div>
+        <button onclick="closeModal('modal-insured-contacts')" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+
+      <input type="hidden" id="contacts-current-insured-id">
+
+      <!-- Formulário de Novo Contato / Importação -->
+      <div class="bg-slate-950 p-4 rounded-xl border border-white/5 space-y-3 text-xs">
+        <div class="flex items-center justify-between">
+          <span class="font-bold text-slate-200">+ Adicionar Contato Autorizado</span>
+          <button type="button" onclick="toggleContactsCsvBox()" class="text-xs font-mono text-emerald-400 hover:underline flex items-center gap-1">
+            <i data-lucide="upload-cloud" class="w-3 h-3"></i>
+            <span>Importar CSV de Contatos</span>
+          </button>
+        </div>
+
+        <form id="insured-contact-form" onsubmit="handleSaveInsuredContact(event)" class="grid grid-cols-1 md:grid-cols-4 gap-2">
+          <div>
+            <label class="block text-[11px] font-mono text-slate-400 mb-0.5">Nome do Contato</label>
+            <input type="text" id="contact-name" placeholder="Ex: Roberto Carlos (Motorista)" required class="w-full px-2.5 py-1.5 bg-slate-900 border border-white/10 rounded-lg text-white text-xs">
+          </div>
+          <div>
+            <label class="block text-[11px] font-mono text-slate-400 mb-0.5">Telefone (WhatsApp)</label>
+            <input type="text" id="contact-phone" placeholder="5527999998888" required class="w-full px-2.5 py-1.5 bg-slate-900 border border-white/10 rounded-lg text-white font-mono text-xs">
+          </div>
+          <div>
+            <label class="block text-[11px] font-mono text-slate-400 mb-0.5">Função</label>
+            <select id="contact-role" onchange="adjustContactPermissionsDefault()" class="w-full px-2.5 py-1.5 bg-slate-900 border border-white/10 rounded-lg text-white text-xs">
+              <option value="MOTORISTA">Motorista</option>
+              <option value="GESTOR_FROTA">Gestor de Frota</option>
+              <option value="FINANCEIRO">Financeiro</option>
+              <option value="SOCIO">Sócio / Diretor</option>
+              <option value="OUTRO">Outro</option>
+            </select>
+          </div>
+          <div class="flex items-end">
+            <button type="submit" class="w-full py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg text-xs transition-colors">
+              Salvar Contato
+            </button>
+          </div>
+          <div class="col-span-full flex flex-wrap items-center gap-4 pt-1 text-[11px]">
+            <span class="font-mono text-slate-400">Permissões IA:</span>
+            <label class="flex items-center gap-1.5 text-slate-300 cursor-pointer">
+              <input type="checkbox" id="contact-perm-claims" checked class="rounded bg-slate-800 border-white/10 text-emerald-500">
+              <span>Kit Sinistro / Guincho</span>
+            </label>
+            <label class="flex items-center gap-1.5 text-slate-300 cursor-pointer">
+              <input type="checkbox" id="contact-perm-billing" class="rounded bg-slate-800 border-white/10 text-emerald-500">
+              <span>Avisar Cobrança / Boletos</span>
+            </label>
+            <label class="flex items-center gap-1.5 text-slate-300 cursor-pointer">
+              <input type="checkbox" id="contact-perm-renewal" class="rounded bg-slate-800 border-white/10 text-emerald-500">
+              <span>Negociar Renovação</span>
+            </label>
+          </div>
+        </form>
+
+        <!-- Box Oculto de Importação CSV -->
+        <div id="contacts-csv-box" class="hidden pt-3 border-t border-white/5 space-y-2">
+          <label class="block text-[11px] font-mono text-slate-400">Cole as linhas em CSV (Nome, Telefone, Funcao, PodeSinistro, PodeCobranca, PodeRenovacao):</label>
+          <textarea id="contacts-csv-input" rows="3" placeholder="Roberto Carlos, 5527999991111, MOTORISTA, SIM, NAO, NAO&#10;Marina Silva, 5527999992222, GESTOR_FROTA, SIM, SIM, SIM" class="w-full p-2 bg-slate-900 border border-white/10 rounded-lg font-mono text-xs text-white"></textarea>
+          <button type="button" onclick="handleImportContactsCsv()" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg text-xs">
+            Importar Contatos do CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabela de Contatos Autorizados -->
+      <div class="flex-1 overflow-y-auto">
+        <table class="w-full text-left text-xs text-slate-300">
+          <thead class="bg-slate-800/80 text-[10px] font-mono uppercase text-slate-400 border-b border-white/5">
+            <tr>
+              <th class="p-2.5">Nome</th>
+              <th class="p-2.5">Telefone</th>
+              <th class="p-2.5">Função</th>
+              <th class="p-2.5">Sinistro</th>
+              <th class="p-2.5">Cobrança</th>
+              <th class="p-2.5">Renovação</th>
+              <th class="p-2.5 text-right">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="insured-contacts-table-body">
+            <!-- Injetado dinamicamente -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- CLIENT-SIDE CONTROLLER SCRIPT -->
   <script>
     const API_BASE = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
@@ -1675,6 +2077,7 @@
       if (tabName === 'calls') loadCallsData();
       if (tabName === 'team') loadTeamData();
       if (tabName === 'templates') loadMetaTemplates();
+      if (tabName === 'simulator') loadSimulatorData();
     }
 
     // Carregamento de Dashboard
@@ -2218,12 +2621,14 @@
             const tr = document.createElement('tr');
             tr.className = 'border-b border-white/5 hover:bg-slate-800/40';
             const countPolicies = ins.policies?.length || 0;
+            const countContacts = ins.authorizedContacts?.length || 0;
             tr.innerHTML = `
               <td class="p-3 font-bold text-white">${ins.name}</td>
               <td class="p-3 font-mono text-slate-400">${ins.cpf ? ins.cpf.replace(/(\\d{3})(\\d{3})(\\d{3})(\\d{2})/, '$1.$2.$3-$4') : '--'}</td>
               <td class="p-3 font-mono text-slate-300">${ins.phone}</td>
               <td class="p-3"><span class="px-2 py-0.5 rounded font-mono text-[10px] ${countPolicies > 0 ? 'bg-sky-500/10 text-sky-400' : 'bg-slate-800 text-slate-500'}">${countPolicies} apólice(s)</span></td>
-              <td class="p-3 text-right">
+              <td class="p-3 text-right space-x-1">
+                <button onclick="openInsuredContactsModal('${ins.id}', '${(ins.name || '').replace(/'/g, "\\'")}')" class="px-2.5 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded text-[11px] font-mono">Contatos (${countContacts})</button>
                 <button onclick="openEditInsuredModal('${ins.id}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 rounded text-[11px]">Editar</button>
               </td>
             `;
@@ -2310,11 +2715,21 @@
       }
     }
 
-    async function loadPoliciesList() {
+    async function loadPoliciesList(searchQuery = '') {
       const tbody = document.getElementById('policies-table-body');
       tbody.innerHTML = '<tr><td colspan="8" class="p-4 text-center text-slate-500">Carregando apólices...</td></tr>';
+      const subBranch = document.getElementById('policy-subbranch-filter') ? document.getElementById('policy-subbranch-filter').value : '';
+      const searchInput = document.getElementById('policy-search-input') ? document.getElementById('policy-search-input').value.trim() : '';
+      const q = searchQuery || searchInput;
+
       try {
-        const res = await fetch(`${API_BASE}/api/policies`, {
+        let url = `${API_BASE}/api/policies`;
+        const params = new URLSearchParams();
+        if (subBranch) params.append('subBranch', subBranch);
+        if (q) params.append('q', q);
+        if (params.toString()) url += `?${params.toString()}`;
+
+        const res = await fetch(url, {
           headers: { Authorization: `Bearer ${currentToken}` }
         });
         const policies = await res.json();
@@ -2323,15 +2738,20 @@
           policies.forEach(pol => {
             const tr = document.createElement('tr');
             tr.className = 'border-b border-white/5 hover:bg-slate-800/40';
+            const itemCount = (pol.items || []).length;
             tr.innerHTML = `
               <td class="p-3 font-mono font-bold text-white">${pol.policyNumber}</td>
               <td class="p-3 text-slate-300">${pol.insured?.name || '--'}</td>
               <td class="p-3 text-slate-300">${pol.insurerName}</td>
-              <td class="p-3 font-mono text-[11px] text-sky-400">${pol.branch}</td>
+              <td class="p-3">
+                <span class="font-mono text-[11px] text-sky-400">${pol.branch}</span>
+                ${pol.subBranch ? `<br><span class="text-[10px] text-slate-400 font-mono">${pol.subBranch}</span>` : ''}
+              </td>
               <td class="p-3 font-mono text-slate-400">${new Date(pol.endDate).toLocaleDateString('pt-BR')}</td>
               <td class="p-3 font-mono font-bold text-emerald-400">R$ ${Number(pol.premiumAmount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
               <td class="p-3 font-mono text-[11px] text-slate-400">${pol.assistance24hPhone || 'Padrão Corretora'}</td>
-              <td class="p-3 text-right">
+              <td class="p-3 text-right space-x-1">
+                <button onclick="openPolicyFleetModal('${pol.id}', '${pol.policyNumber}', '${(pol.insured?.name || '').replace(/'/g, "\\'")}')" class="px-2.5 py-1 bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 rounded text-[11px] font-mono">Frota (${itemCount})</button>
                 <button onclick="openEditPolicyModal('${pol.id}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10 rounded text-[11px]">Editar</button>
               </td>
             `;
@@ -2342,6 +2762,12 @@
         }
       } catch (err) {
         tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-rose-400">Erro: ${err.message}</td></tr>`;
+      }
+    }
+
+    function handleSearchPolicies(e) {
+      if (e.key === 'Enter') {
+        loadPoliciesList();
       }
     }
 
@@ -3333,6 +3759,29 @@
             </tr>
           `).join('');
         }
+
+        // Tabela por sub-ramo (Rodada 11)
+        const subBranchTbody = document.getElementById('rep-subbranches-table-body');
+        if (subBranchTbody) {
+          const subBranches = data.bySubBranch || [];
+          if (subBranches.length === 0) {
+            subBranchTbody.innerHTML = '<tr><td colspan="7" class="py-3 text-center text-slate-500">Sem dados por sub-ramo no período.</td></tr>';
+          } else {
+            subBranchTbody.innerHTML = subBranches.map(s => `
+              <tr class="border-b border-white/5 hover:bg-slate-900/40">
+                <td class="py-2 font-bold text-white font-mono">${s.subBranch}</td>
+                <td class="py-2 font-mono text-slate-300">${s.totalExpired}</td>
+                <td class="py-2 font-mono text-sky-400">${s.renewed}</td>
+                <td class="py-2 font-mono text-rose-400">${s.lost}</td>
+                <td class="py-2 font-mono text-rose-400">${Number(s.lostPremium || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                <td class="py-2 font-mono text-amber-400">${Number(s.lostCommission || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                <td class="py-2 font-mono font-bold text-right ${s.retentionRate >= 80 ? 'text-emerald-400' : (s.retentionRate >= 50 ? 'text-amber-400' : 'text-rose-400')}">
+                  ${s.retentionRate}%
+                </td>
+              </tr>
+            `).join('');
+          }
+        }
       } catch (err) {
         console.error('Erro no relatório de renovação:', err);
       }
@@ -3573,6 +4022,586 @@
       }).catch(err => {
         console.warn("Falha ao copiar:", err);
       });
+    }
+
+    // =========================================================================
+    // BUSCA GLOBAL DE FROTA POR PLACA (RODADA 11)
+    // =========================================================================
+    async function executeGlobalPlateSearch() {
+      const input = document.getElementById('global-plate-search-input');
+      const plate = (input ? input.value : '').trim().toUpperCase();
+      if (!plate || plate.length < 3) {
+        alert('Digite pelo menos 3 caracteres da placa para buscar.');
+        return;
+      }
+      const modal = document.getElementById('modal-global-plate-results');
+      const summary = document.getElementById('global-plate-search-summary');
+      const body = document.getElementById('global-plate-results-body');
+      modal.classList.remove('hidden');
+      summary.innerText = `Buscando placa "${plate}" na base da corretora...`;
+      body.innerHTML = '<div class="p-6 text-center text-slate-400 text-xs font-mono">Consultando banco de dados...</div>';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/policies/search-by-plate?plate=${encodeURIComponent(plate)}`, {
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro na busca de placa');
+        const items = data.items || [];
+        summary.innerText = `${items.length} veículo(s) encontrado(s) com o termo "${plate}"`;
+        if (items.length === 0) {
+          body.innerHTML = `<div class="p-6 text-center text-slate-500 text-xs font-mono">Nenhum veículo localizado com a placa "${plate}" na sua corretora.</div>`;
+          return;
+        }
+        body.innerHTML = items.map(it => {
+          const pol = it.policy || {};
+          const ins = pol.insured || {};
+          return `
+            <div class="bg-slate-950 p-4 rounded-xl border border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded font-mono font-bold bg-amber-500/10 text-amber-300 border border-amber-500/20 text-sm">${it.plate}</span>
+                  <span class="font-bold text-white text-sm">${it.makeModel || 'Modelo não especificado'} ${it.year ? `(${it.year})` : ''}</span>
+                  <span class="px-1.5 py-0.5 rounded font-mono text-[10px] bg-slate-800 text-slate-400">${it.type}</span>
+                </div>
+                <div class="text-slate-300 font-medium">Segurado Titular: <strong class="text-white">${ins.name || '--'}</strong> · CPF: <span class="font-mono text-slate-400">${ins.cpf || '--'}</span></div>
+                <div class="text-slate-400 font-mono text-[11px]">Apólice: <strong>${pol.policyNumber || '--'}</strong> (${pol.insurerName || '--'}) · Sub-ramo: <span class="text-sky-400">${pol.subBranch || pol.branch || '--'}</span> · Chassi: ${it.chassis || it.identification || 'N/A'}</div>
+              </div>
+              <div class="flex items-center gap-2 shrink-0">
+                <button onclick="launchSimulatorWithPlate('${it.plate}', '${ins.phone || ''}', '${ins.id || ''}')" class="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 rounded-lg font-mono text-xs font-bold transition-all">
+                  Testar no Simulador &gt;
+                </button>
+                <button onclick="closeModal('modal-global-plate-results'); openPolicyFleetModal('${pol.id}', '${pol.policyNumber}', '${(ins.name || '').replace(/'/g, "\\'")}')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold transition-all">
+                  Ver Frota
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+        lucide.createIcons();
+      } catch (err) {
+        body.innerHTML = `<div class="p-6 text-center text-rose-400 text-xs font-mono">Erro: ${err.message}</div>`;
+      }
+    }
+
+    function launchSimulatorWithPlate(plate, phone, insuredId) {
+      closeModal('modal-global-plate-results');
+      switchTab('simulator');
+      const sel = document.getElementById('sim-select-insured');
+      if (insuredId && sel) {
+        sel.value = insuredId;
+        handleSimulatorInsuredChange();
+      }
+      if (phone) {
+        document.getElementById('sim-input-phone').value = phone;
+      }
+      document.getElementById('sim-message-input').value = `Olá, estou com o veículo de placa ${plate} e preciso acionar o guincho`;
+    }
+
+    // =========================================================================
+    // GESTÃO DE VEÍCULOS E ITENS DE FROTA DA APÓLICE (RODADA 11)
+    // =========================================================================
+    let currentFleetPolicyId = null;
+
+    function openPolicyFleetModal(policyId, policyNumber, insuredName) {
+      currentFleetPolicyId = policyId;
+      document.getElementById('fleet-current-policy-id').value = policyId;
+      document.getElementById('fleet-modal-title').innerHTML = `<i data-lucide="truck" class="w-4 h-4 text-sky-400"></i><span>Frota da Apólice ${policyNumber}</span>`;
+      document.getElementById('fleet-modal-subtitle').innerText = `Segurado: ${insuredName || 'Titular da Apólice'}`;
+      document.getElementById('fleet-item-plate').value = '';
+      document.getElementById('fleet-item-model').value = '';
+      document.getElementById('fleet-item-year').value = '';
+      document.getElementById('fleet-item-ident').value = '';
+      document.getElementById('fleet-csv-box').classList.add('hidden');
+      document.getElementById('modal-policy-fleet-items').classList.remove('hidden');
+      lucide.createIcons();
+      loadPolicyFleetItems(policyId);
+    }
+
+    function toggleFleetCsvBox() {
+      document.getElementById('fleet-csv-box').classList.toggle('hidden');
+    }
+
+    async function loadPolicyFleetItems(policyId) {
+      const tbody = document.getElementById('fleet-items-table-body');
+      tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-500">Carregando itens da frota...</td></tr>';
+      try {
+        const res = await fetch(`${API_BASE}/api/policies/${policyId}/items`, {
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        const items = await res.json();
+        tbody.innerHTML = '';
+        if (Array.isArray(items) && items.length > 0) {
+          items.forEach(it => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-b border-white/5 hover:bg-slate-800/40';
+            tr.innerHTML = `
+              <td class="p-2.5 font-mono font-bold text-amber-400">${it.plate}</td>
+              <td class="p-2.5 text-white font-medium">${it.makeModel || '--'}</td>
+              <td class="p-2.5 font-mono text-slate-400">${it.year || '--'}</td>
+              <td class="p-2.5 font-mono text-[11px] text-sky-400">${it.type}</td>
+              <td class="p-2.5 font-mono text-slate-400 text-[11px]">${it.identification || it.chassis || '--'}</td>
+              <td class="p-2.5"><span class="px-2 py-0.5 rounded text-[10px] font-mono ${it.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-800 text-slate-500'}">${it.status}</span></td>
+              <td class="p-2.5 text-right">
+                <button onclick="handleDeleteFleetItem('${it.id}')" class="px-2 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded text-[10px] font-mono">Excluir</button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } else {
+          tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-500">Nenhum veículo cadastrado nesta frota. Cadastre individualmente ou via CSV acima.</td></tr>';
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-rose-400">Erro: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function handleSaveFleetItem(e) {
+      e.preventDefault();
+      const policyId = currentFleetPolicyId || document.getElementById('fleet-current-policy-id').value;
+      const plate = document.getElementById('fleet-item-plate').value.trim();
+      const makeModel = document.getElementById('fleet-item-model').value.trim();
+      const year = parseInt(document.getElementById('fleet-item-year').value) || undefined;
+      const type = document.getElementById('fleet-item-type').value;
+      const identification = document.getElementById('fleet-item-ident').value.trim();
+
+      if (!plate) {
+        alert('A placa é obrigatória.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/policies/${policyId}/items`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({ plate, makeModel, year, type, identification })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro ao cadastrar veículo');
+        document.getElementById('fleet-item-plate').value = '';
+        document.getElementById('fleet-item-model').value = '';
+        document.getElementById('fleet-item-year').value = '';
+        document.getElementById('fleet-item-ident').value = '';
+        loadPolicyFleetItems(policyId);
+        loadPoliciesList();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function handleImportFleetCsv() {
+      const policyId = currentFleetPolicyId || document.getElementById('fleet-current-policy-id').value;
+      const csvText = document.getElementById('fleet-csv-input').value.trim();
+      if (!csvText) {
+        alert('Cole o texto CSV com os dados dos veículos.');
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/api/policies/${policyId}/items/import`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({ csvText })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro ao importar CSV de frota');
+        alert(`✅ Sucesso! ${data.importedCount} veículos cadastrados.`);
+        document.getElementById('fleet-csv-input').value = '';
+        document.getElementById('fleet-csv-box').classList.add('hidden');
+        loadPolicyFleetItems(policyId);
+        loadPoliciesList();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function handleDeleteFleetItem(itemId) {
+      if (!confirm('Deseja realmente remover este veículo da frota?')) return;
+      const policyId = currentFleetPolicyId || document.getElementById('fleet-current-policy-id').value;
+      try {
+        const res = await fetch(`${API_BASE}/api/policies/${policyId}/items/${itemId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        if (!res.ok) throw new Error('Erro ao excluir item');
+        loadPolicyFleetItems(policyId);
+        loadPoliciesList();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    // =========================================================================
+    // CONTATOS AUTORIZADOS DO SEGURADO (RODADA 11)
+    // =========================================================================
+    let currentInsuredContactId = null;
+
+    function openInsuredContactsModal(insuredId, insuredName) {
+      currentInsuredContactId = insuredId;
+      document.getElementById('contacts-current-insured-id').value = insuredId;
+      document.getElementById('contacts-modal-title').innerHTML = `<i data-lucide="user-check" class="w-4 h-4 text-emerald-400"></i><span>Contatos Autorizados: ${insuredName}</span>`;
+      document.getElementById('contacts-modal-subtitle').innerText = `Motoristas e Gestores que podem acionar assistência e kit de sinistro pelo WhatsApp`;
+      document.getElementById('contact-name').value = '';
+      document.getElementById('contact-phone').value = '';
+      document.getElementById('contact-role').value = 'MOTORISTA';
+      adjustContactPermissionsDefault();
+      document.getElementById('contacts-csv-box').classList.add('hidden');
+      document.getElementById('modal-insured-contacts').classList.remove('hidden');
+      lucide.createIcons();
+      loadInsuredContacts(insuredId);
+    }
+
+    function toggleContactsCsvBox() {
+      document.getElementById('contacts-csv-box').classList.toggle('hidden');
+    }
+
+    function adjustContactPermissionsDefault() {
+      const role = document.getElementById('contact-role').value;
+      const pClaims = document.getElementById('contact-perm-claims');
+      const pBilling = document.getElementById('contact-perm-billing');
+      const pRenewal = document.getElementById('contact-perm-renewal');
+      if (role === 'MOTORISTA') {
+        pClaims.checked = true;
+        pBilling.checked = false;
+        pRenewal.checked = false;
+      } else if (role === 'FINANCEIRO') {
+        pClaims.checked = false;
+        pBilling.checked = true;
+        pRenewal.checked = false;
+      } else {
+        pClaims.checked = true;
+        pBilling.checked = true;
+        pRenewal.checked = true;
+      }
+    }
+
+    async function loadInsuredContacts(insuredId) {
+      const tbody = document.getElementById('insured-contacts-table-body');
+      tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-500">Carregando contatos autorizados...</td></tr>';
+      try {
+        const res = await fetch(`${API_BASE}/api/insureds/${insuredId}/contacts`, {
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        const contacts = await res.json();
+        tbody.innerHTML = '';
+        if (Array.isArray(contacts) && contacts.length > 0) {
+          contacts.forEach(c => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-b border-white/5 hover:bg-slate-800/40';
+            tr.innerHTML = `
+              <td class="p-2.5 font-bold text-white">${c.name}</td>
+              <td class="p-2.5 font-mono text-slate-300 text-xs">${c.phone}</td>
+              <td class="p-2.5"><span class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-sky-500/10 text-sky-400">${c.role}</span></td>
+              <td class="p-2.5 font-mono text-xs">${c.canClaims ? '<span class="text-emerald-400">✓ Sim</span>' : '<span class="text-slate-500">✕ Não</span>'}</td>
+              <td class="p-2.5 font-mono text-xs">${c.canBilling ? '<span class="text-emerald-400">✓ Sim</span>' : '<span class="text-slate-500">✕ Não</span>'}</td>
+              <td class="p-2.5 font-mono text-xs">${c.canRenewal ? '<span class="text-emerald-400">✓ Sim</span>' : '<span class="text-slate-500">✕ Não</span>'}</td>
+              <td class="p-2.5 text-right">
+                <button onclick="handleDeleteInsuredContact('${c.id}')" class="px-2 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded text-[10px] font-mono">Excluir</button>
+              </td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } else {
+          tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-500">Nenhum motorista ou gestor cadastrado para este segurado. Adicione acima.</td></tr>';
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-rose-400">Erro: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function handleSaveInsuredContact(e) {
+      e.preventDefault();
+      const insuredId = currentInsuredContactId || document.getElementById('contacts-current-insured-id').value;
+      const name = document.getElementById('contact-name').value.trim();
+      const phone = document.getElementById('contact-phone').value.trim();
+      const role = document.getElementById('contact-role').value;
+      const canClaims = document.getElementById('contact-perm-claims').checked;
+      const canBilling = document.getElementById('contact-perm-billing').checked;
+      const canRenewal = document.getElementById('contact-perm-renewal').checked;
+
+      if (!name || !phone) {
+        alert('Nome e Telefone são obrigatórios.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/insureds/${insuredId}/contacts`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({ name, phone, role, canClaims, canBilling, canRenewal })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro ao cadastrar contato');
+        document.getElementById('contact-name').value = '';
+        document.getElementById('contact-phone').value = '';
+        loadInsuredContacts(insuredId);
+        loadInsuredsList();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function handleImportContactsCsv() {
+      const insuredId = currentInsuredContactId || document.getElementById('contacts-current-insured-id').value;
+      const csvText = document.getElementById('contacts-csv-input').value.trim();
+      if (!csvText) {
+        alert('Cole as linhas CSV de contatos.');
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/api/insureds/${insuredId}/contacts/import`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({ csvText })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro ao importar contatos');
+        alert(`✅ Sucesso! ${data.importedCount} contatos cadastrados.`);
+        document.getElementById('contacts-csv-input').value = '';
+        document.getElementById('contacts-csv-box').classList.add('hidden');
+        loadInsuredContacts(insuredId);
+        loadInsuredsList();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function handleDeleteInsuredContact(contactId) {
+      if (!confirm('Deseja realmente remover este contato autorizado?')) return;
+      const insuredId = currentInsuredContactId || document.getElementById('contacts-current-insured-id').value;
+      try {
+        const res = await fetch(`${API_BASE}/api/insureds/${insuredId}/contacts/${contactId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        if (!res.ok) throw new Error('Erro ao excluir contato');
+        loadInsuredContacts(insuredId);
+        loadInsuredsList();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    // =========================================================================
+    // SIMULADOR DE ATENDIMENTO IA (RODADA 11)
+    // =========================================================================
+    let simulatorInsuredsCache = [];
+
+    async function loadSimulatorData() {
+      try {
+        const [statusRes, insuredsRes] = await Promise.all([
+          fetch(`${API_BASE}/api/simulator/status`, { headers: { Authorization: `Bearer ${currentToken}` } }),
+          fetch(`${API_BASE}/api/insureds`, { headers: { Authorization: `Bearer ${currentToken}` } })
+        ]);
+        const statusData = await statusRes.json();
+        const insuredsData = await insuredsRes.json();
+
+        const badge = document.getElementById('sim-usage-badge');
+        if (badge && statusData) {
+          badge.innerText = `${statusData.todayMessagesCount || 0} / ${statusData.dailyLimit || 100}`;
+        }
+
+        const select = document.getElementById('sim-select-insured');
+        if (select && Array.isArray(insuredsData)) {
+          simulatorInsuredsCache = insuredsData;
+          const currentVal = select.value;
+          select.innerHTML = '<option value="">[Contato Novo / Não cadastrado na carteira]</option>' +
+            insuredsData.map(ins => `<option value="${ins.id}">${ins.name} (${ins.phone})</option>`).join('');
+          if (currentVal) select.value = currentVal;
+        }
+      } catch (e) {
+        console.error('Erro ao carregar simulador:', e);
+      }
+    }
+
+    function handleSimulatorInsuredChange() {
+      const sel = document.getElementById('sim-select-insured');
+      const detailsBar = document.getElementById('sim-insured-details-bar');
+      const subtitle = document.getElementById('sim-target-subtitle');
+      const phoneInput = document.getElementById('sim-input-phone');
+
+      const insId = sel.value;
+      if (!insId) {
+        subtitle.innerText = 'Simulando: Contato Novo (' + (phoneInput.value || '5527999990000') + ')';
+        detailsBar.classList.add('hidden');
+        return;
+      }
+
+      const ins = simulatorInsuredsCache.find(i => i.id === insId);
+      if (ins) {
+        phoneInput.value = ins.phone;
+        subtitle.innerText = `Simulando: ${ins.name} (${ins.phone})`;
+        const pols = ins.policies || [];
+        const countItems = pols.reduce((acc, p) => acc + (p.items?.length || 0), 0);
+        const countContacts = ins.authorizedContacts?.length || 0;
+        detailsBar.innerHTML = `
+          <span>📄 Apólices: <strong>${pols.length}</strong></span>
+          <span>🚚 Veículos na Frota: <strong>${countItems}</strong></span>
+          <span>👥 Contatos Autorizados: <strong>${countContacts}</strong></span>
+          <span>CPF/CNPJ: <strong>${ins.cpf || '--'}</strong></span>
+        `;
+        detailsBar.classList.remove('hidden');
+      }
+    }
+
+    function fillSimulatorMessage(msg) {
+      const input = document.getElementById('sim-message-input');
+      input.value = msg;
+      input.focus();
+    }
+
+    function resetSimulatorChat() {
+      const container = document.getElementById('sim-messages-container');
+      container.innerHTML = `
+        <div class="text-center my-2">
+          <span class="px-3 py-1 rounded-full text-[10px] font-mono bg-slate-800/80 text-slate-400 border border-white/5 inline-block">
+            Simulador de Atendimento SeguroFlow iniciado. Escreva como se fosse o segurado.
+          </span>
+        </div>
+      `;
+    }
+
+    async function sendSimulatorMessage() {
+      const input = document.getElementById('sim-message-input');
+      const btn = document.getElementById('sim-send-btn');
+      const text = input.value.trim();
+      const fromPhone = document.getElementById('sim-input-phone').value.trim() || '5527999990000';
+      const container = document.getElementById('sim-messages-container');
+
+      if (!text) return;
+      input.value = '';
+
+      // Renderiza bolha do usuário (verde WhatsApp)
+      const userMsgEl = document.createElement('div');
+      userMsgEl.className = 'flex justify-end';
+      userMsgEl.innerHTML = `
+        <div class="max-w-[80%] p-3 rounded-2xl bg-[#005c4b] text-white rounded-tr-none text-xs shadow-md space-y-1">
+          <p class="whitespace-pre-wrap">${text}</p>
+          <div class="text-[9px] text-white/60 text-right font-mono">${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</div>
+        </div>
+      `;
+      container.appendChild(userMsgEl);
+      container.scrollTop = container.scrollHeight;
+
+      // Placeholder digitando...
+      const typingEl = document.createElement('div');
+      typingEl.className = 'flex justify-start';
+      typingEl.id = 'sim-typing-indicator';
+      typingEl.innerHTML = `
+        <div class="max-w-[80%] p-3 rounded-2xl bg-[#202c33] text-slate-300 rounded-tl-none text-xs shadow-md font-mono flex items-center gap-1.5 animate-pulse">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span>IA SeguroFlow digitando...</span>
+        </div>
+      `;
+      container.appendChild(typingEl);
+      container.scrollTop = container.scrollHeight;
+
+      btn.disabled = true;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/simulator/message`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({ message: text, fromPhone })
+        });
+        const data = await res.json();
+        document.getElementById('sim-typing-indicator')?.remove();
+
+        if (!res.ok) {
+          const errMsg = data.error || 'Erro ao processar mensagem no simulador';
+          const errEl = document.createElement('div');
+          errEl.className = 'flex justify-start';
+          errEl.innerHTML = `
+            <div class="max-w-[80%] p-3 rounded-2xl bg-rose-950/80 border border-rose-500/30 text-rose-200 rounded-tl-none text-xs shadow-md">
+              ⚠️ ${errMsg}
+            </div>
+          `;
+          container.appendChild(errEl);
+        } else {
+          // Disparos simulados (cards amarelos informando o que o bot dispararia)
+          if (Array.isArray(data.simulatedDispatches) && data.simulatedDispatches.length > 0) {
+            data.simulatedDispatches.forEach(disp => {
+              const dispEl = document.createElement('div');
+              dispEl.className = 'my-2 p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-[11px] font-mono text-amber-300 space-y-0.5';
+              dispEl.innerHTML = `
+                <div class="font-bold flex items-center gap-1.5">
+                  <span>🔔 [Simulação de Disparo Oficial]</span>
+                </div>
+                <div>Template: <strong>${disp.templateName || 'WhatsApp'}</strong></div>
+                <div>Destinatário: <strong>${disp.to}</strong></div>
+                ${disp.preview ? `<div class="text-slate-300 text-[10px] italic">"${disp.preview}"</div>` : ''}
+              `;
+              container.appendChild(dispEl);
+            });
+          }
+
+          // Resposta da IA (cinza escuro WhatsApp)
+          const botEl = document.createElement('div');
+          botEl.className = 'flex justify-start';
+          botEl.innerHTML = `
+            <div class="max-w-[80%] p-3 rounded-2xl bg-[#202c33] text-slate-100 rounded-tl-none text-xs shadow-md space-y-1">
+              <p class="whitespace-pre-wrap select-text">${data.reply || ''}</p>
+              <div class="text-[9px] text-slate-400 text-right font-mono flex items-center justify-end gap-1">
+                <span>IA SeguroFlow</span> · ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+              </div>
+            </div>
+          `;
+          container.appendChild(botEl);
+
+          // Atualiza badge de mensagens
+          if (data.todayCount !== undefined) {
+            const badge = document.getElementById('sim-usage-badge');
+            if (badge) badge.innerText = `${data.todayCount} / 100`;
+          }
+        }
+      } catch (err) {
+        document.getElementById('sim-typing-indicator')?.remove();
+        const errEl = document.createElement('div');
+        errEl.className = 'flex justify-start';
+        errEl.innerHTML = `
+          <div class="max-w-[80%] p-3 rounded-2xl bg-rose-950/80 border border-rose-500/30 text-rose-200 rounded-tl-none text-xs shadow-md">
+            ⚠️ Erro de conexão com a API: ${err.message}
+          </div>
+        `;
+        container.appendChild(errEl);
+      } finally {
+        btn.disabled = false;
+        container.scrollTop = container.scrollHeight;
+        lucide.createIcons();
+      }
+    }
+
+    async function clearSimulatorData() {
+      if (!confirm('Deseja realmente limpar todos os sinistros, cards e mensagens marcados como simulação?')) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/simulator/clear`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro ao limpar dados de simulação');
+        alert(`✅ Limpeza concluída!\n• Conversas simuladas removidas: ${data.deletedConversations}\n• Sinistros simulados removidos: ${data.deletedClaims}\n• Cards do funil simulados removidos: ${data.deletedPipelineCards}`);
+        resetSimulatorChat();
+        loadDashboardData();
+        loadClaimsData();
+        loadPipelineData();
+      } catch (err) {
+        alert(err.message);
+      }
     }
   </script>
 </body>

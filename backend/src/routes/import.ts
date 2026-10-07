@@ -40,15 +40,15 @@ importRouter.post(
     let importedPolicies = 0;
     const errors: Array<{ line: number; message: string }> = [];
 
-    // Header esperado: Nome, CPF, Telefone, Email, Seguradora, Apolice, Ramo, VigenciaFim, Premio
+    // Header esperado: Nome, CPF, Telefone, Email, Seguradora, Apolice, Ramo, VigenciaFim, Premio, SubRamo (opcional)
     for (let i = 1; i < lines.length; i++) {
-      const parts = lines[i].split(",").map((p) => p.trim().replace(/^["']|["']$/g, ""));
+      const parts = lines[i].split(/[,;]/).map((p) => p.trim().replace(/^["']|["']$/g, ""));
       if (parts.length < 5) {
         errors.push({ line: i + 1, message: "Campos insuficientes na linha" });
         continue;
       }
 
-      const [name, rawCpf, rawPhone, email, insurer, policyNumber, rawBranch, rawEndDate, rawPremium] = parts;
+      const [name, rawCpf, rawPhone, email, insurer, policyNumber, rawBranch, rawEndDate, rawPremium, rawSubBranch] = parts;
 
       if (!name || !rawPhone) {
         errors.push({ line: i + 1, message: "Nome e telefone são obrigatórios" });
@@ -103,6 +103,7 @@ importRouter.post(
                 policyNumber,
                 insurerName: insurer,
                 branch,
+                subBranch: rawSubBranch ? rawSubBranch.trim() : null,
                 startDate: new Date(),
                 endDate,
                 premiumAmount: isNaN(premium) ? 1500 : premium,
