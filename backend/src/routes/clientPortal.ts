@@ -272,8 +272,9 @@ clientPortalRouter.get("/dashboard", requireInsuredAuth, async (req: Request, re
 
   // Formata cartões virtuais de seguro com número de assistência resolvido corretamente
   const virtualCards = insured.policies.map((pol) => {
-    const phone = resolveAssistance24hPhone(pol.assistance24hPhone, pol.insurerName, insured.brokerage.phone, (insured.brokerage as any).confirmedInsurers);
-    const cleanPhone = phone.replace(/\D/g, "");
+    const assistance = resolveAssistance24hPhone(pol.assistance24hPhone, pol.insurerName, insured.brokerage.phone, (insured.brokerage as any).confirmedInsurers);
+    const cleanPhone = assistance.phone.replace(/\D/g, "");
+    const displayPhone = assistance.phone ? (assistance.type === "corretora" ? `Ligue para a corretora: ${assistance.phone}` : assistance.phone) : "";
     return {
       policyId: pol.id,
       policyNumber: pol.policyNumber,
@@ -281,7 +282,7 @@ clientPortalRouter.get("/dashboard", requireInsuredAuth, async (req: Request, re
       branch: pol.branch,
       itemDescription: pol.itemDescription,
       endDate: pol.endDate,
-      assistance24hPhone: phone,
+      assistance24hPhone: displayPhone,
       assistanceCallLink: cleanPhone ? `tel:${cleanPhone}` : undefined,
       assistanceWhatsAppLink: cleanPhone ? `https://wa.me/55${cleanPhone}` : undefined,
       pendingInstallments: pol.installments.map((inst) => ({

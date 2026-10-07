@@ -6,7 +6,11 @@ import { env } from "../config/env";
 import { decryptSensitive } from "../security/crypto";
 import { transcribeAudioBuffer } from "./transcription";
 import { resolveAssistance24hPhone } from "./insurerDirectory";
-import { sendWhatsAppTextMessage, sendWhatsAppTemplateMessage } from "./whatsappCloud";
+import {
+  sendWhatsAppTextMessage,
+  sendWhatsAppTemplateMessage,
+  isWithinCustomer24hWindow,
+} from "./whatsappCloud";
 
 function getAnthropicClient(): Anthropic | null {
   const apiKey = process.env.ANTHROPIC_API_KEY || env.ANTHROPIC_API_KEY;
@@ -243,35 +247,75 @@ export async function handleMissedCall(params: {
   });
 
   const activePolicy = insured?.policies?.[0];
-  const assistancePhone = resolveAssistance24hPhone(
+  const assistance = resolveAssistance24hPhone(
     activePolicy?.assistance24hPhone,
     activePolicy?.insurerName,
     brokerage.phone,
     brokerage.confirmedInsurers as Record<string, string> | null
   );
+  const assistancePhone = assistance.phone || brokerage.phone || "";
+  const contactText = assistance.type === "corretora"
+    ? `📞 Ligue para a corretora: ${assistancePhone}`
+    : `📞 Assistência 24h da seguradora: ${assistancePhone}`;
 
   // 1. Mensagem de retorno no WhatsApp para o cliente
   const clientMessage = `Olá! Identificamos que você acabou de ligar para a ${brokerage.name}. No momento nossos atendentes estão em linha ou fora do horário comercial, mas já registramos o seu contato e vamos retornar em instantes!
 
 🚨 Caso seja uma emergência ou necessidade de guincho/assistência 24h, acione diretamente:
-📞 ${assistancePhone}
+${contactText}
 
 SeguroFlow · Atendimento Inteligente`;
 
+  let messageSent = false;
   try {
     if (brokerage.whatsappAccessTokenEncrypted && brokerage.whatsappPhoneNumberId) {
       const token = decryptSensitive(brokerage.whatsappAccessTokenEncrypted);
       if (token) {
-        await sendWhatsAppTextMessage(
-          cleanPhone,
-          clientMessage,
-          brokerage.whatsappPhoneNumberId,
-          token
-        );
+        // 1ª Tentativa: Envio via Template Oficial Aprovado "ligacao_perdida" (obrigatório fora da janela de 24h)
+        try {
+          const components = [
+            {
+              type: "body" as const,
+              parameters: [
+                { type: "text" as const, text: brokerage.name },
+                { type: "text" as const, text: assistancePhone },
+              ],
+            },
+          ];
+
+          const msgId = await sendWhatsAppTemplateMessage(
+            cleanPhone,
+            "ligacao_perdida",
+            "pt_BR",
+            components,
+            brokerage.whatsappPhoneNumberId,
+            token
+          );
+          if (msgId) messageSent = true;
+        } catch (templateErr) {
+          console.warn("[Telephony] Template ligacao_perdida falhou. Verificando janela de 24h...", templateErr);
+          // 2ª Tentativa: Texto livre SOMENTE se cliente estiver dentro da janela de 24h da Meta
+          const inWindow = await isWithinCustomer24hWindow(brokerageId, cleanPhone);
+          if (inWindow) {
+            try {
+              await sendWhatsAppTextMessage(
+                cleanPhone,
+                clientMessage,
+                brokerage.whatsappPhoneNumberId,
+                token
+              );
+              messageSent = true;
+            } catch (textErr) {
+              console.warn("Falha ao enviar texto livre dentro da janela de 24h:", textErr);
+            }
+          } else {
+            console.warn(`[Telephony] Cliente ${cleanPhone} fora da janela de 24h da Meta. Texto livre bloqueado para evitar rejeição.`);
+          }
+        }
       }
     }
   } catch (err) {
-    console.warn("Não foi possível enviar WhatsApp de chamada perdida:", err);
+    console.warn("Não foi possível processar WhatsApp de chamada perdida:", err);
   }
 
   // 2. Alerta imediato no WhatsApp do corretor se houver alertPhone
@@ -291,14 +335,14 @@ SeguroFlow · Atendimento Inteligente`;
     }
   }
 
-  // 3. Cria card de prioridade no Funil de Vendas (NOVO)
+  // 3. Cria card no Funil de Vendas (com indicação clara de urgência se mensagem não foi entregue)
   await prisma.pipelineCard.create({
     data: {
       brokerageId,
       insuredId: insured?.id,
-      title: `🚨 Ligação Perdida: ${insured ? insured.name : fromPhone}`,
+      title: `🚨 [LIGAÇÃO PERDIDA${!messageSent ? " URGENTE" : ""}] ${insured ? insured.name : fromPhone}`,
       stage: PipelineStage.NOVO,
-      notes: `Chamada não atendida registrada em ${new Date().toLocaleString("pt-BR")}. Retornar com prioridade máxima.`,
+      notes: `Chamada não atendida registrada em ${new Date().toLocaleString("pt-BR")}.${!messageSent ? " Cliente NÃO recebeu mensagem automática (fora da janela de 24h ou template pendente). Retornar com urgência máxima!" : " Mensagem automática com assistência 24h enviada via WhatsApp."}`,
     },
   });
 }

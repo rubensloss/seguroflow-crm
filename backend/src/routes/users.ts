@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import { RenewalStatus } from "@prisma/client";
 import { prisma } from "../config/prisma";
 import { requireAuth, requireRoles } from "../security/auth";
 import { recordAuditLog } from "../services/auditLog";
@@ -53,7 +54,11 @@ usersRouter.get(
           where: { brokerageId, assignedUserId: id },
         }),
         prisma.renewalTask.count({
-          where: { brokerageId, assignedUserId: id, status: "PENDING" },
+          where: {
+            brokerageId,
+            assignedUserId: id,
+            status: { in: [RenewalStatus.PENDING, RenewalStatus.CONTACTED, RenewalStatus.IN_NEGOTIATION] },
+          },
         }),
         prisma.pipelineCard.count({
           where: { brokerageId, assignedUserId: id, stage: { not: "POS_VENDA" } },
@@ -141,7 +146,11 @@ usersRouter.post(
       });
 
       const renewals = await tx.renewalTask.updateMany({
-        where: { brokerageId, assignedUserId: id, status: "PENDING" },
+        where: {
+          brokerageId,
+          assignedUserId: id,
+          status: { in: [RenewalStatus.PENDING, RenewalStatus.CONTACTED, RenewalStatus.IN_NEGOTIATION] },
+        },
         data: { assignedUserId: toUserId },
       });
 

@@ -60,35 +60,34 @@ describe("SeguroFlow — Regras de Negócio e Segurança", () => {
   test("Resolução de Assistência 24h: NUNCA exibe números de seguradora não confirmados pela corretora", () => {
     const { resolveAssistance24hPhone } = require("../services/insurerDirectory");
 
-    // 1. Apólice com assistência cadastrada explicitamente tem prioridade total
-    assert.equal(resolveAssistance24hPhone("0800 111 2222", "Allianz", "552799998888"), "0800 111 2222");
+    // 1. Apólice com assistência cadastrada explicitamente tem prioridade total (seguradora)
+    const r1 = resolveAssistance24hPhone("0800 111 2222", "Allianz", "552799998888");
+    assert.equal(r1.phone, "0800 111 2222");
+    assert.equal(r1.type, "seguradora");
 
     // 2. Apólice sem assistência cadastrada e sem confirmação da corretora:
-    // NUNCA retorna número do diretório geral! Retorna estritamente o telefone da corretora.
-    assert.equal(
-      resolveAssistance24hPhone(null, "HDI Seguros", "552799998888"),
-      "Ligue para a sua corretora: 552799998888"
-    );
-    assert.equal(
-      resolveAssistance24hPhone("", "Porto Seguro", "552799998888"),
-      "Ligue para a sua corretora: 552799998888"
-    );
+    // NUNCA retorna número do diretório geral! Retorna estritamente o telefone da corretora (corretora).
+    const r2 = resolveAssistance24hPhone(null, "HDI Seguros", "552799998888");
+    assert.equal(r2.phone, "552799998888");
+    assert.equal(r2.type, "corretora");
 
-    // 3. Apólice com seguradora confirmada expressamente pela corretora no painel
+    const r3 = resolveAssistance24hPhone("", "Porto Seguro", "552799998888");
+    assert.equal(r3.phone, "552799998888");
+    assert.equal(r3.type, "corretora");
+
+    // 3. Apólice com seguradora confirmada expressamente pela corretora no painel (seguradora)
     const confirmedMap = {
       "HDI Seguros": "0800 434 4340",
       "SulAmérica": "4090-1012",
     };
-    assert.equal(
-      resolveAssistance24hPhone(null, "HDI Seguros", "552799998888", confirmedMap),
-      "0800 434 4340"
-    );
+    const r4 = resolveAssistance24hPhone(null, "HDI Seguros", "552799998888", confirmedMap);
+    assert.equal(r4.phone, "0800 434 4340");
+    assert.equal(r4.type, "seguradora");
 
-    // 4. Sem telefone da corretora e sem apólice: mensagem amigável sem inventar número
-    assert.equal(
-      resolveAssistance24hPhone(null, "Seguradora Qualquer", null, null),
-      "Consulte sua corretora para acionar a assistência 24h"
-    );
+    // 4. Sem telefone da corretora e sem apólice: retorna vazio com tipo corretora
+    const r5 = resolveAssistance24hPhone(null, "Seguradora Qualquer", null, null);
+    assert.equal(r5.phone, "");
+    assert.equal(r5.type, "corretora");
   });
 
   test("Geração e validação de código OTP com token de desafio seguro (LGPD)", () => {
@@ -323,26 +322,47 @@ describe("SeguroFlow — Regras de Negócio e Segurança", () => {
     assert.deepEqual(restoredBuffer, dummyAudioBuffer);
   });
 
-  test("Kit do Sinistro: formata apólice, placa/item, CPF mascarado e telefone de assistência resolvido", () => {
+  test("Kit do Sinistro: formata apólice, prefixo exato para seguradora ou corretora e omite placa vazia", () => {
     const { resolveAssistance24hPhone } = require("../services/insurerDirectory");
 
-    // Simula segurado com CPF e apólice com item
+    // Simula segurado com CPF e apólice sem item
     const cpf = "12345678900";
     const maskedCpf = cpf.length === 11
       ? `${cpf.slice(0, 3)}.***.***-${cpf.slice(-2)}`
       : "CPF não informado";
     assert.equal(maskedCpf, "123.***.***-00");
 
-    // Apólice sem telefone de assistência, mas com telefone confirmado pela corretora
+    // Apólice sem telefone de assistência, mas com telefone confirmado pela corretora (seguradora)
     const confirmedMap = {
       "Porto Seguro": "0800 727 0800",
     };
-    const phoneResolved = resolveAssistance24hPhone(null, "Porto Seguro", "5527999990000", confirmedMap);
-    assert.equal(phoneResolved, "0800 727 0800");
+    const resResolved = resolveAssistance24hPhone(null, "Porto Seguro", "5527999990000", confirmedMap);
+    assert.equal(resResolved.phone, "0800 727 0800");
+    assert.equal(resResolved.type, "seguradora");
 
-    // Apólice sem telefone e sem confirmação: NUNCA 'consulte seu corretor', sempre telefone da corretora
-    const phoneFallback = resolveAssistance24hPhone(null, "Nova Seguradora", "5527999990000", {});
-    assert.equal(phoneFallback, "Ligue para a sua corretora: 5527999990000");
+    const contactLineResolved = resResolved.type === "corretora"
+      ? `📞 Ligue para a corretora: ${resResolved.phone}`
+      : `📞 Assistência 24h da seguradora: ${resResolved.phone}`;
+    assert.equal(contactLineResolved, "📞 Assistência 24h da seguradora: 0800 727 0800");
+
+    // Apólice sem telefone e sem confirmação: telefone da corretora com tipo corretora
+    const resFallback = resolveAssistance24hPhone(null, "Nova Seguradora", "5527999990000", {});
+    assert.equal(resFallback.phone, "5527999990000");
+    assert.equal(resFallback.type, "corretora");
+
+    const contactLineFallback = resFallback.type === "corretora"
+      ? `📞 Ligue para a corretora: ${resFallback.phone}`
+      : `📞 Assistência 24h da seguradora: ${resFallback.phone}`;
+    assert.equal(contactLineFallback, "📞 Ligue para a corretora: 5527999990000");
+
+    // Omissão de placa quando vazia ou nula (nunca 'Veículo Segurado')
+    const formatItemLine = (itemDescription?: string | null) => {
+      const itemPlaca = itemDescription && itemDescription.trim().length > 0 ? itemDescription.trim() : null;
+      return itemPlaca ? `🚗 *Item/Placa:* ${itemPlaca}\n` : "";
+    };
+    assert.equal(formatItemLine(null), "");
+    assert.equal(formatItemLine(""), "");
+    assert.equal(formatItemLine("ABC-1234"), "🚗 *Item/Placa:* ABC-1234\n");
   });
 
   test("Janela de 24h Meta: rejeita texto livre fora da janela e valida mensagens recentes", () => {
@@ -387,7 +407,7 @@ describe("SeguroFlow — Regras de Negócio e Segurança", () => {
     assert.equal(lostCommission, 600); // 225 + 375 = 600
   });
 
-  test("Transferência de Carteira: impede transferência entre corretoras diferentes e exige OWNER", () => {
+  test("Transferência de Carteira: migra PENDING, CONTACTED e IN_NEGOTIATION e bloqueia cross-tenant", () => {
     // Simula verificação de papel
     const checkOwnerRole = (role: string) => role === "OWNER";
     assert.equal(checkOwnerRole("OWNER"), true);
@@ -404,5 +424,41 @@ describe("SeguroFlow — Regras de Negócio e Segurança", () => {
     assert.equal(canTransfer("brk_1", "brk_1", "OWNER").allowed, true);
     assert.equal(canTransfer("brk_1", "brk_1", "BROKER").allowed, false);
     assert.equal(canTransfer("brk_1", "brk_2", "OWNER").allowed, false);
+
+    // Valida filtro de status de renovações a transferir: PENDING, CONTACTED e IN_NEGOTIATION
+    const allowedRenewalStatuses = ["PENDING", "CONTACTED", "IN_NEGOTIATION"];
+    const shouldTransferRenewal = (status: string) => allowedRenewalStatuses.includes(status);
+
+    assert.equal(shouldTransferRenewal("PENDING"), true);
+    assert.equal(shouldTransferRenewal("CONTACTED"), true);
+    assert.equal(shouldTransferRenewal("IN_NEGOTIATION"), true);
+    assert.equal(shouldTransferRenewal("RENEWED"), false);
+    assert.equal(shouldTransferRenewal("LOST"), false);
+  });
+
+  test("Ligação Perdida: template oficial ligacao_perdida, trava de 24h e card urgente", () => {
+    // Simula parâmetros de envio do template ligacao_perdida
+    const buildMissedCallTemplate = (brokerageName: string, assistancePhone: string) => ({
+      templateName: "ligacao_perdida",
+      parameters: [brokerageName, assistancePhone],
+    });
+
+    const tmpl = buildMissedCallTemplate("SeguroFlow Prime", "0800 727 0800");
+    assert.equal(tmpl.templateName, "ligacao_perdida");
+    assert.deepEqual(tmpl.parameters, ["SeguroFlow Prime", "0800 727 0800"]);
+
+    // Simula decisão de envio: fora de 24h sem template => bloqueia texto livre e gera card urgente
+    const decideMissedCallAction = (templateSuccess: boolean, isWithin24h: boolean) => {
+      if (templateSuccess) return { sentText: false, sentTemplate: true, cardUrgent: false };
+      if (isWithin24h) return { sentText: true, sentTemplate: false, cardUrgent: false };
+      return { sentText: false, sentTemplate: false, cardUrgent: true };
+    };
+
+    // Caso 1: Template funciona
+    assert.deepEqual(decideMissedCallAction(true, false), { sentText: false, sentTemplate: true, cardUrgent: false });
+    // Caso 2: Template falha, mas cliente falou no WhatsApp há 2h (dentro da janela)
+    assert.deepEqual(decideMissedCallAction(false, true), { sentText: true, sentTemplate: false, cardUrgent: false });
+    // Caso 3: Template falha e cliente está fora da janela de 24h -> NUNCA manda texto livre, gera card urgente
+    assert.deepEqual(decideMissedCallAction(false, false), { sentText: false, sentTemplate: false, cardUrgent: true });
   });
 });

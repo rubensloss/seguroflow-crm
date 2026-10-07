@@ -4,7 +4,6 @@ import { InsuranceBranch, PolicyStatus } from "@prisma/client";
 import { prisma } from "../config/prisma";
 import { requireAuth } from "../security/auth";
 import { recordAuditLog } from "../services/auditLog";
-import { resolveAssistance24hPhone } from "../services/insurerDirectory";
 
 export const policiesRouter = Router();
 

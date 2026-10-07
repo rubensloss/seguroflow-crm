@@ -139,13 +139,20 @@ export const OFFICIAL_INSURERS: InsurerInfo[] = [
   },
 ];
 
+export type AssistancePhoneType = "seguradora" | "corretora";
+
+export interface ResolvedAssistance {
+  phone: string;
+  type: AssistancePhoneType;
+}
+
 /**
- * Obtém o telefone de assistência 24h para o segurado.
- * REGRA ESTRITA DE PRODUÇÃO (Rodada 6):
- * 1. Número cadastrado na apólice do segurado (se existir).
- * 2. Tabela de seguradoras confirmada expressamente pela corretora (confirmedInsurersMap).
+ * Obtém o telefone de assistência 24h para o segurado e a origem do contato (seguradora ou corretora).
+ * REGRA ESTRITA DE PRODUÇÃO (Rodada 8):
+ * 1. Número cadastrado na apólice do segurado (se existir) -> type: "seguradora".
+ * 2. Tabela de seguradoras confirmada expressamente pela corretora -> type: "seguradora".
  * 3. Fallback estrito: NUNCA exibe número de seguradora não confirmado pelo corretor.
- *    Retorna contato direto com a corretora.
+ *    Retorna telefone da corretora -> type: "corretora".
  * 4. A lista padrão (OFFICIAL_INSURERS) é APENAS sugestão no painel para o corretor conferir.
  */
 export function resolveAssistance24hPhone(
@@ -153,10 +160,13 @@ export function resolveAssistance24hPhone(
   insurerName?: string | null,
   brokeragePhone?: string | null,
   confirmedInsurersMap?: Record<string, string> | null
-): string {
+): ResolvedAssistance {
   // 1. Número da apólice
   if (policyAssistancePhone && policyAssistancePhone.trim().length > 0) {
-    return policyAssistancePhone.trim();
+    return {
+      phone: policyAssistancePhone.trim(),
+      type: "seguradora",
+    };
   }
 
   // 2. Confirmação expressa da corretora no painel
@@ -164,15 +174,24 @@ export function resolveAssistance24hPhone(
     const cleanInsurer = insurerName.toLowerCase().trim();
     for (const [key, phone] of Object.entries(confirmedInsurersMap)) {
       if (cleanInsurer.includes(key.toLowerCase()) && phone && phone.trim().length > 0) {
-        return phone.trim();
+        return {
+          phone: phone.trim(),
+          type: "seguradora",
+        };
       }
     }
   }
 
   // 3. Fallback estrito: NUNCA inventa nem usa número não confirmado pela corretora
   if (brokeragePhone && brokeragePhone.trim().length > 0) {
-    return `Ligue para a sua corretora: ${brokeragePhone.trim()}`;
+    return {
+      phone: brokeragePhone.trim(),
+      type: "corretora",
+    };
   }
 
-  return "Consulte sua corretora para acionar a assistência 24h";
+  return {
+    phone: "",
+    type: "corretora",
+  };
 }

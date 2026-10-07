@@ -475,7 +475,8 @@ claimsRouter.post("/online-intake", async (req: Request, res: Response) => {
   }
 
   const protocol = `SIN-${new Date().getFullYear()}-${claim.id.slice(-6).toUpperCase()}`;
-  const assistancePhone = resolveAssistance24hPhone(policy.assistance24hPhone, policy.insurerName, brokerage.phone, (brokerage as any).confirmedInsurers);
+  const assistance = resolveAssistance24hPhone(policy.assistance24hPhone, policy.insurerName, brokerage.phone, (brokerage as any).confirmedInsurers);
+  const assistancePhone = assistance.phone ? (assistance.type === "corretora" ? `Ligue para a corretora: ${assistance.phone}` : assistance.phone) : "";
 
   res.status(201).json({
     success: true,

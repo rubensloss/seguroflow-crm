@@ -128,16 +128,20 @@ export async function executeAgentTool(
           where: { id: brokerageId },
           select: { phone: true, name: true, confirmedInsurers: true },
         });
-        const fallbackPhone = resolveAssistance24hPhone(null, null, brokerage?.phone, brokerage?.confirmedInsurers as any);
+        const fallback = resolveAssistance24hPhone(null, null, brokerage?.phone, brokerage?.confirmedInsurers as any);
+        const contactLine = fallback.type === "corretora"
+          ? `📞 Ligue para a corretora: ${fallback.phone}`
+          : `📞 Assistência 24h da seguradora: ${fallback.phone}`;
         return JSON.stringify({
           sucesso: false,
           mensagem: "Apólice específica não identificada.",
-          assistencia24h: fallbackPhone,
-          instrucao: `Informe ao segurado o telefone direto de plantão da corretora: ${fallbackPhone}.`,
+          assistencia24h: fallback.phone,
+          tipoTelefone: fallback.type,
+          instrucao: `Informe ao segurado o contato de plantão da corretora: ${contactLine}.`,
         });
       }
 
-      const assistancePhone = resolveAssistance24hPhone(
+      const assistance = resolveAssistance24hPhone(
         policy.assistance24hPhone,
         policy.insurerName,
         policy.brokerage.phone,
@@ -149,23 +153,35 @@ export async function executeAgentTool(
         ? `***.${rawCpf.slice(3, 6)}.${rawCpf.slice(6, 9)}-**`
         : rawCpf ? `***${rawCpf.slice(-4)}` : "";
 
+      const contactLine = assistance.type === "corretora"
+        ? `📞 Ligue para a corretora: ${assistance.phone}`
+        : `📞 Assistência 24h da seguradora: ${assistance.phone}`;
+
+      const itemPlaca = policy.itemDescription && policy.itemDescription.trim().length > 0
+        ? policy.itemDescription.trim()
+        : null;
+
+      const itemLine = itemPlaca ? `🚗 *Item/Placa:* ${itemPlaca}\n` : "";
+
       return JSON.stringify({
         sucesso: true,
         seguradora: policy.insurerName,
-        assistencia24h: assistancePhone,
+        assistencia24h: assistance.phone,
+        tipoTelefone: assistance.type,
         numeroApolice: policy.policyNumber,
-        itemOuPlaca: policy.itemDescription || "Veículo Segurado",
+        itemOuPlaca: itemPlaca,
         titular: policy.insured?.name || "Segurado",
-        cpfMascarado: maskedCpf,
+        cpfMascarado: maskedCpf || null,
         kitSinistro: {
           seguradora: policy.insurerName,
-          telefoneAssistencia: assistancePhone,
+          telefoneAssistencia: assistance.phone,
+          tipoTelefone: assistance.type,
           apolice: policy.policyNumber,
-          itemPlaca: policy.itemDescription || "Veículo Segurado",
+          itemPlaca: itemPlaca,
           titular: policy.insured?.name || "Segurado",
-          cpf: maskedCpf,
+          cpf: maskedCpf || null,
         },
-        mensagemPronta: `🚨 *KIT DO SINISTRO — Central 24h*\n\n📞 *Ligue para:* ${assistancePhone}\n🏢 *Seguradora:* ${policy.insurerName}\n📄 *Apólice:* ${policy.policyNumber}\n🚗 *Item/Placa:* ${policy.itemDescription || "Veículo Segurado"}\n👤 *Titular:* ${policy.insured?.name || "Segurado"}${maskedCpf ? ` (${maskedCpf})` : ""}\n\n_Ao ligar, tenha esses dados em mãos para que o guincho ou assistência seja liberado sem burocracia!_`,
+        mensagemPronta: `🚨 *KIT DO SINISTRO — Central 24h*\n\n${contactLine}\n🏢 *Seguradora:* ${policy.insurerName}\n📄 *Apólice:* ${policy.policyNumber}\n${itemLine}👤 *Titular:* ${policy.insured?.name || "Segurado"}${maskedCpf ? ` (${maskedCpf})` : ""}\n\n_Ao ligar, tenha esses dados em mãos para que o guincho ou assistência seja liberado sem burocracia!_`,
       });
     }
 
