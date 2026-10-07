@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { prisma } from "../../config/prisma";
 import { sendWhatsAppTextMessage } from "../whatsappCloud";
 import { decryptSensitive } from "../../security/crypto";
+import { resolveAssistance24hPhone } from "../insurerDirectory";
 
 export const AGENT_TOOLS: Anthropic.Tool[] = [
   {
@@ -16,7 +17,7 @@ export const AGENT_TOOLS: Anthropic.Tool[] = [
   },
   {
     name: "obterAssistencia24h",
-    description: "Informa o telefone 0800 e assistência 24h da seguradora da apólice ativa do segurado.",
+    description: "Retorna o Kit do Sinistro completo (0800 da seguradora, número da apólice, placa/item segurado, titular e CPF mascarado) pronto para o segurado ligar para a assistência.",
     input_schema: {
       type: "object",
       properties: {
@@ -116,20 +117,55 @@ export async function executeAgentTool(
             ? { insuredId, status: "ACTIVE" }
             : {}),
         },
+        include: {
+          brokerage: { select: { phone: true, name: true, confirmedInsurers: true } },
+          insured: { select: { name: true, cpf: true, phone: true } },
+        },
       });
 
       if (!policy) {
+        const brokerage = await prisma.brokerage.findUnique({
+          where: { id: brokerageId },
+          select: { phone: true, name: true, confirmedInsurers: true },
+        });
+        const fallbackPhone = resolveAssistance24hPhone(null, null, brokerage?.phone, brokerage?.confirmedInsurers as any);
         return JSON.stringify({
           sucesso: false,
-          mensagem: "Apólice não localizada para informar o contato 24h.",
+          mensagem: "Apólice específica não identificada.",
+          assistencia24h: fallbackPhone,
+          instrucao: `Informe ao segurado o telefone direto de plantão da corretora: ${fallbackPhone}.`,
         });
       }
+
+      const assistancePhone = resolveAssistance24hPhone(
+        policy.assistance24hPhone,
+        policy.insurerName,
+        policy.brokerage.phone,
+        policy.brokerage.confirmedInsurers as any
+      );
+
+      const rawCpf = policy.insured?.cpf ? policy.insured.cpf.replace(/\D/g, "") : "";
+      const maskedCpf = rawCpf.length === 11
+        ? `***.${rawCpf.slice(3, 6)}.${rawCpf.slice(6, 9)}-**`
+        : rawCpf ? `***${rawCpf.slice(-4)}` : "";
 
       return JSON.stringify({
         sucesso: true,
         seguradora: policy.insurerName,
-        assistencia24h: policy.assistance24hPhone || "Consulte seu corretor para o 0800 específico",
-        item: policy.itemDescription,
+        assistencia24h: assistancePhone,
+        numeroApolice: policy.policyNumber,
+        itemOuPlaca: policy.itemDescription || "Veículo Segurado",
+        titular: policy.insured?.name || "Segurado",
+        cpfMascarado: maskedCpf,
+        kitSinistro: {
+          seguradora: policy.insurerName,
+          telefoneAssistencia: assistancePhone,
+          apolice: policy.policyNumber,
+          itemPlaca: policy.itemDescription || "Veículo Segurado",
+          titular: policy.insured?.name || "Segurado",
+          cpf: maskedCpf,
+        },
+        mensagemPronta: `🚨 *KIT DO SINISTRO — Central 24h*\n\n📞 *Ligue para:* ${assistancePhone}\n🏢 *Seguradora:* ${policy.insurerName}\n📄 *Apólice:* ${policy.policyNumber}\n🚗 *Item/Placa:* ${policy.itemDescription || "Veículo Segurado"}\n👤 *Titular:* ${policy.insured?.name || "Segurado"}${maskedCpf ? ` (${maskedCpf})` : ""}\n\n_Ao ligar, tenha esses dados em mãos para que o guincho ou assistência seja liberado sem burocracia!_`,
       });
     }
 

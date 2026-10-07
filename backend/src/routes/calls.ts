@@ -4,6 +4,7 @@ import { prisma } from "../config/prisma";
 import { requireAuth } from "../security/auth";
 import { recordAuditLog } from "../services/auditLog";
 import { processCallAudio } from "../services/telephony";
+import { decryptSensitive } from "../security/crypto";
 import {
   CallDirection,
   CallStatus,
@@ -125,6 +126,14 @@ callsRouter.get("/", requireAuth, async (req: Request, res: Response) => {
     take: 50,
   });
 
+  const safeCalls = calls.map((c) => {
+    const { recordingAudioEncrypted, ...rest } = c;
+    return {
+      ...rest,
+      hasRecording: Boolean(recordingAudioEncrypted || c.recordingFile || c.recordingUrl),
+    };
+  });
+
   // Métricas do Mês Corrente
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -150,7 +159,7 @@ callsRouter.get("/", requireAuth, async (req: Request, res: Response) => {
   const missedCalls = monthCalls.filter((c) => c.status === CallStatus.NO_ANSWER).length;
 
   res.json({
-    calls,
+    calls: safeCalls,
     metrics: {
       monthTotalCalls: monthCalls.length,
       monthEstimatedCostBrl: Math.round(totalCost * 100) / 100,
@@ -187,7 +196,87 @@ callsRouter.get("/:id", requireAuth, async (req: Request, res: Response) => {
     req,
   });
 
-  res.json(call);
+  const { recordingAudioEncrypted, ...safeCall } = call;
+  res.json({
+    ...safeCall,
+    hasRecording: Boolean(recordingAudioEncrypted || call.recordingFile || call.recordingUrl),
+  });
+});
+
+/**
+ * Download e streaming seguro do áudio gravado da ligação
+ * Restrito estritamente à corretora dona do registro e com auditoria LGPD (AuditLog)
+ */
+callsRouter.get("/:id/recording", requireAuth, async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const brokerageId = req.user!.brokerageId;
+
+  const call = await prisma.callRecord.findFirst({
+    where: { id, brokerageId },
+  });
+
+  if (!call) {
+    res.status(404).json({ error: "Gravação não encontrada." });
+    return;
+  }
+
+  // Registra auditoria de escuta/download da gravação
+  await recordAuditLog({
+    brokerageId,
+    userId: req.user!.userId,
+    action: "LISTEN_CALL_RECORDING",
+    resource: `CallRecord:${call.id}`,
+    req,
+  });
+
+  // 1. Se possuímos o áudio armazenado criptografado localmente
+  if (call.recordingAudioEncrypted) {
+    const base64Audio = decryptSensitive(call.recordingAudioEncrypted);
+    if (base64Audio) {
+      const buffer = Buffer.from(base64Audio, "base64");
+      res.set({
+        "Content-Type": "audio/mpeg",
+        "Content-Length": String(buffer.length),
+        "Accept-Ranges": "bytes",
+        "Cache-Control": "private, no-cache, no-store, must-revalidate",
+      });
+      res.send(buffer);
+      return;
+    }
+  }
+
+  // 2. Se o áudio ainda estiver no link remoto do provedor (Twilio com Basic Auth)
+  if (call.recordingUrl) {
+    try {
+      const brokerage = await prisma.brokerage.findUnique({ where: { id: brokerageId } });
+      const headers: Record<string, string> = {};
+      if (brokerage?.telephonyAccountSidEncrypted && brokerage?.telephonyAuthTokenEncrypted) {
+        const sid = decryptSensitive(brokerage.telephonyAccountSidEncrypted);
+        const token = decryptSensitive(brokerage.telephonyAuthTokenEncrypted);
+        if (sid && token) {
+          headers["Authorization"] = `Basic ${Buffer.from(`${sid}:${token}`).toString("base64")}`;
+        }
+      }
+
+      const remoteRes = await fetch(call.recordingUrl, { headers });
+      if (remoteRes.ok) {
+        const arrayBuf = await remoteRes.arrayBuffer();
+        const buffer = Buffer.from(arrayBuf);
+        res.set({
+          "Content-Type": "audio/mpeg",
+          "Content-Length": String(buffer.length),
+          "Accept-Ranges": "bytes",
+          "Cache-Control": "private, no-cache, no-store, must-revalidate",
+        });
+        res.send(buffer);
+        return;
+      }
+    } catch (fetchErr) {
+      console.error(`[Telefonia] Erro ao buscar gravação remota para proxy:`, fetchErr);
+    }
+  }
+
+  res.status(404).json({ error: "Arquivo de áudio não disponível." });
 });
 
 /**

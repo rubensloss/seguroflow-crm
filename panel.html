@@ -182,6 +182,10 @@
             <i data-lucide="phone-call" class="w-4 h-4 text-emerald-400"></i>
             <span>Ligações & Telefonia</span>
           </button>
+          <button onclick="switchTab('team')" id="btn-tab-team" class="nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-all text-left">
+            <i data-lucide="users" class="w-4 h-4 text-violet-400"></i>
+            <span>Equipe & Carteira</span>
+          </button>
         </div>
 
         <!-- Corretora Pill -->
@@ -502,6 +506,133 @@
                 <span>Varredura de Renovações da Corretora</span>
               </button>
               <div id="renewals-manual-result" class="text-xs font-mono text-slate-300"></div>
+            </div>
+          </div>
+
+          <!-- SEÇÃO: RELATÓRIO MENSAL DE RETENÇÃO & ANÁLISE DE PERDAS (RODADA 7) -->
+          <div class="bg-slate-900 border border-white/10 rounded-2xl p-5 space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+              <div>
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                  <i data-lucide="bar-chart-3" class="w-4 h-4 text-purple-400"></i>
+                  <span>Relatório Mensal de Renovações & Análise de Perdas</span>
+                </h3>
+                <p class="text-xs text-slate-400">Taxa de renovação oficial (renovadas ÷ apólices vencidas no mês) e motivos auditados de perda</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <label class="text-xs font-mono text-slate-400">Mês de Referência:</label>
+                <input type="month" id="renewals-report-month" onchange="loadRenewalsReport()" class="px-3 py-1.5 bg-slate-800 border border-white/10 rounded-lg text-white font-mono text-xs">
+                <button onclick="loadRenewalsReport()" class="p-1.5 text-slate-400 hover:text-white bg-slate-800 border border-white/10 rounded-lg">
+                  <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- KPIs de Renovação -->
+            <div class="grid grid-cols-2 md:grid-cols-6 gap-3">
+              <div class="bg-slate-950/60 border border-white/5 rounded-xl p-3 space-y-1">
+                <div class="text-[10px] font-mono text-slate-400 uppercase">Taxa de Renovação</div>
+                <div id="rep-ren-rate" class="text-2xl font-bold text-emerald-400">0%</div>
+                <div class="text-[9px] text-slate-500 font-mono">Retenção da Corretora</div>
+              </div>
+              <div class="bg-slate-950/60 border border-white/5 rounded-xl p-3 space-y-1">
+                <div class="text-[10px] font-mono text-slate-400 uppercase">Apólices Vencidas</div>
+                <div id="rep-ren-total" class="text-2xl font-bold text-white">0</div>
+                <div class="text-[9px] text-slate-500 font-mono">No mês selecionado</div>
+              </div>
+              <div class="bg-slate-950/60 border border-white/5 rounded-xl p-3 space-y-1">
+                <div class="text-[10px] font-mono text-slate-400 uppercase">Renovadas</div>
+                <div id="rep-ren-renewed" class="text-2xl font-bold text-sky-400">0</div>
+                <div class="text-[9px] text-sky-500 font-mono">Com sucesso</div>
+              </div>
+              <div class="bg-slate-950/60 border border-white/5 rounded-xl p-3 space-y-1">
+                <div class="text-[10px] font-mono text-slate-400 uppercase">Perdidas (Lost)</div>
+                <div id="rep-ren-lost" class="text-2xl font-bold text-rose-400">0</div>
+                <div class="text-[9px] text-rose-500 font-mono">Com motivo auditado</div>
+              </div>
+              <div class="bg-slate-950/60 border border-white/5 rounded-xl p-3 space-y-1">
+                <div class="text-[10px] font-mono text-slate-400 uppercase">Prêmio Perdido</div>
+                <div id="rep-ren-lost-prem" class="text-lg font-bold text-rose-400 font-mono">R$ 0,00</div>
+                <div class="text-[9px] text-slate-500 font-mono">Prêmio total</div>
+              </div>
+              <div class="bg-slate-950/60 border border-white/5 rounded-xl p-3 space-y-1">
+                <div class="text-[10px] font-mono text-slate-400 uppercase">Comissão Perdida</div>
+                <div id="rep-ren-lost-comm" class="text-lg font-bold text-amber-400 font-mono">R$ 0,00</div>
+                <div class="text-[9px] text-slate-500 font-mono">Impacto na receita</div>
+              </div>
+            </div>
+
+            <!-- Gráfico/Tabela de Motivos de Perda e Desempenho por Corretor -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Motivos de Perda -->
+              <div class="bg-slate-950/40 border border-white/5 rounded-xl p-4 space-y-3">
+                <div class="flex items-center justify-between border-b border-white/5 pb-2">
+                  <span class="text-xs font-mono font-bold text-rose-400 uppercase">Distribuição por Motivo de Perda</span>
+                  <span class="text-[10px] text-slate-400 font-mono">Obrigatório no descarte</span>
+                </div>
+                <div id="rep-losses-breakdown" class="space-y-2.5 text-xs">
+                  <div class="text-slate-500 text-center py-4">Nenhuma perda registrada neste mês.</div>
+                </div>
+              </div>
+
+              <!-- Retenção por Corretor -->
+              <div class="bg-slate-950/40 border border-white/5 rounded-xl p-4 space-y-3">
+                <div class="flex items-center justify-between border-b border-white/5 pb-2">
+                  <span class="text-xs font-mono font-bold text-purple-400 uppercase">Desempenho por Corretor</span>
+                  <span class="text-[10px] text-slate-400 font-mono">Taxa individual</span>
+                </div>
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="text-[10px] font-mono uppercase text-slate-400 border-b border-white/5">
+                      <tr>
+                        <th class="py-1.5">Corretor</th>
+                        <th class="py-1.5">Vencidas</th>
+                        <th class="py-1.5">Renovadas</th>
+                        <th class="py-1.5">Perdidas</th>
+                        <th class="py-1.5 text-right">Taxa</th>
+                      </tr>
+                    </thead>
+                    <tbody id="rep-brokers-table-body">
+                      <tr><td colspan="5" class="py-3 text-center text-slate-500">Sem dados no período.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SEÇÃO: TAREFAS DE RENOVAÇÃO EM ANDAMENTO (60, 30 E 15 DIAS) -->
+          <div class="bg-slate-900 border border-white/10 rounded-2xl p-5 space-y-4">
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+              <div>
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                  <i data-lucide="clock" class="w-4 h-4 text-purple-400"></i>
+                  <span>Tarefas de Renovação em Aberto</span>
+                </h3>
+                <p class="text-xs text-slate-400">Acompanhe e encerre as tarefas com a marcação correta do resultado</p>
+              </div>
+              <button onclick="loadRenewalTasksList()" class="p-1.5 text-slate-400 hover:text-white bg-slate-800 border border-white/10 rounded-lg">
+                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-800/80 text-[10px] font-mono uppercase text-slate-400 border-b border-white/5">
+                  <tr>
+                    <th class="p-3">Segurado</th>
+                    <th class="p-3">Apólice / Seguradora</th>
+                    <th class="p-3">Vencimento</th>
+                    <th class="p-3">Janela</th>
+                    <th class="p-3">Status</th>
+                    <th class="p-3">Corretor</th>
+                    <th class="p-3 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="renewal-tasks-table-body">
+                  <tr><td colspan="7" class="p-4 text-center text-slate-500">Carregando tarefas...</td></tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -837,7 +968,7 @@
 
                 <div>
                   <label class="block text-slate-300 font-mono mb-1">WhatsApp de Alerta do Corretor (Transbordo)</label>
-                  <input type="text" id="cfg-alert-phone" placeholder="Ex: 5527988140076" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
+                  <input type="text" id="cfg-alert-phone" placeholder="Ex: 5527999990000" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white font-mono">
                 </div>
 
                 <div class="flex items-center justify-between pt-2">
@@ -889,6 +1020,27 @@
                 </div>
                 <p>O Webhook do SeguroFlow valida estritamente a assinatura HMAC-SHA256 (X-Hub-Signature-256) com o App Secret exclusivo da sua corretora, isolando mensagens e dados de clientes.</p>
               </div>
+            </div>
+          </div>
+
+          <!-- SEÇÃO: SEGURADORAS E ASSISTÊNCIA 24H (DIRETÓRIO OFICIAL) -->
+          <div class="bg-slate-900 border border-white/10 rounded-2xl p-5 space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <div>
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                  <i data-lucide="shield-alert" class="w-4 h-4 text-emerald-400"></i>
+                  <span>Seguradoras & Assistência 24h (Confirmação da Corretora)</span>
+                </h3>
+                <p class="text-xs text-slate-400">Verifique os links oficiais, valide o número 0800 / WhatsApp e salve. O segurado recebe o número confirmado no "Kit do Sinistro".</p>
+              </div>
+              <button onclick="handleSaveConfirmedInsurers()" id="btn-save-insurers" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs rounded-xl transition-all flex items-center gap-1.5 shrink-0 shadow-lg shadow-emerald-500/20">
+                <i data-lucide="check" class="w-4 h-4"></i>
+                <span>Salvar Telefones Confirmados</span>
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="insurers-directory-grid">
+              <div class="col-span-2 text-center py-6 text-slate-500 text-xs font-mono">Carregando diretório de seguradoras...</div>
             </div>
           </div>
         </div>
@@ -956,6 +1108,47 @@
             <div class="p-8 text-center text-slate-500 font-mono text-xs bg-slate-900/40 rounded-2xl border border-white/5">
               Nenhuma ligação gravada no momento.
             </div>
+          </div>
+        </div>
+
+        <!-- TAB 13: GESTÃO DE EQUIPE & TRANSFERÊNCIA DE CARTEIRA (RODADA 7) -->
+        <div id="tab-team" class="tab-pane hidden space-y-6">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <h1 class="text-xl font-bold text-white">Equipe & Carteira de Corretores</h1>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-violet-500/10 text-violet-400 border border-violet-500/20 font-bold">GESTÃO ATÔNOMA</span>
+              </div>
+              <p class="text-xs text-slate-400 font-mono">Gerenciamento de acessos da corretora e redistribuição atômica de carteiras</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="openTransferPortfolioModal()" class="px-3.5 py-1.5 text-xs bg-violet-500 hover:bg-violet-400 text-white font-bold rounded-lg flex items-center gap-1.5 transition-colors shadow-lg shadow-violet-500/20">
+                <i data-lucide="arrow-right-left" class="w-3.5 h-3.5"></i>
+                <span>Transferir Carteira</span>
+              </button>
+              <button onclick="loadTeamData()" class="p-1.5 text-slate-400 hover:text-white bg-slate-800 border border-white/10 rounded-lg">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Tabela de Membros da Equipe -->
+          <div class="bg-slate-900 border border-white/10 rounded-xl overflow-hidden shadow-xl">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-800/80 text-[10px] font-mono uppercase text-slate-400 border-b border-white/5">
+                <tr>
+                  <th class="p-3">Nome / Usuário</th>
+                  <th class="p-3">E-mail</th>
+                  <th class="p-3">Perfil / Cargo</th>
+                  <th class="p-3">Status</th>
+                  <th class="p-3">Carteira Atribuída</th>
+                  <th class="p-3 text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="team-table-body">
+                <tr><td colspan="6" class="p-4 text-center text-slate-500">Carregando membros da equipe...</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -1195,6 +1388,14 @@
           <input type="text" id="tel-cfg-notice" value="Esta ligação é gravada para agilizar o seu atendimento." class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white">
         </div>
 
+        <div class="p-3 bg-cyan-500/10 rounded-xl border border-cyan-500/20 text-[11px] text-cyan-300 space-y-1">
+          <div class="font-bold flex items-center gap-1.5">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+            <span>Segurança Twilio (Recomendado):</span>
+          </div>
+          <p>Ative na sua conta Twilio a opção <strong>"Enforce HTTP Auth on Media URLs"</strong> (em Voice &gt; Settings). O SeguroFlow faz o download autenticado via credenciais, salva com criptografia AES-256-GCM e apaga a gravação remota do Twilio para proteger a privacidade dos segurados.</p>
+        </div>
+
         <div class="flex gap-2 pt-2">
           <button type="button" onclick="closeModal('modal-telephony-settings')" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg">Cancelar</button>
           <button type="submit" id="btn-save-tel-settings" class="flex-1 py-2 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-lg">Salvar Telefonia</button>
@@ -1232,6 +1433,102 @@
 
       <div class="border-t border-white/10 pt-3 flex justify-end">
         <button onclick="closeModal('modal-call-transcription')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: TRANSFERÊNCIA DE CARTEIRA (ATÔMICA) -->
+  <div id="modal-transfer-portfolio" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-lg p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <h3 class="font-bold text-white text-sm flex items-center gap-2">
+          <i data-lucide="arrow-right-left" class="w-4 h-4 text-violet-400"></i>
+          <span>Transferência de Carteira de Corretor</span>
+        </h3>
+        <button onclick="closeModal('modal-transfer-portfolio')" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="block text-slate-300 font-mono mb-1">Corretor de Origem (quem está saindo ou redistribuindo)</label>
+          <select id="transfer-from-user" onchange="handleFromUserSelected()" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white">
+            <option value="">Selecione o corretor de origem...</option>
+          </select>
+        </div>
+
+        <!-- Box de Resumo da Carteira -->
+        <div id="transfer-summary-box" class="p-3.5 bg-slate-950 rounded-xl border border-white/5 space-y-2 hidden">
+          <div class="font-bold text-violet-400 text-xs flex items-center gap-1.5">
+            <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+            <span>Resumo dos Itens que Serão Transferidos:</span>
+          </div>
+          <div id="transfer-summary-content" class="grid grid-cols-2 gap-2 text-slate-300 font-mono text-[11px]">
+            <!-- Preenchido dinamicamente -->
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-mono mb-1">Corretor de Destino (quem vai assumir os segurados e processos)</label>
+          <select id="transfer-to-user" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white">
+            <option value="">Selecione o novo responsável...</option>
+          </select>
+        </div>
+
+        <div class="p-3 bg-rose-500/10 rounded-xl border border-rose-500/20 flex items-start gap-2.5">
+          <input type="checkbox" id="transfer-deactivate-user" class="mt-0.5 rounded bg-slate-800 border-white/10 text-rose-500 focus:ring-0">
+          <div>
+            <label for="transfer-deactivate-user" class="font-bold text-rose-300 block cursor-pointer">Desativar acesso do corretor de origem</label>
+            <p class="text-[11px] text-slate-400 mt-0.5">Revoga o login e impede novos acessos ao sistema SeguroFlow imediatamente após a conclusão da transferência.</p>
+          </div>
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeModal('modal-transfer-portfolio')" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg">Cancelar</button>
+          <button type="button" onclick="handleExecuteTransferPortfolio()" id="btn-execute-transfer" class="flex-1 py-2 bg-violet-600 hover:bg-violet-500 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-1.5">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Confirmar e Transferir</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: MOTIVO DA PERDA DA RENOVAÇÃO (OBRIGATÓRIO) -->
+  <div id="modal-renewal-lost" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-white/10 rounded-2xl w-full max-w-md p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <h3 class="font-bold text-white text-sm flex items-center gap-2">
+          <i data-lucide="alert-triangle" class="w-4 h-4 text-rose-400"></i>
+          <span>Registrar Perda de Renovação</span>
+        </h3>
+        <button onclick="closeModal('modal-renewal-lost')" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+
+      <input type="hidden" id="lost-renewal-task-id">
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-300 font-mono mb-1">Motivo da Perda (Obrigatório)</label>
+          <select id="lost-renewal-reason" class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white">
+            <option value="">Selecione o motivo...</option>
+            <option value="PRECO">Preço / Concorrência</option>
+            <option value="VENDEU_BEM">Vendeu o Bem / Sem Interesse</option>
+            <option value="FECHOU_BANCO">Fechou com Banco</option>
+            <option value="FECHOU_OUTRA_CORRETORA">Fechou com Outra Corretora</option>
+            <option value="SEM_CONTATO">Sem Contato / Não Respondeu</option>
+            <option value="OUTRO">Outro Motivo</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-slate-300 font-mono mb-1">Observações / Detalhes</label>
+          <textarea id="lost-renewal-notes" rows="3" placeholder="Detalhes da recusa ou feedback do cliente..." class="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white"></textarea>
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeModal('modal-renewal-lost')" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg">Cancelar</button>
+          <button type="button" onclick="handleConfirmRenewalLost()" class="flex-1 py-2 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-lg">Confirmar Perda</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1397,8 +1694,16 @@
       if (tabName === 'finances') loadFinancesData();
       if (tabName === 'claims') loadClaimsData();
       if (tabName === 'inbox') loadInboxData();
-      if (tabName === 'settings-whatsapp') loadWhatsAppSettings();
+      if (tabName === 'cadence') {
+        loadRenewalsReport();
+        loadRenewalTasksList();
+      }
+      if (tabName === 'settings-whatsapp') {
+        loadWhatsAppSettings();
+        loadConfirmedInsurers();
+      }
       if (tabName === 'calls') loadCallsData();
+      if (tabName === 'team') loadTeamData();
     }
 
     // Carregamento de Dashboard
@@ -1590,15 +1895,24 @@
         if (Array.isArray(claims) && claims.length > 0) {
           claims.forEach(c => {
             const item = document.createElement('div');
-            item.className = 'p-3 bg-slate-800/60 border border-white/5 rounded-xl flex items-center justify-between text-xs';
+            item.className = 'p-4 bg-slate-800/60 border border-white/5 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs';
             item.innerHTML = `
               <div>
-                <div class="font-bold text-white">${c.incidentType} • ${c.insured?.name || 'Segurado'}</div>
-                <div class="text-slate-400 text-[11px]">${c.description}</div>
+                <div class="font-bold text-white text-sm">${c.incidentType} • ${c.insured?.name || 'Segurado'}</div>
+                <div class="text-slate-400 text-xs mt-0.5">${c.description || 'Sem descrição'}</div>
+                <div class="text-[10px] text-slate-500 font-mono mt-1">Registrado em: ${new Date(c.createdAt).toLocaleString('pt-BR')} · Protocolo: ${c.id.slice(-6).toUpperCase()}</div>
               </div>
-              <div class="text-right font-mono">
-                <span class="px-2 py-0.5 rounded text-[10px] ${c.status === 'OPEN' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400'}">${c.status}</span>
-                <div class="text-slate-500 text-[10px] mt-1">${new Date(c.createdAt).toLocaleDateString('pt-BR')}</div>
+              <div class="flex items-center gap-2 self-end sm:self-center font-mono">
+                <span class="text-[10px] text-slate-400">Status:</span>
+                <select onchange="handleChangeClaimStatus('${c.id}', this.value)" class="px-2.5 py-1.5 bg-slate-900 border border-white/10 rounded-lg text-xs text-white">
+                  <option value="OPEN" ${c.status === 'OPEN' ? 'selected' : ''}>Aberto (OPEN)</option>
+                  <option value="DOCS_RECEIVED" ${c.status === 'DOCS_RECEIVED' ? 'selected' : ''}>Docs Recebidos (DOCS_RECEIVED)</option>
+                  <option value="SENT_TO_INSURER" ${c.status === 'SENT_TO_INSURER' ? 'selected' : ''}>Enviado à Seguradora (SENT_TO_INSURER)</option>
+                  <option value="UNDER_REVIEW" ${c.status === 'UNDER_REVIEW' ? 'selected' : ''}>Em Análise (UNDER_REVIEW)</option>
+                  <option value="APPROVED" ${c.status === 'APPROVED' ? 'selected' : ''}>Aprovado (APPROVED)</option>
+                  <option value="REJECTED" ${c.status === 'REJECTED' ? 'selected' : ''}>Recusado (REJECTED)</option>
+                  <option value="CLOSED" ${c.status === 'CLOSED' ? 'selected' : ''}>Encerrado (CLOSED)</option>
+                </select>
               </div>
             `;
             container.appendChild(item);
@@ -1608,6 +1922,26 @@
         }
       } catch (err) {
         console.error(err);
+      }
+    }
+
+    async function handleChangeClaimStatus(claimId, newStatus) {
+      try {
+        const res = await fetch(`${API_BASE}/api/claims/${claimId}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({ status: newStatus })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro ao atualizar status');
+        alert(`✅ Status atualizado para ${newStatus}! Notificação de andamento despachada ao WhatsApp do segurado.`);
+        loadClaimsData();
+      } catch (e) {
+        alert('Erro ao atualizar status do sinistro: ' + e.message);
+        loadClaimsData();
       }
     }
 
@@ -1722,6 +2056,21 @@
     }
 
     async function triggerRunRenewalsManual() {
+      const resEl = document.getElementById('renewals-manual-result');
+      resEl.innerText = 'Processando varredura de renovações...';
+      try {
+        const res = await fetch(`${API_BASE}/api/renewals/scan`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        const data = await res.json();
+        resEl.innerText = `✅ Sucesso: ${data.message} (60d: ${data.result?.created60 || 0}, 30d: ${data.result?.created30 || 0}, 15d: ${data.result?.created15 || 0})`;
+        loadRenewalsReport();
+        loadRenewalTasksList();
+      } catch (e) {
+        resEl.innerText = '❌ Erro ao executar: ' + e.message;
+      }
+    }
     // ========================================================
     // MODAL UTILITIES
     // ========================================================
@@ -2408,9 +2757,9 @@
             ? `<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-sky-500/10 text-sky-400 border border-sky-500/20 font-bold uppercase">${call.intent}</span>`
             : `<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-400 font-bold">OUTRO</span>`;
 
-          const audioPlayer = call.recordingUrl
-            ? `<audio controls src="${call.recordingUrl}" class="h-8 w-full max-w-xs mt-2"></audio>`
-            : `<span class="text-[10px] font-mono text-slate-500">Áudio arquivado (${call.recordingFile || 'remoto'})</span>`;
+          const audioPlayer = (call.hasRecording || call.recordingUrl || call.recordingFile)
+            ? `<div class="mt-2"><button onclick="playProtectedAudio('${call.id}', this)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs font-mono transition-all"><i data-lucide="play" class="w-3.5 h-3.5"></i><span>Ouvir Gravação Protegida</span></button></div>`
+            : `<span class="text-[10px] font-mono text-slate-500">Sem gravação de áudio</span>`;
 
           const clientName = call.insured ? call.insured.name : call.fromPhone;
 
@@ -2624,8 +2973,15 @@
       document.getElementById('transcription-modal-body').innerText = call.transcription || '[Sem transcrição gerada]';
 
       const audioBox = document.getElementById('transcription-audio-box');
-      if (call.recordingUrl) {
-        audioBox.innerHTML = `<audio controls src="${call.recordingUrl}" class="w-full h-8"></audio>`;
+      if (call.hasRecording || call.recordingUrl || call.recordingFile) {
+        audioBox.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-300 font-mono">Gravação Criptografada AES-256 (Isolada):</span>
+            <button onclick="playProtectedAudio('${call.id}', this)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs font-mono transition-all">
+              <i data-lucide="play" class="w-3.5 h-3.5"></i> <span>Ouvir Gravação Protegida</span>
+            </button>
+          </div>
+        `;
         audioBox.classList.remove('hidden');
       } else {
         audioBox.classList.add('hidden');
@@ -2655,6 +3011,467 @@
         loadCallsData();
       } catch (err) {
         alert('Erro: ' + err.message);
+      }
+    }
+
+    // =========================================================================
+    // AUDIO PLAYER PROTEGIDO (DOWNLOAD AUTENTICADO & AES-256)
+    // =========================================================================
+    async function playProtectedAudio(callId, btn) {
+      try {
+        if (btn) {
+          btn.disabled = true;
+          btn.innerHTML = `<span class="inline-flex items-center gap-1"><i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> Baixando gravação protegida...</span>`;
+          lucide.createIcons();
+        }
+        const res = await fetch(`${API_BASE}/api/calls/${callId}/recording`, {
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          alert(err.error || 'Não foi possível reproduzir a gravação protegida.');
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> Tentar Novamente`;
+            lucide.createIcons();
+          }
+          return;
+        }
+        const blob = await res.blob();
+        const blobUrl = URL.createObjectURL(blob);
+        const audio = document.createElement('audio');
+        audio.controls = true;
+        audio.autoplay = true;
+        audio.src = blobUrl;
+        audio.className = 'h-8 w-full max-w-xs mt-2';
+        if (btn) {
+          btn.replaceWith(audio);
+        }
+      } catch (e) {
+        alert('Erro ao carregar gravação: ' + e.message);
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `<i data-lucide="play" class="w-3.5 h-3.5"></i> Ouvir Gravação`;
+          lucide.createIcons();
+        }
+      }
+    }
+
+    // =========================================================================
+    // DIRETÓRIO DE SEGURADORAS E CONFIRMAÇÃO DE ASSISTÊNCIA 24H
+    // =========================================================================
+    async function loadConfirmedInsurers() {
+      const grid = document.getElementById('insurers-directory-grid');
+      if (!grid) return;
+      grid.innerHTML = '<div class="col-span-2 text-center py-6 text-slate-500 text-xs font-mono">Carregando diretório de seguradoras...</div>';
+      try {
+        const res = await fetch(`${API_BASE}/api/brokerages/settings/insurers`, {
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro ao carregar diretório');
+
+        const suggestions = data.suggestions || [];
+        const confirmed = data.confirmedInsurers || {};
+
+        grid.innerHTML = suggestions.map(ins => {
+          const isConfirmed = Boolean(confirmed[ins.name]);
+          const currentPhone = confirmed[ins.name] || ins.assistance24hPhone || '';
+          const badgeClass = isConfirmed
+            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+            : 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+          const badgeText = isConfirmed ? 'CONFIRMADO PELA CORRETORA' : 'A CONFIRMAR';
+
+          return `
+            <div class="bg-slate-950/60 border border-white/5 rounded-xl p-3.5 space-y-2.5">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h4 class="font-bold text-white text-xs">${ins.name}</h4>
+                  <a href="${ins.website}" target="_blank" rel="noopener noreferrer" class="text-[10px] text-sky-400 hover:underline inline-flex items-center gap-1 font-mono">
+                    <span>${ins.website.replace('https://', '')}</span>
+                    <i data-lucide="external-link" class="w-2.5 h-2.5"></i>
+                  </a>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[9px] font-mono font-bold ${badgeClass}">${badgeText}</span>
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-400 font-mono mb-1">Telefone de Assistência 24h / Sinistro (0800 ou WhatsApp)</label>
+                <input type="text" data-insurer-name="${ins.name}" value="${currentPhone}" placeholder="Ex: 0800 123 4567"
+                  class="insurer-phone-input w-full px-3 py-1.5 bg-slate-900 border border-white/10 rounded-lg text-white font-mono text-xs">
+              </div>
+            </div>
+          `;
+        }).join('');
+        lucide.createIcons();
+      } catch (err) {
+        grid.innerHTML = `<div class="col-span-2 text-center py-6 text-rose-400 text-xs">Erro: ${err.message}</div>`;
+      }
+    }
+
+    async function handleSaveConfirmedInsurers() {
+      const btn = document.getElementById('btn-save-insurers');
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Salvando...';
+      try {
+        const inputs = document.querySelectorAll('.insurer-phone-input');
+        const confirmedInsurers = {};
+        inputs.forEach(inp => {
+          const name = inp.getAttribute('data-insurer-name');
+          const val = inp.value.trim();
+          if (name && val) {
+            confirmedInsurers[name] = val;
+          }
+        });
+
+        const res = await fetch(`${API_BASE}/api/brokerages/settings/insurers`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({ confirmedInsurers })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro ao salvar seguradoras confirmadas');
+        alert('✅ Telefones de assistência 24h confirmados com sucesso pela corretora!');
+        loadConfirmedInsurers();
+      } catch (e) {
+        alert('Erro ao salvar: ' + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i><span>Salvar Telefones Confirmados</span>';
+        lucide.createIcons();
+      }
+    }
+
+    // =========================================================================
+    // GESTÃO DE EQUIPE & TRANSFERÊNCIA DE CARTEIRA (ATÔMICA)
+    // =========================================================================
+    let currentTeamUsers = [];
+
+    async function loadTeamData() {
+      const tbody = document.getElementById('team-table-body');
+      if (!tbody) return;
+      tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-500">Carregando membros da equipe...</td></tr>';
+      try {
+        const res = await fetch(`${API_BASE}/api/users`, {
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        const users = await res.json();
+        if (!res.ok) throw new Error(users.error || 'Erro ao carregar equipe');
+        currentTeamUsers = Array.isArray(users) ? users : [];
+
+        if (currentTeamUsers.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-slate-500">Nenhum membro encontrado.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = currentTeamUsers.map(u => {
+          const roleBadge = u.role === 'OWNER'
+            ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+            : (u.role === 'BROKER' ? 'bg-sky-500/10 text-sky-400 border border-sky-500/20' : 'bg-slate-800 text-slate-400');
+          const statusBadge = u.active
+            ? '<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400">ATIVO</span>'
+            : '<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-500/10 text-rose-400">INATIVO</span>';
+
+          const portfolioCounts = `${u._count?.assignedPolicies || 0} apólices · ${u._count?.assignedCards || 0} leads · ${u._count?.assignedRenewals || 0} renovações`;
+
+          return `
+            <tr class="border-b border-white/5 hover:bg-slate-800/40">
+              <td class="p-3 font-bold text-white">${u.name}</td>
+              <td class="p-3 font-mono text-slate-300 text-xs">${u.email}</td>
+              <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold ${roleBadge}">${u.role}</span></td>
+              <td class="p-3">${statusBadge}</td>
+              <td class="p-3 font-mono text-xs text-slate-400">${portfolioCounts}</td>
+              <td class="p-3 text-right">
+                <button onclick="openTransferPortfolioModal('${u.id}')" class="px-2.5 py-1 bg-violet-500/10 hover:bg-violet-500/20 text-violet-300 border border-violet-500/30 rounded text-[11px] font-semibold transition-all">
+                  Transferir Carteira
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-rose-400">Erro: ${e.message}</td></tr>`;
+      }
+    }
+
+    async function openTransferPortfolioModal(fromUserId) {
+      if (currentTeamUsers.length === 0) {
+        await loadTeamData();
+      }
+
+      const fromSel = document.getElementById('transfer-from-user');
+      const toSel = document.getElementById('transfer-to-user');
+      fromSel.innerHTML = '<option value="">Selecione o corretor de origem...</option>' +
+        currentTeamUsers.map(u => `<option value="${u.id}">${u.name} (${u.email})</option>`).join('');
+
+      toSel.innerHTML = '<option value="">Selecione o novo responsável...</option>' +
+        currentTeamUsers.filter(u => u.active).map(u => `<option value="${u.id}">${u.name} (${u.email})</option>`).join('');
+
+      document.getElementById('transfer-summary-box').classList.add('hidden');
+      document.getElementById('transfer-deactivate-user').checked = false;
+
+      if (fromUserId) {
+        fromSel.value = fromUserId;
+        await handleFromUserSelected();
+      }
+
+      document.getElementById('modal-transfer-portfolio').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    async function handleFromUserSelected() {
+      const fromUserId = document.getElementById('transfer-from-user').value;
+      const box = document.getElementById('transfer-summary-box');
+      const content = document.getElementById('transfer-summary-content');
+
+      if (!fromUserId) {
+        box.classList.add('hidden');
+        return;
+      }
+
+      content.innerHTML = '<div class="col-span-2 text-slate-500 text-xs">Calculando carteira do corretor...</div>';
+      box.classList.remove('hidden');
+
+      try {
+        const res = await fetch(`${API_BASE}/api/users/${fromUserId}/transfer-summary`, {
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro ao carregar resumo');
+
+        const s = data.summary;
+        content.innerHTML = `
+          <div>• <strong>${s.conversationsCount}</strong> conversas no WhatsApp</div>
+          <div>• <strong>${s.renewalTasksCount}</strong> tarefas de renovação</div>
+          <div>• <strong>${s.pipelineCardsCount}</strong> cards no funil comercial</div>
+          <div>• <strong>${s.claimsCount}</strong> sinistros em aberto</div>
+          <div class="col-span-2 text-violet-300 font-bold">• <strong>${s.policiesCount}</strong> apólices sob responsabilidade direta</div>
+        `;
+      } catch (e) {
+        content.innerHTML = `<div class="col-span-2 text-rose-400 text-xs">Erro: ${e.message}</div>`;
+      }
+    }
+
+    async function handleExecuteTransferPortfolio() {
+      const fromUserId = document.getElementById('transfer-from-user').value;
+      const toUserId = document.getElementById('transfer-to-user').value;
+      const deactivate = Boolean(document.getElementById('transfer-deactivate-user').checked);
+      const btn = document.getElementById('btn-execute-transfer');
+
+      if (!fromUserId || !toUserId) {
+        alert('Selecione o corretor de origem e o corretor de destino.');
+        return;
+      }
+      if (fromUserId === toUserId) {
+        alert('O corretor de origem e o corretor de destino não podem ser o mesmo usuário.');
+        return;
+      }
+
+      if (!confirm('Confirma a transferência completa da carteira deste corretor? Esta ação é atômica e irreversível.')) {
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Transferindo...';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/users/${fromUserId}/transfer-portfolio`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({ toUserId, deactivate })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro ao transferir carteira');
+
+        const t = data.transferred;
+        alert(`✅ Carteira transferida com sucesso!\n• Conversas: ${t.conversations}\n• Renovações: ${t.renewals}\n• Funil: ${t.pipelineCards}\n• Sinistros: ${t.claims}\n• Apólices: ${t.policies}`);
+        closeModal('modal-transfer-portfolio');
+        loadTeamData();
+      } catch (err) {
+        alert('Falha na transferência: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i><span>Confirmar e Transferir</span>';
+        lucide.createIcons();
+      }
+    }
+
+    // =========================================================================
+    // RELATÓRIO MENSAL DE RENOVAÇÕES & MOTIVOS DE PERDA (RODADA 7)
+    // =========================================================================
+    async function loadRenewalsReport(month) {
+      const monthInput = document.getElementById('renewals-report-month');
+      const targetMonth = month || monthInput.value || new Date().toISOString().slice(0, 7);
+      if (monthInput && !monthInput.value) monthInput.value = targetMonth;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/renewals/report?month=${targetMonth}`, {
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro ao carregar relatório');
+
+        document.getElementById('rep-ren-rate').innerText = `${data.retentionRate}%`;
+        document.getElementById('rep-ren-total').innerText = data.totalPoliciesExpired;
+        document.getElementById('rep-ren-renewed').innerText = data.totalRenewed;
+        document.getElementById('rep-ren-lost').innerText = data.totalLost;
+
+        const fi = data.financialImpact || {};
+        document.getElementById('rep-ren-lost-prem').innerText = Number(fi.lostPremium || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        document.getElementById('rep-ren-lost-comm').innerText = Number(fi.lostCommission || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+        // Breakdown de perdas por motivo
+        const breakdownEl = document.getElementById('rep-losses-breakdown');
+        const losses = data.lossesByReason || [];
+        if (data.totalLost === 0) {
+          breakdownEl.innerHTML = '<div class="text-slate-500 text-center py-4">Nenhuma apólice perdida neste mês. Retenção exemplar!</div>';
+        } else {
+          breakdownEl.innerHTML = losses.map(l => `
+            <div>
+              <div class="flex items-center justify-between text-[11px] mb-1">
+                <span class="text-slate-300 font-medium">${l.label}</span>
+                <span class="font-mono text-rose-400 font-bold">${l.count} (${l.percentage}%)</span>
+              </div>
+              <div class="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
+                <div class="bg-rose-500 h-1.5 rounded-full" style="width: ${l.percentage}%"></div>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        // Tabela por corretor
+        const brokerTbody = document.getElementById('rep-brokers-table-body');
+        const brokers = data.byBroker || [];
+        if (brokers.length === 0) {
+          brokerTbody.innerHTML = '<tr><td colspan="5" class="py-3 text-center text-slate-500">Sem apólices no período.</td></tr>';
+        } else {
+          brokerTbody.innerHTML = brokers.map(b => `
+            <tr class="border-b border-white/5 hover:bg-slate-900/40">
+              <td class="py-2 font-bold text-white">${b.brokerName}</td>
+              <td class="py-2 font-mono text-slate-300">${b.totalExpired}</td>
+              <td class="py-2 font-mono text-sky-400">${b.renewed}</td>
+              <td class="py-2 font-mono text-rose-400">${b.lost}</td>
+              <td class="py-2 font-mono font-bold text-right ${b.retentionRate >= 80 ? 'text-emerald-400' : (b.retentionRate >= 50 ? 'text-amber-400' : 'text-rose-400')}">
+                ${b.retentionRate}%
+              </td>
+            </tr>
+          `).join('');
+        }
+      } catch (err) {
+        console.error('Erro no relatório de renovação:', err);
+      }
+    }
+
+    async function loadRenewalTasksList() {
+      const tbody = document.getElementById('renewal-tasks-table-body');
+      if (!tbody) return;
+      tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-500">Carregando tarefas...</td></tr>';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/renewals`, {
+          headers: { Authorization: `Bearer ${currentToken}` }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro ao carregar renovações');
+
+        const tasks = data.tasks || [];
+        if (tasks.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-500">Nenhuma tarefa de renovação pendente.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = tasks.map(t => {
+          const pol = t.policy || {};
+          const isDone = t.status === 'RENEWED' || t.status === 'LOST';
+          const statusBadge = t.status === 'RENEWED'
+            ? '<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 text-emerald-400 font-bold">RENOVADA</span>'
+            : (t.status === 'LOST'
+              ? `<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-500/10 text-rose-400 font-bold" title="${t.lostReason || ''}">PERDIDA (${t.lostReason || 'OUTRO'})</span>`
+              : '<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/10 text-amber-400 font-bold">PENDENTE</span>');
+
+          return `
+            <tr class="border-b border-white/5 hover:bg-slate-800/40">
+              <td class="p-3 font-bold text-white">${pol.insured?.name || '--'}</td>
+              <td class="p-3 text-slate-300 font-mono text-xs">${pol.policyNumber || '--'} · ${pol.insurerName || '--'}</td>
+              <td class="p-3 font-mono text-xs text-slate-400">${pol.endDate ? new Date(pol.endDate).toLocaleDateString('pt-BR') : '--'}</td>
+              <td class="p-3 font-mono text-xs text-purple-400 font-bold">${t.alertWindow}</td>
+              <td class="p-3">${statusBadge}</td>
+              <td class="p-3 text-slate-400 text-xs">${t.assignedUser?.name || 'Não atribuído'}</td>
+              <td class="p-3 text-right space-x-1">
+                ${!isDone ? `
+                  <button onclick="handleMarkRenewalStatus('${t.id}', 'RENEWED')" class="px-2 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded text-[10px] font-mono font-bold">Renovar</button>
+                  <button onclick="openRenewalLostModal('${t.id}')" class="px-2 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded text-[10px] font-mono font-bold">Perdida</button>
+                ` : '<span class="text-[10px] font-mono text-slate-500">Concluída</span>'}
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-rose-400">Erro: ${e.message}</td></tr>`;
+      }
+    }
+
+    function openRenewalLostModal(taskId) {
+      document.getElementById('lost-renewal-task-id').value = taskId;
+      document.getElementById('lost-renewal-reason').value = '';
+      document.getElementById('lost-renewal-notes').value = '';
+      document.getElementById('modal-renewal-lost').classList.remove('hidden');
+    }
+
+    async function handleConfirmRenewalLost() {
+      const taskId = document.getElementById('lost-renewal-task-id').value;
+      const lostReason = document.getElementById('lost-renewal-reason').value;
+      const lostNotes = document.getElementById('lost-renewal-notes').value.trim();
+
+      if (!lostReason) {
+        alert('O motivo da perda (lostReason) é obrigatório ao marcar uma renovação como perdida.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/renewals/${taskId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({
+            status: 'LOST',
+            lostReason,
+            lostNotes: lostNotes || undefined
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro ao registrar perda');
+        closeModal('modal-renewal-lost');
+        loadRenewalTasksList();
+        loadRenewalsReport();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function handleMarkRenewalStatus(taskId, status) {
+      try {
+        const res = await fetch(`${API_BASE}/api/renewals/${taskId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${currentToken}`
+          },
+          body: JSON.stringify({ status })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Erro ao atualizar status');
+        loadRenewalTasksList();
+        loadRenewalsReport();
+      } catch (err) {
+        alert(err.message);
       }
     }
   </script>

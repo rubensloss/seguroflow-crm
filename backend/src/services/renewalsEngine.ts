@@ -3,6 +3,7 @@ import { RenewalWindow } from "@prisma/client";
 import {
   sendWhatsAppTextMessage,
   sendWhatsAppTemplateMessage,
+  isWithinCustomer24hWindow,
   TemplateComponent,
 } from "./whatsappCloud";
 import { decryptSensitive } from "../security/crypto";
@@ -179,11 +180,29 @@ async function dispatchRenewalNotification(policy: any, daysLeft: number): Promi
     if (msgId) return true;
   } catch (err) {
     console.warn(
-      `[RenewalsEngine] Template "${templateName}" falhou para ${insured.phone}. Tentando fallback de texto...`
+      `[RenewalsEngine] Template "${templateName}" falhou para ${insured.phone}. Verificando janela de 24h...`
     );
   }
 
-  // Fallback: Texto livre para janela de 24h
+  // Regra Estrita (Rodada 7): NUNCA mandar texto livre fora da janela de 24h!
+  const inWindow = await isWithinCustomer24hWindow(brokerage.id, insured.phone);
+  if (!inWindow) {
+    console.warn(
+      `[RenewalsEngine] Cliente ${insured.phone} fora da janela de 24h e template falhou. Gerando tarefa para contato manual.`
+    );
+    await prisma.pipelineCard.create({
+      data: {
+        brokerageId: brokerage.id,
+        insuredId: insured.id,
+        title: `📞 Contato Manual: Renovação ${policy.insurerName} (${insured.name})`,
+        stage: "NOVO",
+        notes: `Aviso automático de renovação (${daysLeft} dias) não pôde ser entregue via template oficial e o segurado está fora da janela de 24h do WhatsApp. Fazer contato ativo.`,
+      },
+    });
+    return false;
+  }
+
+  // Fallback seguro: Texto livre APENAS se dentro da janela de 24h
   const fallbackMessage = `Olá, *${insured.name}*!\n\nSua apólice de seguro (*${policy.insurerName}*) vencerá em *${daysLeft} dias* (${endFormatted}).\n\nNossa equipe já está preparando o estudo de renovação com as melhores condições e bônus aplicados. Podemos falar a respeito?`;
 
   try {

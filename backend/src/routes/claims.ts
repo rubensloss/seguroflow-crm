@@ -12,7 +12,11 @@ import {
   sendOtpToWhatsApp,
 } from "../services/otpService";
 import { resolveAssistance24hPhone } from "../services/insurerDirectory";
-import { sendWhatsAppTextMessage } from "../services/whatsappCloud";
+import {
+  sendWhatsAppTextMessage,
+  sendWhatsAppTemplateMessage,
+  isWithinCustomer24hWindow,
+} from "../services/whatsappCloud";
 import { decryptSensitive } from "../security/crypto";
 
 export const claimsRouter = Router();
@@ -114,6 +118,7 @@ claimsRouter.patch("/:id/status", requireAuth, async (req: Request, res: Respons
 
   const claim = await prisma.claim.findFirst({
     where: { id: req.params.id, brokerageId: req.user!.brokerageId },
+    include: { insured: true, policy: true, brokerage: true },
   });
 
   if (!claim) {
@@ -121,12 +126,102 @@ claimsRouter.patch("/:id/status", requireAuth, async (req: Request, res: Respons
     return;
   }
 
+  const oldStatus = claim.status;
+  const newStatus = (status as ClaimStatus) || oldStatus;
+  const statusChanged = status && status !== oldStatus;
+
+  let notificationNote = "";
+
+  if (statusChanged && claim.insured?.phone) {
+    const statusLabels: Record<ClaimStatus, string> = {
+      OPEN: "Aberto / Em Triagem",
+      DOCS_COLLECTED: "Documentos Recebidos",
+      FORWARDED_TO_INSURER: "Enviado à Seguradora",
+      IN_ANALYSIS: "Em Análise pela Seguradora",
+      APPROVED: "Sinistro Aprovado",
+      REJECTED: "Sinistro Recusado",
+      CLOSED: "Sinistro Concluído / Encerrado",
+    };
+
+    const friendlyStatus = statusLabels[newStatus] || newStatus;
+    const brokerage = claim.brokerage;
+
+    if (brokerage.whatsappAccessTokenEncrypted && brokerage.whatsappPhoneNumberId) {
+      const token = decryptSensitive(brokerage.whatsappAccessTokenEncrypted);
+      if (token) {
+        let sent = false;
+
+        // 1. Tenta envio via template oficial Meta
+        try {
+          const components = [
+            {
+              type: "body" as const,
+              parameters: [
+                { type: "text" as const, text: claim.insured.name },
+                { type: "text" as const, text: friendlyStatus },
+                { type: "text" as const, text: claim.policy.insurerName },
+                { type: "text" as const, text: claim.policy.policyNumber },
+              ],
+            },
+          ];
+
+          const msgId = await sendWhatsAppTemplateMessage(
+            claim.insured.phone,
+            "sinistro_status_update",
+            "pt_BR",
+            components,
+            brokerage.whatsappPhoneNumberId,
+            token
+          );
+          if (msgId) sent = true;
+        } catch (templateErr) {
+          console.warn("[Claims] Template sinistro_status_update falhou. Verificando janela 24h...");
+        }
+
+        // 2. Se template falhar: só manda texto se estiver na janela de 24h!
+        if (!sent) {
+          const inWindow = await isWithinCustomer24hWindow(brokerage.id, claim.insured.phone);
+          if (inWindow) {
+            const fallbackText = `Olá, *${claim.insured.name}*!\n\nAtualização do seu sinistro da apólice *${claim.policy.policyNumber}* (*${claim.policy.insurerName}*):\n\nNovo status: *${friendlyStatus}*\n${description ? `Observações: ${description}\n` : ""}Nossa equipe segue acompanhando todo o processo para você!`;
+            try {
+              await sendWhatsAppTextMessage(claim.insured.phone, fallbackText, brokerage.whatsappPhoneNumberId, token);
+              sent = true;
+            } catch (err) {
+              console.error("[Claims] Erro ao enviar fallback no WhatsApp:", err);
+            }
+          } else {
+            notificationNote = ` [Aviso WhatsApp: Segurado fora da janela de 24h — template não entregue, contatar manualmente]`;
+            await prisma.pipelineCard.create({
+              data: {
+                brokerageId: brokerage.id,
+                insuredId: claim.insured.id,
+                title: `Avisar Sinistro (${friendlyStatus}): ${claim.insured.name}`,
+                stage: "NOVO",
+                notes: `Status do sinistro alterado para "${friendlyStatus}". Como o cliente está fora da janela de 24h do WhatsApp, contatar ativamente.`,
+              },
+            });
+          }
+        }
+
+        if (sent) {
+          notificationNote = ` [Notificação enviada ao WhatsApp do segurado em ${new Date().toLocaleTimeString("pt-BR")}]`;
+        }
+      }
+    }
+  }
+
+  const updatedDesc = description
+    ? `${claim.description}\n[Atualização ${newStatus}]: ${description}${notificationNote}`
+    : notificationNote
+    ? `${claim.description}\n[Status]: ${newStatus}${notificationNote}`
+    : claim.description;
+
   const updated = await prisma.claim.update({
     where: { id: claim.id },
     data: {
-      status: status || undefined,
+      status: newStatus,
       assignedUserId: assignedUserId || undefined,
-      description: description ? `${claim.description}\n[Atualização]: ${description}` : undefined,
+      description: updatedDesc,
     },
   });
 
@@ -135,7 +230,7 @@ claimsRouter.patch("/:id/status", requireAuth, async (req: Request, res: Respons
     userId: req.user!.userId,
     action: "UPDATE_CLAIM_STATUS",
     resource: `Claim:${updated.id}`,
-    details: { oldStatus: claim.status, newStatus: updated.status },
+    details: { oldStatus, newStatus, notificationNote },
     req,
   });
 

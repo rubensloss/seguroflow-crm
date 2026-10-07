@@ -191,6 +191,7 @@ model User {
   assignedCards  PipelineCard[]
   assignedRenewals RenewalTask[]
   assignedConversations Conversation[]
+  assignedPolicies Policy[]
   auditLogs    AuditLog[]
 
   @@index([brokerageId])
@@ -241,17 +242,20 @@ model Policy {
   commissionAmount   Decimal?        @db.Decimal(12, 2) // Valor monetário estimado de comissão
   status             PolicyStatus    @default(ACTIVE)
   itemDescription    String?         // Ex: "Corolla Cross 2024 - Placa ABC1D23"
+  assignedUserId     String?         // Corretor responsável pela apólice
   createdAt          DateTime        @default(now())
   updatedAt          DateTime        @updatedAt
 
   brokerage    Brokerage       @relation(fields: [brokerageId], references: [id], onDelete: Cascade)
   insured      Insured         @relation(fields: [insuredId], references: [id], onDelete: Cascade)
+  assignedUser User?           @relation(fields: [assignedUserId], references: [id], onDelete: SetNull)
   installments Installment[]
   claims       Claim[]
   renewals     RenewalTask[]
 
   @@index([brokerageId])
   @@index([insuredId])
+  @@index([assignedUserId])
   @@index([policyNumber])
   @@index([endDate])
   @@map("policies")
@@ -369,7 +373,8 @@ model RenewalTask {
   policyId       String
   alertWindow    RenewalWindow
   status         RenewalStatus @default(PENDING)
-  lostReason     String?       // "Preço", "Vendeu o bem", "Fechou com banco", etc.
+  lostReason     String?       // "PRECO", "VENDEU_BEM", "FECHOU_BANCO", "FECHOU_OUTRA_CORRETORA", "SEM_CONTATO", "OUTRO"
+  lostNotes      String?       // Detalhes da perda (quando OUTRO ou observação adicional)
   assignedUserId String?
   lastContactAt  DateTime?
 
@@ -491,9 +496,10 @@ model CallRecord {
   direction       CallDirection   @default(INBOUND)
   status          CallStatus      @default(COMPLETED)
   durationSeconds Int             @default(0)
-  recordingUrl    String?         // URL do áudio no provedor de telefonia
-  recordingFile   String?         // Nome do arquivo se enviado via upload manual
-  transcription   String?         @db.Text // Transcrição integral gerada via Whisper
+  recordingUrl            String?         // URL do áudio no provedor de telefonia
+  recordingFile           String?         // Nome do arquivo se enviado via upload manual
+  recordingAudioEncrypted String?         @db.Text // Cópia binária criptografada (AES-256-GCM) para reprodução protegida
+  transcription           String?         @db.Text // Transcrição integral gerada via Whisper
   summary         String?         @db.Text // Resumo executivo de 2 linhas pela IA
   intent          CallIntentType? // Intenção classificada pela IA (SINISTRO, COTACAO, RENOVACAO, etc.)
   extractedData   Json?           // Dados estruturados { insurer, policyNumber, plate, location, urgency, nextSteps }

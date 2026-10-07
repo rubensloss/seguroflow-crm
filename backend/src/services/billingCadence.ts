@@ -2,6 +2,7 @@ import { prisma } from "../config/prisma";
 import {
   sendWhatsAppTextMessage,
   sendWhatsAppTemplateMessage,
+  isWithinCustomer24hWindow,
   TemplateComponent,
 } from "./whatsappCloud";
 import { decryptSensitive } from "../security/crypto";
@@ -200,12 +201,30 @@ async function dispatchInstallmentAlert(
     }
   } catch (templateErr) {
     console.warn(
-      `[BillingCadence] Template "${templateName}" falhou para ${insured.phone}. Tentando fallback de texto... Detalhes:`,
+      `[BillingCadence] Template "${templateName}" falhou para ${insured.phone}. Verificando janela de 24h... Detalhes:`,
       templateErr instanceof Error ? templateErr.message : templateErr
     );
   }
 
-  // Fallback: Envio via texto livre caso a conversa esteja dentro da janela de 24h
+  // Regra Estrita (Rodada 7): NUNCA enviar texto livre fora da janela de 24h!
+  const inWindow = await isWithinCustomer24hWindow(brokerage.id, insured.phone);
+  if (!inWindow) {
+    console.warn(
+      `[BillingCadence] Cliente ${insured.phone} fora da janela de 24h e template falhou. Criando alerta manual para o corretor.`
+    );
+    await prisma.pipelineCard.create({
+      data: {
+        brokerageId: brokerage.id,
+        insuredId: insured.id,
+        title: `⚠️ Cobrança Manual: Parcela ${installment.installmentNumber} (${insured.name})`,
+        stage: "NOVO",
+        notes: `Alerta automático ${phase} de cobrança preventiva falhou via template oficial e o segurado está fora da janela de 24h do WhatsApp. Fazer cobrança manual.`,
+      },
+    });
+    return false;
+  }
+
+  // Fallback seguro: Envio via texto livre caso a conversa esteja dentro da janela de 24h
   let fallbackMessage = "";
   if (phase === "D-7") {
     fallbackMessage = `Olá, *${insured.name}*! Tudo bem?\n\nPassando para lembrar que a parcela ${installment.installmentNumber} do seu seguro (*${policy.insurerName}*) vence em *${dueFormatted}* no valor de *${valorFormatted}*.\n\nCódigo para pagamento:\n\`${paymentCode}\`\n\nQualquer dúvida, estamos à disposição!`;

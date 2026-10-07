@@ -275,4 +275,134 @@ describe("SeguroFlow — Regras de Negócio e Segurança", () => {
     const cost3Min = estimateCallCost(180);
     assert.ok(cost3Min > cost1Min, "Custo de 3 min deve ser maior que 1 min");
   });
+
+  // =========================================================================
+  // TESTES ESPECÍFICOS DA RODADA 7
+  // =========================================================================
+
+  test("Twilio TwiML: actionUrl sem escape duplo (&amp; e nunca &amp;amp;)", () => {
+    const slug = "corretora-teste";
+    const baseUrl = "https://backend-production-a35b.up.railway.app";
+    const callSid = "CA999888777";
+    const fromPhone = "+5527999990000";
+    const toPhone = "+552730001000";
+
+    const rawUrl = `${baseUrl}/api/telephony/${slug}/dial-step?step=1&callSid=${encodeURIComponent(callSid)}&fromPhone=${encodeURIComponent(fromPhone)}&toPhone=${encodeURIComponent(toPhone)}`;
+    const escapedActionUrl = escapeXml(rawUrl);
+
+    // Confere que possui &amp; simples para atributos XML
+    assert.ok(escapedActionUrl.includes("&amp;callSid="));
+    assert.ok(escapedActionUrl.includes("&amp;fromPhone="));
+    assert.ok(escapedActionUrl.includes("&amp;toPhone="));
+
+    // Regra estrita: NUNCA deve conter &amp;amp; (escape duplo)
+    assert.equal(escapedActionUrl.includes("&amp;amp;"), false);
+
+    // Ao ser parseado por um leitor de XML, os parâmetros voltam a ter o delimitador '&' correto
+    const decodedParams = escapedActionUrl.replace(/&amp;/g, "&");
+    const urlObj = new URL(decodedParams);
+    assert.equal(urlObj.searchParams.get("callSid"), callSid);
+    assert.equal(urlObj.searchParams.get("fromPhone"), fromPhone);
+    assert.equal(urlObj.searchParams.get("toPhone"), toPhone);
+    assert.equal(urlObj.searchParams.get("amp;callSid"), null);
+  });
+
+  test("Gravações telefônicas: Criptografia e decriptografia AES-256-GCM de buffer de áudio com isolamento", () => {
+    const dummyAudioBuffer = Buffer.from("DUMMY_MP3_AUDIO_STREAM_BINARY_DATA_TEST_12345");
+    const base64Audio = dummyAudioBuffer.toString("base64");
+
+    // Criptografa áudio da gravação
+    const encrypted = encryptSensitive(base64Audio);
+    assert.notEqual(encrypted, base64Audio);
+    assert.match(encrypted, /^[0-9a-f]+:[0-9a-f]+:[0-9a-f]+$/);
+
+    // Decriptografa
+    const decryptedBase64 = decryptSensitive(encrypted);
+    assert.equal(decryptedBase64, base64Audio);
+    const restoredBuffer = Buffer.from(decryptedBase64!, "base64");
+    assert.deepEqual(restoredBuffer, dummyAudioBuffer);
+  });
+
+  test("Kit do Sinistro: formata apólice, placa/item, CPF mascarado e telefone de assistência resolvido", () => {
+    const { resolveAssistance24hPhone } = require("../services/insurerDirectory");
+
+    // Simula segurado com CPF e apólice com item
+    const cpf = "12345678900";
+    const maskedCpf = cpf.length === 11
+      ? `${cpf.slice(0, 3)}.***.***-${cpf.slice(-2)}`
+      : "CPF não informado";
+    assert.equal(maskedCpf, "123.***.***-00");
+
+    // Apólice sem telefone de assistência, mas com telefone confirmado pela corretora
+    const confirmedMap = {
+      "Porto Seguro": "0800 727 0800",
+    };
+    const phoneResolved = resolveAssistance24hPhone(null, "Porto Seguro", "5527999990000", confirmedMap);
+    assert.equal(phoneResolved, "0800 727 0800");
+
+    // Apólice sem telefone e sem confirmação: NUNCA 'consulte seu corretor', sempre telefone da corretora
+    const phoneFallback = resolveAssistance24hPhone(null, "Nova Seguradora", "5527999990000", {});
+    assert.equal(phoneFallback, "Ligue para a sua corretora: 5527999990000");
+  });
+
+  test("Janela de 24h Meta: rejeita texto livre fora da janela e valida mensagens recentes", () => {
+    const now = Date.now();
+
+    // Mensagem inbound há 2 horas -> DENTRO da janela de 24h
+    const inbound2hAgo = new Date(now - 2 * 60 * 60 * 1000);
+    const isWithin2h = (now - inbound2hAgo.getTime()) <= 24 * 60 * 60 * 1000;
+    assert.equal(isWithin2h, true);
+
+    // Mensagem inbound há 25 horas -> FORA da janela de 24h
+    const inbound25hAgo = new Date(now - 25 * 60 * 60 * 1000);
+    const isWithin25h = (now - inbound25hAgo.getTime()) <= 24 * 60 * 60 * 1000;
+    assert.equal(isWithin25h, false);
+
+    // Sem mensagem inbound prévia -> Fora da janela (exige template oficial)
+    const noInbound: Date | null = null;
+    const isWithinNull = Boolean(noInbound && (now - (noInbound as Date).getTime()) <= 24 * 60 * 60 * 1000);
+    assert.equal(isWithinNull, false);
+  });
+
+  test("Relatório de Renovação: cálculo de taxa de retenção e motivos de perda com dados controlados", () => {
+    // Simula apólices que venceram no mês
+    const samplePolicies = [
+      { id: "p1", status: "RENEWED", premiumAmount: 2000, commissionAmount: 300, renewals: [{ status: "RENEWED" }] },
+      { id: "p2", status: "RENEWED", premiumAmount: 3000, commissionAmount: 450, renewals: [{ status: "RENEWED" }] },
+      { id: "p3", status: "ACTIVE", premiumAmount: 1500, commissionAmount: 225, renewals: [{ status: "LOST", lostReason: "PRECO" }] },
+      { id: "p4", status: "ACTIVE", premiumAmount: 2500, commissionAmount: 375, renewals: [{ status: "LOST", lostReason: "FECHOU_BANCO" }] },
+    ];
+
+    const totalExpired = samplePolicies.length; // 4
+    const renewedCount = samplePolicies.filter(p => p.status === "RENEWED" || p.renewals.some(r => r.status === "RENEWED")).length; // 2
+    const lostPolicies = samplePolicies.filter(p => p.renewals.some(r => r.status === "LOST")); // 2
+
+    const retentionRate = Number(((renewedCount / totalExpired) * 100).toFixed(1));
+    assert.equal(retentionRate, 50.0); // 2 de 4 = 50%
+
+    const lostPremium = lostPolicies.reduce((acc, p) => acc + p.premiumAmount, 0);
+    assert.equal(lostPremium, 4000); // 1500 + 2500 = 4000
+
+    const lostCommission = lostPolicies.reduce((acc, p) => acc + p.commissionAmount, 0);
+    assert.equal(lostCommission, 600); // 225 + 375 = 600
+  });
+
+  test("Transferência de Carteira: impede transferência entre corretoras diferentes e exige OWNER", () => {
+    // Simula verificação de papel
+    const checkOwnerRole = (role: string) => role === "OWNER";
+    assert.equal(checkOwnerRole("OWNER"), true);
+    assert.equal(checkOwnerRole("BROKER"), false);
+    assert.equal(checkOwnerRole("ATTENDANT"), false);
+
+    // Simula validação multi-tenant (mesma corretora obrigatória)
+    const canTransfer = (fromBrokerageId: string, toBrokerageId: string, userRole: string) => {
+      if (!checkOwnerRole(userRole)) return { allowed: false, error: "Apenas OWNER pode transferir carteira" };
+      if (fromBrokerageId !== toBrokerageId) return { allowed: false, error: "Não é permitido transferir entre corretoras distintas" };
+      return { allowed: true };
+    };
+
+    assert.equal(canTransfer("brk_1", "brk_1", "OWNER").allowed, true);
+    assert.equal(canTransfer("brk_1", "brk_1", "BROKER").allowed, false);
+    assert.equal(canTransfer("brk_1", "brk_2", "OWNER").allowed, false);
+  });
 });

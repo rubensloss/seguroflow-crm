@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../config/prisma";
 import { env } from "../config/env";
-import { decryptSensitive } from "../security/crypto";
+import { encryptSensitive, decryptSensitive } from "../security/crypto";
 import {
   validateTwilioWebhookSignature,
   handleMissedCall,
@@ -228,7 +228,7 @@ telephonyRouter.post("/:brokerageSlug/webhook", async (req: Request, res: Respon
   const recordingNotice = brokerage.telephonyRecordingNotice || "Esta ligação é gravada para agilizar o seu atendimento.";
   const baseUrl = getWebhookFullUrl(req).split("/api/telephony")[0];
   const callbackUrl = `${baseUrl}/api/telephony/${brokerageSlug}/recording-callback?callSid=${encodeURIComponent(callSid)}`;
-  const actionUrl = `${baseUrl}/api/telephony/${brokerageSlug}/dial-step?step=1&amp;callSid=${encodeURIComponent(callSid)}&amp;fromPhone=${encodeURIComponent(fromPhone)}&amp;toPhone=${encodeURIComponent(toPhone)}`;
+  const actionUrl = `${baseUrl}/api/telephony/${brokerageSlug}/dial-step?step=1&callSid=${encodeURIComponent(callSid)}&fromPhone=${encodeURIComponent(fromPhone)}&toPhone=${encodeURIComponent(toPhone)}`;
 
   const firstPhone = queue[0];
 
@@ -282,7 +282,7 @@ telephonyRouter.post("/:brokerageSlug/dial-step", async (req: Request, res: Resp
     const nextPhone = queue[step];
     const baseUrl = getWebhookFullUrl(req).split("/api/telephony")[0];
     const callbackUrl = `${baseUrl}/api/telephony/${brokerageSlug}/recording-callback?callSid=${encodeURIComponent(callSid)}`;
-    const actionUrl = `${baseUrl}/api/telephony/${brokerageSlug}/dial-step?step=${step + 1}&amp;callSid=${encodeURIComponent(callSid)}&amp;fromPhone=${encodeURIComponent(fromPhone)}&amp;toPhone=${encodeURIComponent(toPhone)}`;
+    const actionUrl = `${baseUrl}/api/telephony/${brokerageSlug}/dial-step?step=${step + 1}&callSid=${encodeURIComponent(callSid)}&fromPhone=${encodeURIComponent(fromPhone)}&toPhone=${encodeURIComponent(toPhone)}`;
 
     const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
@@ -390,15 +390,56 @@ telephonyRouter.post("/:brokerageSlug/recording-callback", async (req: Request, 
     },
   });
 
-  // Processa áudio em segundo plano (baixa e roda Whisper + Claude)
+  // Processa áudio em segundo plano (baixa com Basic Auth, salva cópia criptografada, limpa Twilio e roda Whisper + Claude)
   (async () => {
     try {
-      const audioRes = await fetch(`${recordingUrl}.mp3`);
+      let authHeader: string | undefined;
+      if (brokerage.telephonyAccountSidEncrypted && brokerage.telephonyAuthTokenEncrypted) {
+        const sid = decryptSensitive(brokerage.telephonyAccountSidEncrypted);
+        const token = decryptSensitive(brokerage.telephonyAuthTokenEncrypted);
+        if (sid && token) {
+          authHeader = `Basic ${Buffer.from(`${sid}:${token}`).toString("base64")}`;
+        }
+      }
+
+      const headers: Record<string, string> = {};
+      if (authHeader) headers["Authorization"] = authHeader;
+
+      // 1. Baixa áudio (tenta com Basic Auth exigido pela Twilio e fallback sem auth)
+      let audioRes = await fetch(`${recordingUrl}.mp3`, { headers });
+      if (!audioRes.ok && authHeader) {
+        audioRes = await fetch(`${recordingUrl}.mp3`);
+      }
+
       if (audioRes.ok) {
         const arrayBuf = await audioRes.arrayBuffer();
+        const audioBuffer = Buffer.from(arrayBuf);
+
+        // 2. Guarda cópia criptografada localmente (AES-256-GCM)
+        const encryptedAudio = encryptSensitive(audioBuffer.toString("base64"));
+        await prisma.callRecord.update({
+          where: { id: call.id },
+          data: {
+            recordingAudioEncrypted: encryptedAudio,
+          },
+        });
+
+        // 3. Apaga a gravação remota no Twilio por privacidade e segurança LGPD
+        if (authHeader) {
+          try {
+            await fetch(recordingUrl, {
+              method: "DELETE",
+              headers: { Authorization: authHeader },
+            });
+          } catch (delErr) {
+            console.warn(`[Telefonia] Falha ao deletar gravação no Twilio após cópia local:`, delErr);
+          }
+        }
+
+        // 4. Executa Whisper e extração com Claude Sonnet
         await processCallAudio({
           callRecordId: call.id,
-          audioBuffer: Buffer.from(arrayBuf),
+          audioBuffer,
           mimeType: "audio/mp3",
           durationSeconds: duration,
         });

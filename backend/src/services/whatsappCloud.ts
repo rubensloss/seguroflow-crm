@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { env } from "../config/env";
+import { prisma } from "../config/prisma";
 
 const GRAPH_BASE = `https://graph.facebook.com/${env.WHATSAPP_GRAPH_API_VERSION}`;
 
@@ -186,4 +187,29 @@ export async function testWhatsAppConnection(
 
 function cleanPhoneNumber(phone: string): string {
   return phone.replace(/\D/g, "");
+}
+
+/**
+ * Verifica se a última mensagem recebida do cliente (INBOUND) ocorreu há menos de 24 horas.
+ * Conforme política estrita da Meta: mensagens fora de 24h DEVEM ser templates aprovados.
+ */
+export async function isWithinCustomer24hWindow(brokerageId: string, phone: string): Promise<boolean> {
+  const clean = phone.replace(/\D/g, "");
+  if (!clean) return false;
+
+  const lastInbound = await prisma.message.findFirst({
+    where: {
+      direction: "INBOUND",
+      conversation: {
+        brokerageId,
+        phone: { contains: clean.slice(-8) },
+      },
+    },
+    orderBy: { sentAt: "desc" },
+    select: { sentAt: true },
+  });
+
+  if (!lastInbound) return false;
+  const elapsedMs = Date.now() - new Date(lastInbound.sentAt).getTime();
+  return elapsedMs < 24 * 60 * 60 * 1000;
 }
